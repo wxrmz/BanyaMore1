@@ -106,15 +106,17 @@ export default function Baths() {
             <div className="baths-showcase__cardShell">
               <img src={bath.image} alt={bath.name} />
               <div className="baths-showcase__cardShade" />
-              <div className="baths-showcase__cardTop">
-                <strong>{bath.price}</strong>
-              </div>
               <div className="baths-showcase__cardInfo">
                 <div>{bath.capacity}</div>
                 <h3>{bath.name}</h3>
                 <p>{bath.lead}</p>
-                <span>{isActive ? 'Открыть баню' : 'Выбрать'} →</span>
+                <span>
+                  {isActive ? 'Открыть баню' : 'Выбрать'} <b aria-hidden="true">→</b>
+                </span>
               </div>
+            </div>
+            <div className="baths-showcase__cardTop">
+              <strong>{bath.price}</strong>
             </div>
           </button>
         );
@@ -162,14 +164,16 @@ export default function Baths() {
             <div className="baths-showcase__morphPreview" aria-hidden="true">
                 <img src={selectedBath.image} alt={selectedBath.name} />
                 <div className="baths-showcase__cardShade" />
-                <div className="baths-showcase__cardTop">
-                  <strong>{selectedBath.price}</strong>
-                </div>
                 <div className="baths-showcase__cardInfo">
                   <div>{selectedBath.capacity}</div>
                   <h3 className={expanded === 2 ? 'is-wide-name' : undefined}>{selectedBath.name}</h3>
                   <p>{selectedBath.lead}</p>
-                  <span>Открыть баню →</span>
+                  <span>
+                    Открыть баню <b aria-hidden="true">→</b>
+                  </span>
+                </div>
+                <div className="baths-showcase__cardTop">
+                  <strong>{selectedBath.price}</strong>
                 </div>
               </div>
             <div className="baths-showcase__expandedContent">

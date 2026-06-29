@@ -3,9 +3,9 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 
 const stats = [
-  ['3', 'формата бань'],
-  ['24/7', 'работаем'],
-  ['400 ₽', 'доп. гость'],
+  ['4', 'Бани'],
+  ['24/7', 'Работаем'],
+  ['400 ₽', 'доп. гости'],
 ];
 
 export default function Hero() {
@@ -27,21 +27,26 @@ export default function Hero() {
         src="/images/20250721_204935.jpg"
         alt="Баня Море на берегу моря"
         style={{ y }}
-        className="hero-image-motion absolute inset-0 h-full w-full object-cover"
+        className="hero-image-motion absolute inset-0 h-full w-full object-cover brightness-[1.04] saturate-[1.02]"
       />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(9,8,6,0.96)_0%,rgba(9,8,6,0.76)_34%,rgba(9,8,6,0.28)_66%,rgba(9,8,6,0.78)_100%)]" />
-      <div className="absolute inset-x-0 bottom-0 h-80 bg-gradient-to-t from-[#090806] via-[#090806]/72 to-transparent" />
-      <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#090806]/90 to-transparent" />
+      <div className="absolute inset-y-0 left-0 w-[92%] bg-[linear-gradient(90deg,rgba(9,8,6,0.94)_0%,rgba(9,8,6,0.9)_22%,rgba(9,8,6,0.81)_40%,rgba(9,8,6,0.67)_54%,rgba(9,8,6,0.48)_65%,rgba(9,8,6,0.33)_74%,rgba(9,8,6,0.22)_82%,rgba(9,8,6,0.12)_89%,rgba(9,8,6,0.05)_95%,rgba(9,8,6,0)_100%)]" />
+      <div className="absolute inset-x-0 bottom-0 h-80 bg-gradient-to-t from-[#090806]/95 via-[#090806]/62 to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-44 bg-[linear-gradient(180deg,rgba(9,8,6,0.8)_0%,rgba(9,8,6,0.76)_24%,rgba(9,8,6,0.52)_58%,rgba(9,8,6,0)_100%)]" />
 
       <div className="relative z-10 flex min-h-[calc(100vh-76px)] w-full flex-col justify-end px-5 pb-8 sm:px-8 lg:px-16 lg:pb-12 2xl:px-24">
-        <div className="grid w-full gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(380px,0.55fr)] lg:items-end">
+        <div className="grid w-full gap-10 lg:grid-cols-[minmax(0,40%)_minmax(0,60%)] lg:items-end">
           <motion.div
             initial={{ y: 34, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.72, ease: 'easeOut' }}
-            className="max-w-4xl"
+            className="max-w-4xl lg:max-w-none"
           >
-            <h1 className="text-[clamp(2.75rem,5vw,6.15rem)] font-semibold leading-[0.94] text-[#f4eee4]">
+            <img
+              src="/images/photo_2025-12-27_18-34-59-Photoroom.png"
+              alt="Логотип Баня Море"
+              className="mx-auto mb-5 h-auto w-[150px] origin-bottom-right -translate-x-3 translate-y-3 scale-[1.32] drop-shadow-[0_18px_48px_rgba(0,0,0,0.64)] sm:w-[180px] lg:mb-6 lg:w-[230px] lg:scale-[1.45] 2xl:w-[280px]"
+            />
+            <h1 className="text-[clamp(2.75rem,4.5vw,6.15rem)] font-semibold leading-[0.94] text-[#f4eee4]">
               Русская баня
               <br />
               на берегу моря
@@ -49,9 +54,9 @@ export default function Hero() {
             <p className="mt-7 max-w-3xl text-xl leading-9 text-[#e0d7ca] sm:text-[1.65rem] sm:leading-[1.55]">
               Пар на дровах, морской воздух и приватный отдых во Владивостоке.
             </p>
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-10 flex -translate-y-3 flex-col gap-3 sm:flex-row">
               <a href="https://w1437834.yclients.com/" target="_blank" rel="noopener noreferrer" className="btn-primary h-16 px-8 py-0 text-[19px] leading-none">
-                Забронировать
+                <span className="inline-block scale-[1.08]">Забронировать</span>
               </a>
               <a
                 href="#about"
@@ -61,7 +66,7 @@ export default function Hero() {
                 }}
                 className="btn-secondary h-16 px-8 py-0 text-[19px] leading-none"
               >
-                О нас
+                <span className="inline-block scale-[1.08]">О нас</span>
               </a>
             </div>
           </motion.div>
@@ -70,27 +75,17 @@ export default function Hero() {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.72, delay: 0.14, ease: 'easeOut' }}
-            className="grid grid-cols-3 gap-3 rounded-lg border border-[#d6a15f]/15 bg-[#100d09]/58 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(214,161,95,0.10)] backdrop-blur-xl lg:translate-y-[84px] lg:self-end"
+            className="grid grid-cols-3 gap-3 rounded-lg border border-[#d6a15f]/15 bg-[#100d09]/58 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(214,161,95,0.10)] backdrop-blur-xl lg:relative lg:top-[-10px] lg:w-[min(100%,620px)] lg:justify-self-end lg:self-end"
           >
             {stats.map(([value, label]) => (
               <div key={label} className="text-center lg:text-left">
                 <div className="text-3xl font-bold text-[#d6a15f] sm:text-4xl">{value}</div>
-                <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b9aea0]">{label}</div>
+                <div className="mt-1 text-sm font-semibold uppercase tracking-[0.1em] text-[#b9aea0] sm:text-[15px] lg:text-base">{label}</div>
               </div>
             ))}
           </motion.div>
         </div>
 
-        <motion.a
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.7 }}
-          href="#about"
-          className="mt-10 hidden w-fit items-center gap-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#d8d0c4] transition hover:text-[#d6a15f] lg:inline-flex"
-        >
-          <span className="grid h-8 w-8 place-items-center rounded-full border border-[#d6a15f]/25 text-[#d6a15f]">↓</span>
-          Листайте вниз
-        </motion.a>
       </div>
     </section>
   );

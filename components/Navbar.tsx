@@ -11,27 +11,6 @@ const navLinks = [
   { name: 'Меню', href: '/menu_more.pdf', external: true },
 ];
 
-function LogoMark() {
-  return (
-    <span className="relative grid h-11 w-11 place-items-center overflow-hidden rounded-xl border-2 border-[#d6a15f]/55 bg-[#d6a15f]/12 text-[#f3d09b] shadow-[inset_0_1px_0_rgba(214,161,95,0.12)] transition group-hover:bg-[#d6a15f]/20">
-      <svg
-        viewBox="0 0 64 64"
-        aria-hidden="true"
-        className="h-[34px] w-[34px] translate-x-[0.5px] translate-y-[0.5px]"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="4.8"
-      >
-        <path d="M8 20c5.4-5.6 10.8-5.6 16.2 0s10.8 5.6 16.2 0 10.8-5.6 16.2 0" />
-        <path d="M8 32c5.4-5.6 10.8-5.6 16.2 0s10.8 5.6 16.2 0 10.8-5.6 16.2 0" />
-        <path d="M8 44c5.4-5.6 10.8-5.6 16.2 0s10.8 5.6 16.2 0 10.8-5.6 16.2 0" />
-      </svg>
-    </span>
-  );
-}
-
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -76,17 +55,16 @@ export default function Navbar() {
       >
         <motion.div className="absolute inset-x-0 top-0 h-px origin-left bg-[#d6a15f]" style={{ scaleX }} />
         <div className="container-custom">
-          <div className="flex h-[76px] items-center justify-between">
+          <div className="flex h-[76px] translate-x-3 items-center justify-between">
             <a
               href="#"
               onClick={(event) => {
                 event.preventDefault();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="group flex items-center gap-3"
+              className="group flex items-center"
               aria-label="Баня Море, наверх"
             >
-              <LogoMark />
               <span>
                 <span className="block font-serif text-2xl leading-none text-[#f4eee4]">Баня Море</span>
                 <span className="mt-1 block text-[11px] font-semibold uppercase tracking-[0.18em] text-[#b9aea0]">
@@ -109,18 +87,26 @@ export default function Navbar() {
                   }}
                   className="rounded-full px-4 py-2 text-[15px] font-semibold text-[#d8d0c4] transition hover:bg-[#d6a15f]/12 hover:text-[#d6a15f]"
                 >
-                  {link.name}
+                  <span className="inline-block scale-[1.08]">{link.name}</span>
                 </a>
               ))}
             </nav>
 
             <div className="flex items-center gap-3">
-              <a
-                href="tel:+79084402055"
-                className="hidden rounded-lg border border-[#d6a15f]/45 bg-[#d6a15f]/10 px-4 py-2.5 text-sm font-bold text-[#d6a15f] transition hover:bg-[#d6a15f] hover:text-[#16110c] sm:inline-flex"
-              >
-                +7 908 440 20 55
-              </a>
+              <span className="relative hidden sm:block">
+                <span
+                  aria-hidden="true"
+                  className="invisible flex h-12 items-center justify-center rounded-lg border border-[#d6a15f]/45 px-6 text-base font-extrabold"
+                >
+                  +7 908 440 20 55
+                </span>
+                <a
+                  href="tel:+79084402055"
+                  className="absolute -left-6 top-0 flex h-12 items-center justify-center rounded-lg border border-[#d6a15f]/45 bg-[#d6a15f]/10 px-6 text-[17px] font-extrabold text-[#d6a15f] transition hover:bg-[#d6a15f] hover:text-[#16110c]"
+                >
+                  +7 908 440 20 55
+                </a>
+              </span>
               <button
                 type="button"
                 onClick={() => setIsOpen((value) => !value)}

@@ -8,7 +8,9 @@ const stories = [
     number: '01',
     title: 'Приезд',
     text: 'Приезжайте к берегу и оставьте лишнее позади.',
-    image: '/images/20250721_204935.jpg',
+    image: '/images/arrival-img-0615.png',
+    imageScale: 'scale-100',
+    hoverScale: 'group-hover:scale-[1.02]',
   },
   {
     number: '02',
@@ -18,8 +20,8 @@ const stories = [
   },
   {
     number: '03',
-    title: 'Терраса',
-    text: 'Выйдите, подышите, остыньте чаем и наслаждайтесь моментом.',
+    title: 'Кафе',
+    text: 'Закажите чай, кофе, закуски, чтобы продолжить отдых у моря.',
     image: '/images/20240502_210421.jpg',
   },
   {
@@ -32,7 +34,8 @@ const stories = [
     number: '05',
     title: 'Отдых',
     text: 'Оставайтесь подольше и не торопитесь обратно.',
-    image: '/images/photo-10.jpg',
+    image: '/images/rest-img-0612.png',
+    imagePosition: 'center 58%',
   },
 ];
 
@@ -119,8 +122,11 @@ export default function About() {
                       <img
                         src={story.image}
                         alt={story.title}
+                        style={{ objectPosition: story.imagePosition ?? 'center' }}
                         className={`absolute inset-0 h-full w-full object-cover transition duration-700 ${
-                          isActive ? 'scale-105 opacity-72' : 'opacity-42 grayscale-[0.12] group-hover:scale-105 group-hover:opacity-58'
+                          isActive
+                            ? `${story.imageScale ?? 'scale-105'} opacity-72`
+                            : `opacity-42 grayscale-[0.12] ${story.hoverScale ?? 'group-hover:scale-105'} group-hover:opacity-58`
                         }`}
                       />
                       <div
@@ -144,7 +150,7 @@ export default function About() {
                               isActive ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
                             }`}
                           >
-                            Нажмите еще раз
+                            <span className="inline-block origin-left scale-[1.14]">Нажмите еще раз</span>
                           </span>
                         </div>
                       </div>
@@ -157,7 +163,7 @@ export default function About() {
                 <button
                   type="button"
                   onClick={() => shift(-1)}
-                  className="text-2xl text-[#8f857a] transition hover:text-[#d6a15f]"
+                  className="grid h-12 w-12 -translate-y-0.5 place-items-center text-5xl leading-none text-[#8f857a] transition hover:text-[#d6a15f]"
                   aria-label="Предыдущий шаг"
                 >
                   ←
@@ -179,7 +185,7 @@ export default function About() {
                 <button
                   type="button"
                   onClick={() => shift(1)}
-                  className="text-2xl text-[#8f857a] transition hover:text-[#d6a15f]"
+                  className="grid h-12 w-12 -translate-y-0.5 place-items-center text-5xl leading-none text-[#8f857a] transition hover:text-[#d6a15f]"
                   aria-label="Следующий шаг"
                 >
                   →

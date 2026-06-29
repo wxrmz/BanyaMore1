@@ -504,21 +504,19 @@ main > footer.relative::before {
   display: block;
   height: var(--bath-card-height);
   left: 50%;
-  opacity: 0.76;
+  opacity: 1;
   overflow: hidden;
   padding: 0;
   position: absolute;
   text-align: left;
   top: var(--bath-card-top);
-  filter: brightness(0.72) saturate(0.94);
+  filter: none;
   transform: translate(var(--bath-card-x), -50%) scale(var(--bath-card-scale));
   transform-origin: center;
   transition:
-    opacity 1050ms cubic-bezier(0.16, 1, 0.3, 1),
-    filter 1050ms cubic-bezier(0.16, 1, 0.3, 1),
     transform 1050ms cubic-bezier(0.16, 1, 0.3, 1);
   width: var(--bath-card-width);
-  will-change: transform, opacity, filter;
+  will-change: transform;
 }
 
 .baths-showcase__cardShell {
@@ -528,9 +526,11 @@ main > footer.relative::before {
   box-shadow: 0 26px 90px rgba(0, 0, 0, 0.34);
   height: 100%;
   inset: 0;
+  opacity: 0.76;
   overflow: hidden;
   position: absolute;
-  transition: border-color 360ms ease, box-shadow 520ms ease;
+  filter: brightness(0.72) saturate(0.94);
+  transition: border-color 360ms ease, box-shadow 520ms ease, filter 1050ms cubic-bezier(0.16, 1, 0.3, 1), opacity 1050ms cubic-bezier(0.16, 1, 0.3, 1);
   width: 100%;
 }
 
@@ -588,6 +588,8 @@ main > footer.relative::before {
 .baths-showcase__card.is-selected .baths-showcase__cardShell {
   border-color: rgba(214, 161, 95, 0.82);
   box-shadow: 0 0 0 1px rgba(214, 161, 95, 0.16), 0 38px 110px rgba(0, 0, 0, 0.46);
+  filter: brightness(1) saturate(1);
+  opacity: 1;
 }
 
 .baths-showcase__cardShell > img {
@@ -615,11 +617,13 @@ main > footer.relative::before {
   display: flex;
   justify-content: space-between;
   left: 0;
-  padding: 28px 30px;
+  padding: 28px 32px;
+  pointer-events: none;
   position: absolute;
   right: 0;
-  top: var(--bath-expanded-top);
+  top: 0;
   transition: padding 1050ms cubic-bezier(0.16, 1, 0.3, 1) 90ms;
+  z-index: 3;
 }
 
 .baths-showcase__cardTop span {
@@ -631,13 +635,19 @@ main > footer.relative::before {
 }
 
 .baths-showcase__cardTop strong {
-  background: rgba(214, 161, 95, 0.14);
+  align-items: center;
+  background: #17110c;
+  border: 1px solid rgba(214, 161, 95, 0.45);
   border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgba(214, 161, 95, 0.12), 0 14px 36px rgba(0, 0, 0, 0.28);
   color: #d6a15f;
-  font-size: 11px;
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 800;
+  min-height: 50px;
   letter-spacing: 0.14em;
   margin-left: auto;
-  padding: 9px 12px;
+  padding: 0 24px;
   text-transform: uppercase;
   transition: opacity 700ms ease 90ms, transform 1050ms cubic-bezier(0.16, 1, 0.3, 1) 90ms;
 }
@@ -655,7 +665,7 @@ main > footer.relative::before {
 
 .baths-showcase__cardInfo div {
   color: #d6a15f;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -677,7 +687,7 @@ main > footer.relative::before {
 
 .baths-showcase__cardInfo p {
   color: #d8d0c4;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 650;
   line-height: 1.65;
   margin: 18px 0 0;
@@ -686,7 +696,7 @@ main > footer.relative::before {
 }
 
 .baths-showcase__card:not(.is-selected) .baths-showcase__cardInfo p {
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.45;
   max-width: 460px;
   white-space: nowrap;
@@ -706,18 +716,25 @@ main > footer.relative::before {
 
 .baths-showcase__card:not(.is-selected) .baths-showcase__cardInfo div,
 .baths-showcase__card:not(.is-selected) .baths-showcase__cardInfo span {
-  font-size: 11px;
+  font-size: 15px;
 }
 
 .baths-showcase__cardInfo span {
+  align-items: center;
   color: #d6a15f;
   display: inline-flex;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 800;
   letter-spacing: 0.18em;
   margin-top: 22px;
   text-transform: uppercase;
   transition: font-size 1050ms cubic-bezier(0.16, 1, 0.3, 1) 90ms, margin-top 1050ms cubic-bezier(0.16, 1, 0.3, 1) 90ms, opacity 700ms ease 90ms, transform 1050ms cubic-bezier(0.16, 1, 0.3, 1) 90ms;
+}
+
+.baths-showcase__cardInfo span b {
+  font-size: 1.55em;
+  line-height: 0.8;
+  margin-left: 8px;
 }
 
 .baths-showcase__sideArrow {
@@ -1292,6 +1309,11 @@ main > footer.relative::before {
 
   .baths-showcase__card.is-left,
   .baths-showcase__card.is-right {
+    opacity: 1;
+  }
+
+  .baths-showcase__card.is-left .baths-showcase__cardShell,
+  .baths-showcase__card.is-right .baths-showcase__cardShell {
     opacity: 0.42;
   }
 
