@@ -78,6 +78,8 @@ const FULL_DAY_TIMES = Array.from({ length: 48 }, (_, index) => {
   const minute = `${minutes % 60}`.padStart(2, '0');
   return `${hour}:${minute}`;
 });
+const VISIBLE_DAYS = 7;
+const REQUEST_DAYS = VISIBLE_DAYS + 1;
 const CLEANING_MINUTES = 30;
 
 const normalizeSlots = (slots: CalendarSlot[] = []) => {
@@ -91,12 +93,10 @@ const timeToMinutes = (time: string) => {
 };
 
 const minutesToTime = (minutes: number) => {
-  if (minutes >= 24 * 60) {
-    return '24:00';
-  }
-
-  const hours = `${Math.floor(minutes / 60)}`.padStart(2, '0');
-  const minute = `${minutes % 60}`.padStart(2, '0');
+  const dayMinutes = 24 * 60;
+  const normalizedMinutes = ((minutes % dayMinutes) + dayMinutes) % dayMinutes;
+  const hours = `${Math.floor(normalizedMinutes / 60)}`.padStart(2, '0');
+  const minute = `${normalizedMinutes % 60}`.padStart(2, '0');
   return `${hours}:${minute}`;
 };
 
@@ -146,7 +146,7 @@ export default function BookingCalendar() {
       setStatus('loading');
 
       try {
-        const response = await fetch(`/api/yclients/availability?from=${weekStart}&days=7`, {
+        const response = await fetch(`/api/yclients/availability?from=${weekStart}&days=${REQUEST_DAYS}`, {
           cache: 'no-store',
         });
         const payload = (await response.json()) as AvailabilityResponse;
@@ -202,8 +202,31 @@ export default function BookingCalendar() {
 
   const selectedBath = useMemo(() => baths.find((bath) => bath.id === selectedBathId) ?? baths[0], [baths, selectedBathId]);
   const days = selectedBath?.days ?? [];
-  const selectedDay = useMemo(() => days.find((day) => day.date === selectedDate) ?? days[0], [days, selectedDate]);
+  const visibleDays = useMemo(() => days.slice(0, VISIBLE_DAYS), [days]);
+  const selectedDay = useMemo(() => visibleDays.find((day) => day.date === selectedDate) ?? visibleDays[0] ?? days[0], [days, visibleDays, selectedDate]);
+  const selectedDayIndex = useMemo(() => days.findIndex((day) => day.date === selectedDay?.date), [days, selectedDay?.date]);
   const selectedSlots = useMemo(() => normalizeSlots(selectedDay?.slots), [selectedDay]);
+  const selectedSlotsByOffset = useMemo(() => {
+    const slotsByOffset = new Map<number, CalendarSlot>();
+
+    if (selectedDayIndex < 0) {
+      return slotsByOffset;
+    }
+
+    [0, 1].forEach((dayOffset) => {
+      const day = days[selectedDayIndex + dayOffset];
+
+      if (!day) {
+        return;
+      }
+
+      normalizeSlots(day.slots).forEach((slot) => {
+        slotsByOffset.set(dayOffset * 24 * 60 + timeToMinutes(slot.time), slot);
+      });
+    });
+
+    return slotsByOffset;
+  }, [days, selectedDayIndex]);
   const selectedSlot = useMemo(
     () => selectedSlots.find((slot) => slot.time === selectedStartTime),
     [selectedSlots, selectedStartTime],
@@ -214,17 +237,18 @@ export default function BookingCalendar() {
     }
 
     const start = timeToMinutes(selectedStartTime);
+    const minimumDuration = selectedBath.bookingServices[0]?.durationMinutes ?? 120;
 
     return selectedBath.bookingServices.filter((service) => {
+      if (service.durationMinutes <= minimumDuration) {
+        return selectedSlot?.available && selectedSlot.canStartBooking !== false;
+      }
+
       const end = start + service.durationMinutes;
       const requiredEnd = end + CLEANING_MINUTES;
 
-      if (requiredEnd > 24 * 60) {
-        return false;
-      }
-
       for (let cursor = start; cursor < requiredEnd; cursor += 30) {
-        const slot = selectedSlots.find((item) => item.time === minutesToTime(cursor));
+        const slot = selectedSlotsByOffset.get(cursor);
 
         if (!slot?.available) {
           return false;
@@ -233,7 +257,7 @@ export default function BookingCalendar() {
 
       return true;
     });
-  }, [selectedBath, selectedSlots, selectedStartTime]);
+  }, [selectedBath, selectedSlot, selectedSlotsByOffset, selectedStartTime]);
   const selectedService = useMemo(
     () => durationOptions.find((service) => service.durationMinutes === selectedDurationMinutes) ?? durationOptions[0],
     [durationOptions, selectedDurationMinutes],
@@ -357,7 +381,7 @@ export default function BookingCalendar() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                className="grid min-h-[520px] place-items-center text-center lg:min-h-[555px]"
+                className="grid min-h-[500px] place-items-center text-center lg:min-h-[530px]"
               >
                 <div>
                   <div className="mx-auto h-12 w-12 animate-spin rounded-full border-2 border-[#d6a15f]/35 border-t-[#d6a15f]" />
@@ -408,16 +432,16 @@ export default function BookingCalendar() {
                         onClick={() => {
                           setSelectedBathId(bath.id);
                           setSelectedDate((currentDate) =>
-                            bath.days.some((day) => day.date === currentDate) ? currentDate : bath.days[0]?.date ?? '',
+                            bath.days.slice(0, VISIBLE_DAYS).some((day) => day.date === currentDate) ? currentDate : bath.days[0]?.date ?? '',
                           );
                         }}
-                        className={`rounded-xl border px-5 py-5 text-left transition ${
+                        className={`flex h-[68px] items-center justify-center rounded-xl border px-5 text-center transition ${
                           isActive
                             ? 'border-[#d6a15f]/90 bg-[#d6a15f] text-[#15110d] shadow-[0_14px_34px_rgba(214,161,95,0.22)]'
                             : 'border-[#d6a15f]/55 bg-[#21170f]/45 text-[#f4eee4] hover:border-[#d6a15f]/80'
                         }`}
                       >
-                        <span className="block text-[21px] font-extrabold leading-tight">{bath.title}</span>
+                        <span className="block text-[22px] font-extrabold leading-tight">{bath.title}</span>
                       </button>
                     );
                   })}
@@ -446,7 +470,7 @@ export default function BookingCalendar() {
                     ‹
                   </button>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
-                    {days.map((day) => {
+                    {visibleDays.map((day) => {
                       const isActive = day.date === selectedDay.date;
 
                       return (
@@ -560,7 +584,7 @@ export default function BookingCalendar() {
                       <div key={group.id}>
                         <div className="mb-4 flex items-center justify-between">
                           <h3 className="font-sans text-[21px] font-extrabold leading-none text-[#f4eee4]">{group.title}</h3>
-                          <span className="text-[14px] font-bold uppercase tracking-[0.12em] text-[#bfa06d]">
+                          <span className="text-[17px] font-extrabold uppercase tracking-[0.08em] text-[#bfa06d]">
                             {group.from}-{group.to}
                           </span>
                         </div>
