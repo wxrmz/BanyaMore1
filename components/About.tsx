@@ -7,7 +7,7 @@ const stories = [
   {
     number: '01',
     title: 'Приезд',
-    text: 'Приезжайте к берегу и оставьте лишнее позади.',
+    text: 'Приезжайте и оставьте лишнее позади',
     image: '/images/arrival-img-0615.png',
     imagePosition: '39% center',
     imageScale: 'scale-100',
@@ -16,25 +16,25 @@ const stories = [
   {
     number: '02',
     title: 'Пар',
-    text: 'Честный жар и аромат дерева наполняют тело легкостью.',
+    text: 'Честный жар и аромат дерева наполняют тело легкостью',
     image: '/images/20211117_183306.jpg',
   },
   {
     number: '03',
     title: 'Кафе',
-    text: 'Закажите чай, кофе, закуски, чтобы продолжить отдых у моря.',
+    text: 'Закажите чай, кофе, закуски, чтобы продолжить отдых у моря',
     image: '/images/20240502_210421.jpg',
   },
   {
     number: '04',
     title: 'Море',
-    text: 'Ощущайте ветер и вид на горизонт рядом с парной.',
+    text: 'Ощущайте ветер и вид на горизонт рядом с парной',
     image: '/images/20210509_200041.jpg',
   },
   {
     number: '05',
     title: 'Отдых',
-    text: 'Оставайтесь подольше и не торопитесь обратно.',
+    text: 'Оставайтесь подольше и не торопитесь обратно',
     image: '/images/rest-img-0612.png',
     imagePosition: 'center 58%',
   },
@@ -45,8 +45,14 @@ export default function About() {
   const isInView = useInView(ref, { once: true, margin: '-120px' });
   const [active, setActive] = useState(0);
   const [viewer, setViewer] = useState<number | null>(null);
+  const [autoplayResumeAt, setAutoplayResumeAt] = useState(0);
+
+  const pauseAutoplay = () => {
+    setAutoplayResumeAt(Date.now() + 10000);
+  };
 
   const shift = (direction: -1 | 1) => {
+    pauseAutoplay();
     setActive((value) => (value + direction + stories.length) % stories.length);
   };
 
@@ -55,12 +61,13 @@ export default function About() {
       return;
     }
 
-    const timer = window.setInterval(() => {
+    const delay = autoplayResumeAt > Date.now() ? autoplayResumeAt - Date.now() : 4200;
+    const timer = window.setTimeout(() => {
       setActive((value) => (value + 1) % stories.length);
-    }, 4200);
+    }, delay);
 
-    return () => window.clearInterval(timer);
-  }, [viewer]);
+    return () => window.clearTimeout(timer);
+  }, [active, autoplayResumeAt, viewer]);
 
   return (
     <>
@@ -112,6 +119,7 @@ export default function About() {
                           setViewer(index);
                           return;
                         }
+                        pauseAutoplay();
                         setActive(index);
                       }}
                       className={`about-carousel-card group relative min-h-[400px] overflow-hidden rounded-lg border text-left sm:min-h-[470px] md:min-h-[545px] xl:min-h-[590px] ${
@@ -176,7 +184,10 @@ export default function About() {
                       <button
                         key={story.number}
                         type="button"
-                        onClick={() => setActive(index)}
+                        onClick={() => {
+                          pauseAutoplay();
+                          setActive(index);
+                        }}
                         className={`h-[2px] flex-1 transition ${active === index ? 'bg-[#d6a15f]' : 'bg-[#3a3026] hover:bg-[#d6a15f]/45'}`}
                         aria-label={`Перейти к шагу ${story.number}`}
                       />

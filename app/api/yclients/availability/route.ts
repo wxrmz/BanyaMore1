@@ -200,6 +200,9 @@ const makeDayTimes = () => {
   return result;
 };
 
+const countBookableSlots = (slots: PublicSlot[]) =>
+  slots.filter((slot) => slot.available && slot.canStartBooking !== false).length;
+
 const normalizeEnvelope = <T>(payload: YclientsEnvelope<T> | T): T => {
   if (payload && typeof payload === 'object' && 'data' in payload) {
     return (payload as YclientsEnvelope<T>).data as T;
@@ -362,6 +365,8 @@ async function fetchFreeSlots(date: string, services: Awaited<ReturnType<typeof 
   );
 
   let taskIndex = 0;
+  let successfulRequests = 0;
+  let failedRequests = 0;
 
   services.forEach((service) => {
     staffCandidates.forEach((person) => {
@@ -369,6 +374,13 @@ async function fetchFreeSlots(date: string, services: Awaited<ReturnType<typeof 
         const payload = await fetchYclients<RawTimeSlot[] | { times?: RawTimeSlot[]; slots?: RawTimeSlot[] }>(
           `/book_times/${COMPANY_ID}/${person.id}/${date}?service_ids[]=${service.id}`,
         );
+
+        if (!payload) {
+          failedRequests += 1;
+          return;
+        }
+
+        successfulRequests += 1;
         const rawSlots = Array.isArray(payload) ? payload : payload?.times ?? payload?.slots ?? [];
 
         rawSlots.forEach((slot) => {
@@ -395,22 +407,34 @@ async function fetchFreeSlots(date: string, services: Awaited<ReturnType<typeof 
 
   await runPool(tasks, 4);
 
+  if (failedRequests > 0 || successfulRequests === 0) {
+    throw new Error(`YCLIENTS availability request failed for ${date}`);
+  }
+
   return slots;
 }
 
-function buildActualAvailabilitySlots(freeStartSlots: Map<string, PublicSlot>, durationMinutes: number) {
+function buildActualAvailabilitySlotDays(freeStartSlotsByDay: Map<string, PublicSlot>[], durationMinutes: number) {
   const dayTimes = makeDayTimes();
-  const startAvailability = dayTimes.map((time) => freeStartSlots.has(time));
+  const dayLength = dayTimes.length;
+  const startAvailability = freeStartSlotsByDay.flatMap((freeStartSlots) => dayTimes.map((time) => freeStartSlots.has(time)));
 
   if (startAvailability.every((available) => !available)) {
-    return dayTimes.map((time) => ({ time, available: false, canStartBooking: false, status: 'busy' as const }));
+    return freeStartSlotsByDay.map(() =>
+      dayTimes.map((time) => ({ time, available: false, canStartBooking: false, status: 'busy' as const })),
+    );
   }
 
   const actualAvailability = dayTimes.map(() => true);
-  const cleaningSlots = dayTimes.map(() => false);
+  while (actualAvailability.length < startAvailability.length) {
+    actualAvailability.push(true);
+  }
+  const cleaningSlots = actualAvailability.map(() => false);
   const shiftSlots = Math.max(1, Math.round(durationMinutes / SLOT_STEP_MINUTES));
   const cleaningSlotsCount = Math.max(1, Math.round(CLEANING_MINUTES / SLOT_STEP_MINUTES));
   const requiredStartSlots = shiftSlots + cleaningSlotsCount;
+
+  const busyRuns: Array<{ start: number; endExclusive: number }> = [];
 
   for (let index = 0; index < startAvailability.length; index += 1) {
     if (startAvailability[index]) {
@@ -425,35 +449,39 @@ function buildActualAvailabilitySlots(freeStartSlots: Map<string, PublicSlot>, d
 
     const runEnd = index;
     const hasFreeBefore = runStart > 0 && startAvailability[runStart - 1];
-    const actualStart = hasFreeBefore ? Math.min(runStart + shiftSlots, dayTimes.length) : runStart;
-    const actualEnd = runEnd + 1;
+    const actualStart = hasFreeBefore ? Math.min(runStart + shiftSlots, startAvailability.length) : runStart;
+    const actualEnd = Math.max(actualStart, runEnd - cleaningSlotsCount + 1);
+
+    busyRuns.push({ start: actualStart, endExclusive: actualEnd });
 
     for (let busyIndex = actualStart; busyIndex < actualEnd; busyIndex += 1) {
       actualAvailability[busyIndex] = false;
     }
   }
 
-  for (let index = 0; index < actualAvailability.length; index += 1) {
-    if (actualAvailability[index]) {
-      continue;
-    }
+  busyRuns.forEach(({ start, endExclusive }) => {
+    for (let offset = 1; offset <= cleaningSlotsCount; offset += 1) {
+      const cleaningIndex = start - offset;
 
-    while (index + 1 < actualAvailability.length && !actualAvailability[index + 1]) {
-      index += 1;
+      if (cleaningIndex >= 0 && actualAvailability[cleaningIndex]) {
+        cleaningSlots[cleaningIndex] = true;
+      }
     }
 
     for (let offset = 1; offset <= cleaningSlotsCount; offset += 1) {
-      const cleaningIndex = index + offset;
+      const cleaningIndex = endExclusive + offset - 1;
 
       if (cleaningIndex < actualAvailability.length && actualAvailability[cleaningIndex]) {
         cleaningSlots[cleaningIndex] = true;
       }
     }
-  }
+  });
 
-  const firstFreeStart = Array.from(freeStartSlots.values())[0];
+  const firstFreeStart = freeStartSlotsByDay.find((freeStartSlots) => freeStartSlots.size > 0)?.values().next().value;
 
-  return dayTimes.map((time, index) => {
+  return freeStartSlotsByDay.map((freeStartSlots, dayIndex) =>
+    dayTimes.map((time, timeIndex) => {
+    const index = dayIndex * dayLength + timeIndex;
     const originalSlot = freeStartSlots.get(time);
 
     if (cleaningSlots[index]) {
@@ -481,7 +509,12 @@ function buildActualAvailabilitySlots(freeStartSlots: Map<string, PublicSlot>, d
           staffId: originalSlot?.staffId ?? firstFreeStart?.staffId,
         }
       : { time, available: false, canStartBooking: false, status: 'busy' as const };
-  });
+  }),
+  );
+}
+
+function buildActualAvailabilitySlots(freeStartSlots: Map<string, PublicSlot>, durationMinutes: number) {
+  return buildActualAvailabilitySlotDays([freeStartSlots], durationMinutes)[0] ?? [];
 }
 
 async function buildDay(
@@ -500,7 +533,7 @@ async function buildDay(
     date,
     label: dayLabel(date),
     weekday: weekdayLabel(date),
-    freeCount: slots.filter((slot) => slot.available).length,
+    freeCount: countBookableSlots(slots),
     slots,
   };
 }
@@ -508,7 +541,21 @@ async function buildDay(
 async function buildBathAvailability(bath: BathConfig, dates: string[]): Promise<PublicBath> {
   const service = { id: bath.serviceId, title: bath.title };
   const staff = { id: bath.staffId, name: bath.title };
-  const days = await Promise.all(dates.map((date) => buildDay(date, [service], [staff], bath.durationMinutes)));
+  const lookaheadDate = formatDate(addDays(new Date(`${dates[dates.length - 1]}T00:00:00+10:00`), 1));
+  const datesWithLookahead = [...dates, lookaheadDate];
+  const freeSlotsByDay = await Promise.all(datesWithLookahead.map((date) => fetchFreeSlots(date, [service], [staff])));
+  const slotDays = buildActualAvailabilitySlotDays(freeSlotsByDay, bath.durationMinutes);
+  const days = dates.map((date, index) => {
+    const slots = slotDays[index] ?? [];
+
+    return {
+      date,
+      label: dayLabel(date),
+      weekday: weekdayLabel(date),
+      freeCount: countBookableSlots(slots),
+      slots,
+    };
+  });
 
   return {
     id: bath.id,
@@ -550,7 +597,7 @@ function mergeBathDays(baths: PublicBath[], dates: string[]): PublicDay[] {
       date,
       label: dayLabel(date),
       weekday: weekdayLabel(date),
-      freeCount: slots.filter((slot) => slot.available).length,
+      freeCount: countBookableSlots(slots),
       slots,
     };
   });

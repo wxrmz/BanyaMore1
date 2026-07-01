@@ -68,7 +68,7 @@ export default function Gallery() {
               transition={{ duration: 0.62 }}
             >
               <div className="eyebrow text-[22px] sm:text-[24px] lg:text-[26px]">Галерея</div>
-              <h2 className="section-title mt-5 max-w-4xl">Фотографии без ровной сетки — как живой альбом места.</h2>
+              <h2 className="section-title mt-5 max-w-4xl">Фотографии без ровной сетки — как живой альбом места</h2>
             </motion.div>
 
             <motion.div

@@ -407,7 +407,7 @@ main > footer.relative::before {
 }
 
 .baths-showcase__head .eyebrow {
-  font-size: clamp(14px, 1.1vw, 17px);
+  font-size: clamp(19px, 1.45vw, 23px);
   letter-spacing: 0.24em;
 }
 

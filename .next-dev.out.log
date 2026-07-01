@@ -162,3 +162,144 @@
  GET /api/yclients/availability?from=2026-07-08&days=7 200 in 677ms (compile: 7ms, render: 670ms)
  GET /api/yclients/availability?from=2026-07-01&days=7 200 in 358ms (compile: 7ms, render: 352ms)
 ✓ Compiled in 245ms
+✓ Compiled in 273ms
+✓ Compiled in 176ms
+✓ Compiled in 209ms
+ GET / 200 in 306ms (compile: 102ms, render: 204ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 805ms (compile: 5ms, render: 800ms)
+✓ Compiled in 393ms
+✓ Compiled in 163ms
+✓ Compiled in 545ms
+✓ Compiled in 267ms
+ GET / 200 in 434ms (compile: 179ms, render: 255ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 502 in 10.7s (compile: 49ms, render: 10.7s)
+ GET / 200 in 92ms (compile: 9ms, render: 83ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 761ms (compile: 5ms, render: 756ms)
+✓ Compiled in 264ms
+✓ Compiled in 247ms
+ GET / 200 in 377ms (compile: 146ms, render: 231ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 770ms (compile: 5ms, render: 765ms)
+✓ Compiled in 240ms
+ GET / 200 in 263ms (compile: 84ms, render: 179ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 1007ms (compile: 6ms, render: 1000ms)
+✓ Compiled in 270ms
+✓ Compiled in 226ms
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 782ms (compile: 88ms, render: 694ms)
+ GET /api/yclients/availability?from=2026-07-08&days=7 200 in 1116ms (compile: 5ms, render: 1112ms)
+ GET /api/yclients/availability?from=2026-07-15&days=7 200 in 756ms (compile: 5ms, render: 751ms)
+ GET /api/yclients/availability?from=2026-07-08&days=7 200 in 319ms (compile: 7ms, render: 312ms)
+✓ Compiled in 246ms
+✓ Compiled in 192ms
+✓ Compiled in 241ms
+✓ Compiled in 221ms
+ GET /api/yclients/availability?from=2026-07-15&days=7 200 in 874ms (compile: 98ms, render: 776ms)
+ GET /api/yclients/availability?from=2026-07-08&days=7 200 in 496ms (compile: 7ms, render: 489ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 1234ms (compile: 3ms, render: 1232ms)
+ GET / 200 in 313ms (compile: 94ms, render: 219ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 1855ms (compile: 6ms, render: 1848ms)
+ GET / 200 in 79ms (compile: 8ms, render: 71ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 860ms (compile: 105ms, render: 755ms)
+✓ Compiled in 282ms
+ GET /api/yclients/availability?from=2026-07-08&days=7 502 in 10.6s (compile: 5ms, render: 10.6s)
+✓ Compiled in 327ms
+ GET / 200 in 418ms (compile: 153ms, render: 265ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 778ms (compile: 5ms, render: 773ms)
+✓ Compiled in 264ms
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 849ms (compile: 6ms, render: 842ms)
+ GET /api/yclients/availability?from=2026-07-08&days=7 200 in 767ms (compile: 7ms, render: 759ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 340ms (compile: 4ms, render: 336ms)
+✓ Compiled in 179ms
+✓ Compiled in 170ms
+✓ Compiled in 178ms
+✓ Compiled in 152ms
+✓ Compiled in 176ms
+✓ Compiled in 193ms
+✓ Compiled in 169ms
+✓ Compiled in 220ms
+✓ Compiled in 240ms
+✓ Compiled in 239ms
+✓ Compiled in 283ms
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 842ms (compile: 5ms, render: 838ms)
+✓ Compiled in 261ms
+✓ Compiled in 289ms
+✓ Compiled in 280ms
+ GET /api/yclients/availability?from=2026-07-08&days=7 200 in 844ms (compile: 4ms, render: 840ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 368ms (compile: 6ms, render: 362ms)
+ GET /api/yclients/availability?from=2026-07-08&days=7 200 in 336ms (compile: 5ms, render: 331ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 310ms (compile: 6ms, render: 304ms)
+ GET /api/yclients/availability?from=2026-07-08&days=7 200 in 348ms (compile: 5ms, render: 343ms)
+ GET /api/yclients/availability?from=2026-07-15&days=7 200 in 328ms (compile: 6ms, render: 322ms)
+ GET /api/yclients/availability?from=2026-07-22&days=7 200 in 335ms (compile: 6ms, render: 329ms)
+ GET /api/yclients/availability?from=2026-07-29&days=7 200 in 320ms (compile: 20ms, render: 300ms)
+ GET /api/yclients/availability?from=2026-08-05&days=7 200 in 320ms (compile: 5ms, render: 314ms)
+ GET /api/yclients/availability?from=2026-08-12&days=7 200 in 328ms (compile: 4ms, render: 324ms)
+ GET /api/yclients/availability?from=2026-08-05&days=7 200 in 299ms (compile: 5ms, render: 294ms)
+ GET /api/yclients/availability?from=2026-07-29&days=7 200 in 319ms (compile: 5ms, render: 315ms)
+ GET /api/yclients/availability?from=2026-07-22&days=7 200 in 453ms (compile: 6ms, render: 446ms)
+ GET /api/yclients/availability?from=2026-07-15&days=7 200 in 179ms (compile: 5ms, render: 174ms)
+ GET /api/yclients/availability?from=2026-07-08&days=7 200 in 174ms (compile: 6ms, render: 167ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 183ms (compile: 5ms, render: 178ms)
+ GET /api/yclients/availability?from=2026-07-08&days=7 200 in 177ms (compile: 5ms, render: 173ms)
+ GET /api/yclients/availability?from=2026-07-15&days=7 200 in 166ms (compile: 4ms, render: 162ms)
+ GET /api/yclients/availability?from=2026-07-22&days=7 200 in 164ms (compile: 3ms, render: 161ms)
+ GET /api/yclients/availability?from=2026-07-29&days=7 200 in 166ms (compile: 3ms, render: 163ms)
+ GET /api/yclients/availability?from=2026-08-05&days=7 200 in 158ms (compile: 5ms, render: 154ms)
+ GET /api/yclients/availability?from=2026-08-12&days=7 200 in 169ms (compile: 4ms, render: 165ms)
+ GET /api/yclients/availability?from=2026-08-19&days=7 200 in 178ms (compile: 4ms, render: 174ms)
+ GET /api/yclients/availability?from=2026-08-26&days=7 200 in 163ms (compile: 4ms, render: 160ms)
+ GET /api/yclients/availability?from=2026-09-02&days=7 200 in 166ms (compile: 4ms, render: 161ms)
+ GET /api/yclients/availability?from=2026-09-09&days=7 200 in 161ms (compile: 4ms, render: 156ms)
+ GET /api/yclients/availability?from=2026-09-02&days=7 200 in 195ms (compile: 5ms, render: 190ms)
+ GET /api/yclients/availability?from=2026-08-26&days=7 200 in 161ms (compile: 5ms, render: 157ms)
+ GET /api/yclients/availability?from=2026-08-19&days=7 200 in 368ms (compile: 5ms, render: 363ms)
+ GET /api/yclients/availability?from=2026-08-12&days=7 200 in 177ms (compile: 4ms, render: 173ms)
+ GET /api/yclients/availability?from=2026-08-05&days=7 200 in 157ms (compile: 4ms, render: 153ms)
+ GET /api/yclients/availability?from=2026-07-29&days=7 200 in 176ms (compile: 5ms, render: 172ms)
+ GET /api/yclients/availability?from=2026-07-22&days=7 200 in 175ms (compile: 5ms, render: 170ms)
+ GET /api/yclients/availability?from=2026-07-15&days=7 200 in 184ms (compile: 4ms, render: 180ms)
+ GET /api/yclients/availability?from=2026-07-08&days=7 200 in 184ms (compile: 4ms, render: 180ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 192ms (compile: 5ms, render: 187ms)
+ GET / 200 in 310ms (compile: 131ms, render: 179ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 170ms (compile: 5ms, render: 165ms)
+ GET / 200 in 93ms (compile: 9ms, render: 84ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 170ms (compile: 8ms, render: 162ms)
+ GET /api/yclients/availability?from=2026-07-08&days=7 200 in 186ms (compile: 6ms, render: 180ms)
+ GET /api/yclients/availability?from=2026-07-15&days=7 200 in 178ms (compile: 5ms, render: 173ms)
+ GET /api/yclients/availability?from=2026-07-22&days=7 200 in 182ms (compile: 5ms, render: 177ms)
+ GET /api/yclients/availability?from=2026-07-29&days=7 200 in 170ms (compile: 5ms, render: 164ms)
+ GET /api/yclients/availability?from=2026-08-05&days=7 200 in 175ms (compile: 5ms, render: 170ms)
+ GET /api/yclients/availability?from=2026-08-12&days=7 200 in 200ms (compile: 6ms, render: 194ms)
+ GET /api/yclients/availability?from=2026-08-19&days=7 200 in 166ms (compile: 4ms, render: 162ms)
+ GET /api/yclients/availability?from=2026-08-12&days=7 200 in 185ms (compile: 5ms, render: 180ms)
+ GET /api/yclients/availability?from=2026-08-05&days=7 200 in 163ms (compile: 4ms, render: 159ms)
+ GET /api/yclients/availability?from=2026-07-29&days=7 200 in 172ms (compile: 5ms, render: 166ms)
+ GET /api/yclients/availability?from=2026-07-22&days=7 200 in 178ms (compile: 4ms, render: 173ms)
+ GET /api/yclients/availability?from=2026-07-15&days=7 200 in 199ms (compile: 4ms, render: 195ms)
+ GET /api/yclients/availability?from=2026-07-08&days=7 200 in 189ms (compile: 4ms, render: 185ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 162ms (compile: 5ms, render: 157ms)
+✓ Compiled in 209ms
+ GET / 200 in 224ms (compile: 78ms, render: 146ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 807ms (compile: 100ms, render: 708ms)
+ GET /api/yclients/availability?from=2026-07-08&days=7 200 in 344ms (compile: 5ms, render: 339ms)
+ GET / 200 in 87ms (compile: 7ms, render: 80ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 722ms (compile: 4ms, render: 718ms)
+✓ Compiled in 336ms
+✓ Compiled in 261ms
+ GET /api/yclients/availability?from=2026-07-08&days=7 200 in 813ms (compile: 5ms, render: 807ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 338ms (compile: 4ms, render: 335ms)
+ GET /api/yclients/availability?from=2026-07-08&days=7 200 in 659ms (compile: 6ms, render: 653ms)
+✓ Compiled in 179ms
+✓ Compiled in 242ms
+ GET /api/yclients/availability?from=2026-07-15&days=7 502 in 10.6s (compile: 6ms, render: 10.6s)
+ GET / 200 in 334ms (compile: 140ms, render: 194ms)
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 854ms (compile: 6ms, render: 848ms)
+ GET /api/yclients/availability?from=2026-07-08&days=7 200 in 325ms (compile: 4ms, render: 320ms)
+ GET /api/yclients/availability?from=2026-07-15&days=7 200 in 358ms (compile: 4ms, render: 354ms)
+ GET /api/yclients/availability?from=2026-07-22&days=7 200 in 377ms (compile: 3ms, render: 374ms)
+ GET /api/yclients/availability?from=2026-07-15&days=7 200 in 334ms (compile: 5ms, render: 329ms)
+ GET /api/yclients/availability?from=2026-07-08&days=7 200 in 339ms (compile: 7ms, render: 333ms)
+ GET /api/yclients/availability?from=2026-07-15&days=7 200 in 359ms (compile: 5ms, render: 354ms)
+✓ Compiled in 318ms
+ GET /api/yclients/availability?from=2026-07-01&days=7 200 in 783ms (compile: 6ms, render: 777ms)
+ GET /api/yclients/availability?from=2026-07-08&days=7 200 in 764ms (compile: 5ms, render: 760ms)
+ GET /api/yclients/availability?from=2026-07-15&days=7 200 in 523ms (compile: 5ms, render: 518ms)

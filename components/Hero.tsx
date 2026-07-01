@@ -4,8 +4,8 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 
 const stats = [
   ['4', 'Бани'],
-  ['24/7', 'Работаем'],
-  ['400 ₽', 'доп. гости'],
+  ['24/7', 'Режим работы'],
+  ['400 ₽', 'доп. человек'],
 ];
 
 export default function Hero() {
@@ -93,8 +93,8 @@ export default function Hero() {
             transition={{ duration: 0.72, delay: 0.14, ease: 'easeOut' }}
             className="grid grid-cols-3 gap-3 rounded-lg border border-[#d6a15f]/15 bg-[#100d09]/58 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(214,161,95,0.10)] backdrop-blur-xl lg:relative lg:top-[-10px] lg:w-[min(100%,620px)] lg:justify-self-end lg:self-end"
           >
-            {stats.map(([value, label]) => (
-              <div key={label} className="text-center lg:text-left">
+            {stats.map(([value, label], index) => (
+              <div key={label} className={`text-center lg:text-left ${index === 1 ? 'lg:-translate-x-8' : ''}`}>
                 <div className="text-3xl font-bold text-[#d6a15f] sm:text-4xl">{value}</div>
                 <div className="mt-1 text-sm font-semibold uppercase tracking-[0.1em] text-[#b9aea0] sm:text-[15px] lg:text-base">{label}</div>
               </div>

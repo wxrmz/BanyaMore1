@@ -108,7 +108,7 @@ const formatWidgetDateTime = (date: string, time: string) => {
 
 const buildBookingUrl = (baseUrl: string, companyId: string, bath: CalendarBath, date: string, time: string, service: BookingService) => {
   const url = new URL(baseUrl);
-  url.pathname = `/company/${companyId}/create-record`;
+  url.pathname = `/company/${companyId}/personal/select-services`;
   url.searchParams.set('o', `m${bath.staffId}s${service.serviceId}d${formatWidgetDateTime(date, time)}`);
   return url.toString();
 };
@@ -117,6 +117,7 @@ export default function BookingCalendar() {
   const [baths, setBaths] = useState<CalendarBath[]>([]);
   const [selectedBathId, setSelectedBathId] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
+  const [currentDate, setCurrentDate] = useState(todayDate);
   const [weekStart, setWeekStart] = useState(todayDate);
   const [selectedStartTime, setSelectedStartTime] = useState('');
   const [selectedDurationMinutes, setSelectedDurationMinutes] = useState<number | null>(null);
@@ -124,6 +125,19 @@ export default function BookingCalendar() {
   const [companyId, setCompanyId] = useState('1300176');
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [message, setMessage] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setCurrentDate(todayDate());
+    }, 60000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    setWeekStart((value) => (value < currentDate ? currentDate : value));
+  }, [currentDate]);
 
   useEffect(() => {
     let ignore = false;
@@ -184,13 +198,12 @@ export default function BookingCalendar() {
     return () => {
       ignore = true;
     };
-  }, [weekStart]);
+  }, [weekStart, reloadKey]);
 
   const selectedBath = useMemo(() => baths.find((bath) => bath.id === selectedBathId) ?? baths[0], [baths, selectedBathId]);
   const days = selectedBath?.days ?? [];
   const selectedDay = useMemo(() => days.find((day) => day.date === selectedDate) ?? days[0], [days, selectedDate]);
   const selectedSlots = useMemo(() => normalizeSlots(selectedDay?.slots), [selectedDay]);
-  const totalFree = selectedBath?.freeCount ?? 0;
   const selectedSlot = useMemo(
     () => selectedSlots.find((slot) => slot.time === selectedStartTime),
     [selectedSlots, selectedStartTime],
@@ -232,6 +245,9 @@ export default function BookingCalendar() {
       ? buildBookingUrl(bookingUrl, companyId, selectedBath, selectedDay.date, selectedStartTime, selectedService)
       : bookingUrl;
   const hasSelectedTime = Boolean(selectedStartTime && selectedSlot?.available);
+  const isLoadingSchedule = status === 'loading';
+  const canGoBack = weekStart > currentDate && !isLoadingSchedule;
+  const canGoForward = !isLoadingSchedule;
 
   useEffect(() => {
     setSelectedStartTime('');
@@ -256,7 +272,7 @@ export default function BookingCalendar() {
   return (
     <section id="schedule" className="relative overflow-hidden bg-[#080706] pt-10 pb-14 sm:pt-12 sm:pb-16 lg:pt-16 lg:pb-20">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_18%,rgba(214,161,95,0.12),transparent_34rem),radial-gradient(circle_at_82%_44%,rgba(131,147,154,0.10),transparent_30rem)]" />
-      <div className="container-custom relative">
+      <div className="relative mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-10">
         <div className="mb-10 grid gap-7 lg:grid-cols-[1fr_auto] lg:items-end">
           <motion.div
             initial={{ y: 28, opacity: 0 }}
@@ -266,7 +282,7 @@ export default function BookingCalendar() {
           >
             <div className="eyebrow text-[22px] sm:text-[24px] lg:text-[26px]">Запись</div>
             <h2 className="section-title mt-5 max-w-4xl">
-              Свободное время у моря.
+              Свободное время у моря
             </h2>
           </motion.div>
           <motion.div
@@ -300,7 +316,7 @@ export default function BookingCalendar() {
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true, margin: '-100px' }}
             transition={{ duration: 0.58, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-            className="rounded-2xl border border-[#d6a15f]/75 bg-[#15110d] p-4 shadow-[0_20px_70px_rgba(0,0,0,0.24)] sm:p-5 lg:p-6"
+            className="rounded-2xl border border-[#d6a15f]/75 bg-[#15110d] p-5 shadow-[0_20px_70px_rgba(0,0,0,0.24)] sm:p-6 lg:p-7"
           >
             <div className="hidden">
               <div>
@@ -329,7 +345,7 @@ export default function BookingCalendar() {
                 </span>
               </div>
               <div className="inline-flex w-fit min-h-[48px] items-center rounded-xl border border-[#d6a15f]/75 bg-[#21170f]/70 px-4 text-[13px] font-extrabold uppercase tracking-[0.14em] text-[#d6a15f]">
-                {status === 'ready' ? `${totalFree} свободных окон` : status === 'loading' ? 'Обновляем расписание' : 'Расписание недоступно'}
+                {status === 'loading' ? 'Обновляем расписание' : 'Расписание недоступно'}
               </div>
             </div>
 
@@ -341,7 +357,7 @@ export default function BookingCalendar() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                className="grid min-h-[360px] place-items-center text-center"
+                className="grid min-h-[520px] place-items-center text-center lg:min-h-[555px]"
               >
                 <div>
                   <div className="mx-auto h-12 w-12 animate-spin rounded-full border-2 border-[#d6a15f]/35 border-t-[#d6a15f]" />
@@ -357,11 +373,18 @@ export default function BookingCalendar() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                className="grid min-h-[360px] place-items-center text-center"
+                className="grid min-h-[520px] place-items-center text-center lg:min-h-[555px]"
               >
                 <div className="max-w-sm">
                   <div className="text-2xl font-extrabold text-[#f4eee4]">Расписание скоро появится</div>
                   <p className="mt-4 text-base font-semibold leading-7 text-[#b9aea0]">{message}</p>
+                  <button
+                    type="button"
+                    onClick={() => setReloadKey((value) => value + 1)}
+                    className="mt-6 inline-flex min-h-[46px] items-center justify-center rounded-lg border border-[#d6a15f] bg-[#d6a15f] px-5 text-[13px] font-extrabold uppercase tracking-[0.12em] text-[#15110d] transition hover:-translate-y-0.5"
+                  >
+                    Попробовать еще раз
+                  </button>
                 </div>
               </motion.div>
             )}
@@ -374,7 +397,7 @@ export default function BookingCalendar() {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
               >
-                <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                <div className="mt-5 grid gap-3 sm:grid-cols-3">
                   {baths.map((bath) => {
                     const isActive = bath.id === selectedBath?.id;
 
@@ -388,25 +411,37 @@ export default function BookingCalendar() {
                             bath.days.some((day) => day.date === currentDate) ? currentDate : bath.days[0]?.date ?? '',
                           );
                         }}
-                        className={`rounded-xl border px-4 py-[18px] text-left transition ${
+                        className={`rounded-xl border px-5 py-5 text-left transition ${
                           isActive
                             ? 'border-[#d6a15f]/90 bg-[#d6a15f] text-[#15110d] shadow-[0_14px_34px_rgba(214,161,95,0.22)]'
                             : 'border-[#d6a15f]/55 bg-[#21170f]/45 text-[#f4eee4] hover:border-[#d6a15f]/80'
                         }`}
                       >
-                        <span className="block text-[19px] font-extrabold leading-tight">{bath.title}</span>
-                        <span className="mt-1.5 block text-[14px] font-bold leading-tight opacity-75">{bath.freeCount} свободно за 7 дней</span>
+                        <span className="block text-[21px] font-extrabold leading-tight">{bath.title}</span>
                       </button>
                     );
                   })}
                 </div>
 
-                <div className="mt-5 grid grid-cols-[44px_1fr_44px] gap-2 sm:grid-cols-[52px_1fr_52px]">
+                <div className="mt-6 grid grid-cols-[50px_1fr_50px] gap-3 sm:grid-cols-[58px_1fr_58px]">
                   <button
                     type="button"
                     aria-label="Предыдущая неделя"
-                    onClick={() => setWeekStart((current) => addDaysToDate(current, -7))}
-                    className="flex items-center justify-center rounded-lg border border-[#d6a15f]/55 bg-[#21170f]/45 text-2xl font-extrabold leading-none text-[#d6a15f] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d]"
+                    onClick={() => {
+                      if (canGoBack) {
+                        setWeekStart((current) => {
+                          const previous = addDaysToDate(current, -7);
+                          return previous < currentDate ? currentDate : previous;
+                        });
+                      }
+                    }}
+                    disabled={!canGoBack}
+                    aria-disabled={!canGoBack}
+                    className={`flex items-center justify-center rounded-lg border text-2xl font-extrabold leading-none transition ${
+                      canGoBack
+                        ? 'border-[#d6a15f]/55 bg-[#21170f]/45 text-[#d6a15f] hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d]'
+                        : 'pointer-events-none border-[#d6a15f]/18 bg-[#17110c]/35 text-[#5f5448]'
+                    }`}
                   >
                     ‹
                   </button>
@@ -419,15 +454,14 @@ export default function BookingCalendar() {
                           key={day.date}
                           type="button"
                           onClick={() => setSelectedDate(day.date)}
-                          className={`rounded-lg border px-3 py-3 text-left transition ${
+                          className={`rounded-lg border px-4 py-3.5 text-left transition ${
                             isActive
                               ? 'border-[#d6a15f]/80 bg-[#d6a15f] text-[#15110d] shadow-[0_14px_34px_rgba(214,161,95,0.22)]'
                               : 'border-[#d6a15f]/55 bg-[#21170f]/45 text-[#f4eee4] hover:border-[#d6a15f]/80'
                           }`}
                         >
-                          <span className="block text-[11px] font-extrabold uppercase tracking-[0.16em] opacity-75">{day.weekday}</span>
-                          <span className="mt-1 block text-[17px] font-extrabold">{day.label}</span>
-                          <span className="mt-2 block text-[12px] font-bold opacity-75">{day.freeCount} свободно</span>
+                          <span className="block text-[13px] font-extrabold uppercase tracking-[0.14em] opacity-75">{day.weekday}</span>
+                          <span className="mt-1 block text-[20px] font-extrabold leading-none">{day.label}</span>
                         </button>
                       );
                     })}
@@ -435,8 +469,18 @@ export default function BookingCalendar() {
                   <button
                     type="button"
                     aria-label="Следующая неделя"
-                    onClick={() => setWeekStart((current) => addDaysToDate(current, 7))}
-                    className="flex items-center justify-center rounded-lg border border-[#d6a15f]/55 bg-[#21170f]/45 text-2xl font-extrabold leading-none text-[#d6a15f] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d]"
+                    onClick={() => {
+                      if (canGoForward) {
+                        setWeekStart((current) => addDaysToDate(current, 7));
+                      }
+                    }}
+                    disabled={!canGoForward}
+                    aria-disabled={!canGoForward}
+                    className={`flex items-center justify-center rounded-lg border text-2xl font-extrabold leading-none transition ${
+                      canGoForward
+                        ? 'border-[#d6a15f]/55 bg-[#21170f]/45 text-[#d6a15f] hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d]'
+                        : 'pointer-events-none border-[#d6a15f]/18 bg-[#17110c]/35 text-[#5f5448]'
+                    }`}
                   >
                     ›
                   </button>
@@ -508,15 +552,15 @@ export default function BookingCalendar() {
                   )}
                 </AnimatePresence>
 
-                <div className="mt-6 grid gap-5 xl:grid-cols-4">
+                <div className="mt-7 grid gap-8 xl:grid-cols-4 xl:gap-8 2xl:gap-9">
                   {SLOT_GROUPS.map((group) => {
                     const slots = selectedSlots.filter((slot) => isInRange(slot.time, group.from, group.to));
 
                     return (
                       <div key={group.id}>
-                        <div className="mb-3 flex items-center justify-between">
-                          <h3 className="font-sans text-lg font-extrabold text-[#f4eee4]">{group.title}</h3>
-                          <span className="text-[12px] font-bold uppercase tracking-[0.14em] text-[#bfa06d]">
+                        <div className="mb-4 flex items-center justify-between">
+                          <h3 className="font-sans text-[21px] font-extrabold leading-none text-[#f4eee4]">{group.title}</h3>
+                          <span className="text-[14px] font-bold uppercase tracking-[0.12em] text-[#bfa06d]">
                             {group.from}-{group.to}
                           </span>
                         </div>
@@ -537,7 +581,7 @@ export default function BookingCalendar() {
                               }}
                               disabled={!isBookable}
                               aria-disabled={!isBookable}
-                              className={`group min-h-[58px] rounded-lg border px-3 py-2 transition-colors duration-300 ease-out ${
+                              className={`group min-h-[64px] rounded-lg border px-4 py-2.5 transition-colors duration-300 ease-out ${
                                 isSelected
                                   ? 'border-[#d6a15f] bg-[#d6a15f] text-[#15110d] shadow-[0_14px_34px_rgba(214,161,95,0.18)]'
                                   : isBookable
@@ -549,7 +593,7 @@ export default function BookingCalendar() {
                                   : 'pointer-events-none border-[#d6a15f]/24 bg-[#17110c]/48 text-[#6f655b]'
                               }`}
                             >
-                              <span className="block text-[18px] font-extrabold leading-none">{slot.time}</span>
+                              <span className="block text-[20px] font-extrabold leading-none">{slot.time}</span>
                               <span
                                 className={`mt-2 block font-extrabold uppercase ${
                                   isShortFree ? 'whitespace-nowrap text-[12px] tracking-[0.01em]' : 'text-[12px] tracking-[0.06em]'
