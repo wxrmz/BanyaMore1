@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 const navLinks = [
   { name: 'О нас', href: '#about' },
   { name: 'Бани', href: '#baths' },
+  { name: 'Запись', href: '#schedule' },
   { name: 'Галерея', href: '#gallery' },
   { name: 'Контакты', href: '#contacts' },
   { name: 'Меню', href: '/menu_more.pdf', external: true },
@@ -37,7 +38,7 @@ export default function Navbar() {
     }
 
     const headerOffset = 76;
-    const extraDown = href === '#about' ? 38 : href === '#baths' ? 44 : href === '#gallery' ? 72 : 0;
+    const extraDown = href === '#about' ? 38 : href === '#baths' ? 44 : href === '#schedule' ? 12 : href === '#gallery' ? 72 : 0;
     const top = target.getBoundingClientRect().top + window.scrollY - headerOffset + extraDown;
 
     window.scrollTo({ top, behavior: 'smooth' });

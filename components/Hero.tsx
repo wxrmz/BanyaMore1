@@ -20,6 +20,15 @@ export default function Hero() {
     const top = target.getBoundingClientRect().top + window.scrollY - 76 + 38;
     window.scrollTo({ top, behavior: 'smooth' });
   };
+  const scrollToSchedule = () => {
+    const target = document.querySelector('#schedule');
+    if (!target) {
+      return;
+    }
+
+    const top = target.getBoundingClientRect().top + window.scrollY - 76 + 52;
+    window.scrollTo({ top, behavior: 'smooth' });
+  };
 
   return (
     <section className="hero-section relative min-h-screen overflow-hidden bg-[#090806] pt-[76px]">
@@ -55,7 +64,14 @@ export default function Hero() {
               Пар на дровах, морской воздух и приватный отдых во Владивостоке.
             </p>
             <div className="mt-10 flex -translate-y-3 flex-col gap-3 sm:flex-row">
-              <a href="https://w1437834.yclients.com/" target="_blank" rel="noopener noreferrer" className="btn-primary h-16 px-8 py-0 text-[19px] leading-none">
+              <a
+                href="#schedule"
+                onClick={(event) => {
+                  event.preventDefault();
+                  scrollToSchedule();
+                }}
+                className="btn-primary h-16 px-8 py-0 text-[19px] leading-none"
+              >
                 <span className="inline-block scale-[1.08]">Забронировать</span>
               </a>
               <a

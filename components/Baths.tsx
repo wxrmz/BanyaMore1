@@ -66,6 +66,16 @@ export default function Baths() {
     }, 320);
   };
 
+  const scrollToSchedule = () => {
+    const target = document.querySelector('#schedule');
+    if (!target) {
+      return;
+    }
+
+    const top = target.getBoundingClientRect().top + window.scrollY - 76 + 52;
+    window.scrollTo({ top, behavior: 'smooth' });
+  };
+
   const sliderClassName = [
     'baths-showcase__slider',
     `baths-showcase__slider--active-${active}`,
@@ -220,7 +230,14 @@ export default function Baths() {
                       <strong>{selectedBath.price}</strong>
                       <span>стоимость</span>
                     </div>
-                    <a href="https://w1437834.yclients.com/" target="_blank" rel="noopener noreferrer" className="btn-primary baths-showcase__bookButton">
+                    <a
+                      href="#schedule"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        scrollToSchedule();
+                      }}
+                      className="btn-primary baths-showcase__bookButton"
+                    >
                       Забронировать
                     </a>
                   </div>

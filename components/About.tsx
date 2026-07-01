@@ -9,6 +9,7 @@ const stories = [
     title: 'Приезд',
     text: 'Приезжайте к берегу и оставьте лишнее позади.',
     image: '/images/arrival-img-0615.png',
+    imagePosition: '39% center',
     imageScale: 'scale-100',
     hoverScale: 'group-hover:scale-[1.02]',
   },
@@ -205,23 +206,25 @@ export default function About() {
             className="fixed inset-0 z-[80] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md"
             onClick={() => setViewer(null)}
           >
-            <button
-              type="button"
-              onClick={() => setViewer(null)}
-              className="absolute right-5 top-5 grid h-11 w-11 place-items-center rounded-lg border border-[#6b4523]/70 bg-[#21170f]/70 text-xl text-[#f4eee4]"
-              aria-label="Закрыть изображение"
-            >
-              ×
-            </button>
             <motion.figure
               initial={{ y: 28, scale: 0.96, opacity: 0 }}
               animate={{ y: 0, scale: 1, opacity: 1 }}
               exit={{ y: 28, scale: 0.96, opacity: 0 }}
-              className="max-h-[86vh] max-w-6xl"
+              className="relative flex max-h-[92vh] w-full max-w-6xl flex-col items-center"
               onClick={(event) => event.stopPropagation()}
             >
-              <img src={stories[viewer].image} alt={stories[viewer].title} className="max-h-[78vh] w-full rounded-lg object-contain" />
-              <figcaption className="mt-4 text-center text-sm font-bold text-[#f4eee4]">{stories[viewer].title}</figcaption>
+              <div className="relative inline-flex max-h-[82vh] max-w-full items-center justify-center">
+                <img src={stories[viewer].image} alt={stories[viewer].title} className="max-h-[78vh] w-full rounded-lg object-contain" />
+                <button
+                  type="button"
+                  onClick={() => setViewer(null)}
+                  className="absolute right-3 top-3 grid h-12 w-12 place-items-center rounded-lg border border-[#d6a15f]/35 bg-[#21170f]/75 font-bold leading-none text-[#f4eee4] shadow-[0_16px_40px_rgba(0,0,0,0.34)] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d] sm:-right-16 sm:top-0 sm:h-14 sm:w-14"
+                  aria-label="Закрыть изображение"
+                >
+                  <span className="block translate-y-[-1px] text-[36px] leading-none">×</span>
+                </button>
+              </div>
+              <figcaption className="mt-5 text-center font-sans text-[clamp(1.3rem,1.85vw,2.2rem)] font-extrabold leading-tight text-[#f4eee4]">{stories[viewer].title}</figcaption>
             </motion.figure>
           </motion.div>
         )}
