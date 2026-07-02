@@ -5,7 +5,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 const stats = [
   ['4', 'Бани'],
   ['24/7', 'Режим работы'],
-  ['400 ₽', 'доп. человек'],
+  ['от 2500 ₽', 'за час'],
 ];
 
 export default function Hero() {
@@ -91,12 +91,12 @@ export default function Hero() {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.72, delay: 0.14, ease: 'easeOut' }}
-            className="grid grid-cols-3 gap-3 rounded-lg border border-[#d6a15f]/15 bg-[#100d09]/58 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(214,161,95,0.10)] backdrop-blur-xl lg:relative lg:top-[-10px] lg:w-[min(100%,620px)] lg:justify-self-end lg:self-end"
+            className="grid grid-cols-[0.72fr_1fr_1.28fr] divide-x divide-[#d6a15f]/20 rounded-lg border border-[#d6a15f]/15 bg-[#100d09]/58 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(214,161,95,0.10)] backdrop-blur-xl lg:relative lg:top-[-10px] lg:w-[min(100%,620px)] lg:justify-self-end lg:self-end"
           >
             {stats.map(([value, label], index) => (
-              <div key={label} className={`text-center lg:text-left ${index === 1 ? 'lg:-translate-x-8' : ''}`}>
-                <div className="text-3xl font-bold text-[#d6a15f] sm:text-4xl">{value}</div>
-                <div className="mt-1 text-sm font-semibold uppercase tracking-[0.1em] text-[#b9aea0] sm:text-[15px] lg:text-base">{label}</div>
+              <div key={label} className={`px-4 text-center first:pl-0 last:pr-0 lg:text-left ${index === 1 ? 'lg:pl-8' : index === 2 ? 'lg:pl-8' : ''}`}>
+                <div className="whitespace-nowrap text-3xl font-bold leading-none text-[#d6a15f] sm:text-4xl">{value}</div>
+                <div className="mt-1 text-sm font-semibold uppercase leading-tight tracking-[0.1em] text-[#b9aea0] sm:text-[15px] lg:text-base">{label}</div>
               </div>
             ))}
           </motion.div>

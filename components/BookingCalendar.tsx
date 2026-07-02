@@ -46,13 +46,19 @@ type AvailabilityResponse = {
   days?: CalendarDay[];
 };
 
-const todayDate = () => {
+const currentDateTime = () => {
   const now = new Date();
   const year = now.getFullYear();
   const month = `${now.getMonth() + 1}`.padStart(2, '0');
   const day = `${now.getDate()}`.padStart(2, '0');
-  return `${year}-${month}-${day}`;
+
+  return {
+    date: `${year}-${month}-${day}`,
+    minutes: now.getHours() * 60 + now.getMinutes(),
+  };
 };
+
+const todayDate = () => currentDateTime().date;
 
 const addDaysToDate = (date: string, amount: number) => {
   const next = new Date(`${date}T00:00:00+10:00`);
@@ -81,6 +87,7 @@ const FULL_DAY_TIMES = Array.from({ length: 48 }, (_, index) => {
 const VISIBLE_DAYS = 7;
 const REQUEST_DAYS = VISIBLE_DAYS + 1;
 const CLEANING_MINUTES = 30;
+const SLOT_INTERVAL_MINUTES = 30;
 
 const normalizeSlots = (slots: CalendarSlot[] = []) => {
   const byTime = new Map(slots.map((slot) => [slot.time, slot]));
@@ -98,6 +105,18 @@ const minutesToTime = (minutes: number) => {
   const hours = `${Math.floor(normalizedMinutes / 60)}`.padStart(2, '0');
   const minute = `${normalizedMinutes % 60}`.padStart(2, '0');
   return `${hours}:${minute}`;
+};
+
+const isPastSlotTime = (date: string, time: string, currentDate: string, currentMinutes: number) => {
+  if (date < currentDate) {
+    return true;
+  }
+
+  if (date > currentDate) {
+    return false;
+  }
+
+  return timeToMinutes(time) + SLOT_INTERVAL_MINUTES <= currentMinutes;
 };
 
 const formatWidgetDateTime = (date: string, time: string) => {
@@ -118,6 +137,7 @@ export default function BookingCalendar() {
   const [selectedBathId, setSelectedBathId] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [currentDate, setCurrentDate] = useState(todayDate);
+  const [currentMinutes, setCurrentMinutes] = useState(() => currentDateTime().minutes);
   const [weekStart, setWeekStart] = useState(todayDate);
   const [selectedStartTime, setSelectedStartTime] = useState('');
   const [selectedDurationMinutes, setSelectedDurationMinutes] = useState<number | null>(null);
@@ -128,11 +148,21 @@ export default function BookingCalendar() {
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      setCurrentDate(todayDate());
-    }, 60000);
+    let timer: number;
 
-    return () => window.clearInterval(timer);
+    const syncCurrentTime = () => {
+      const nextCurrentDateTime = currentDateTime();
+      setCurrentDate(nextCurrentDateTime.date);
+      setCurrentMinutes(nextCurrentDateTime.minutes);
+
+      const now = new Date();
+      const nextMinuteDelay = (60 - now.getSeconds()) * 1000 - now.getMilliseconds() + 100;
+      timer = window.setTimeout(syncCurrentTime, Math.max(nextMinuteDelay, 1000));
+    };
+
+    syncCurrentTime();
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -279,6 +309,17 @@ export default function BookingCalendar() {
   }, [selectedBath?.id, selectedDate]);
 
   useEffect(() => {
+    if (!selectedDay || !selectedStartTime) {
+      return;
+    }
+
+    if (isPastSlotTime(selectedDay.date, selectedStartTime, currentDate, currentMinutes)) {
+      setSelectedStartTime('');
+      setSelectedDurationMinutes(null);
+    }
+  }, [currentDate, currentMinutes, selectedDay?.date, selectedStartTime]);
+
+  useEffect(() => {
     if (!selectedStartTime) {
       return;
     }
@@ -330,7 +371,7 @@ export default function BookingCalendar() {
             </span>
             <span className="inline-flex items-center gap-2 text-[13px] font-extrabold uppercase tracking-[0.14em] text-[#b9a58a]">
               <span className="h-2.5 w-2.5 rounded-full border border-[#d6a15f]/65 bg-[#2c241c]" />
-              меньше 2 ч
+              недоступно
             </span>
           </motion.div>
         </div>
@@ -365,7 +406,7 @@ export default function BookingCalendar() {
                 </span>
                 <span className="inline-flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full border border-[#d6a15f]/65 bg-[#2c241c]" />
-                  меньше 2 ч
+                  недоступно
                 </span>
               </div>
               <div className="inline-flex w-fit min-h-[48px] items-center rounded-xl border border-[#d6a15f]/75 bg-[#21170f]/70 px-4 text-[13px] font-extrabold uppercase tracking-[0.14em] text-[#d6a15f]">
@@ -447,7 +488,7 @@ export default function BookingCalendar() {
                   })}
                 </div>
 
-                <div className="mt-6 grid grid-cols-[50px_1fr_50px] gap-3 sm:grid-cols-[58px_1fr_58px]">
+                <div className="mt-6 grid min-w-0 grid-cols-[34px_minmax(0,1fr)_34px] gap-1.5 sm:grid-cols-[58px_1fr_58px] sm:gap-3">
                   <button
                     type="button"
                     aria-label="Предыдущая неделя"
@@ -461,7 +502,7 @@ export default function BookingCalendar() {
                     }}
                     disabled={!canGoBack}
                     aria-disabled={!canGoBack}
-                    className={`flex items-center justify-center rounded-lg border text-2xl font-extrabold leading-none transition ${
+                    className={`flex min-h-[58px] items-center justify-center rounded-lg border text-2xl font-extrabold leading-none transition sm:min-h-0 ${
                       canGoBack
                         ? 'border-[#d6a15f]/55 bg-[#21170f]/45 text-[#d6a15f] hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d]'
                         : 'pointer-events-none border-[#d6a15f]/18 bg-[#17110c]/35 text-[#5f5448]'
@@ -469,7 +510,7 @@ export default function BookingCalendar() {
                   >
                     ‹
                   </button>
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
+                  <div className="scrollbar-none flex min-w-0 snap-x gap-1.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:gap-2 sm:overflow-visible sm:pb-0 md:grid-cols-4 lg:grid-cols-7">
                     {visibleDays.map((day) => {
                       const isActive = day.date === selectedDay.date;
 
@@ -478,14 +519,14 @@ export default function BookingCalendar() {
                           key={day.date}
                           type="button"
                           onClick={() => setSelectedDate(day.date)}
-                          className={`rounded-lg border px-4 py-3.5 text-left transition ${
+                          className={`min-w-[84px] snap-start rounded-lg border px-2.5 py-2.5 text-left transition sm:min-w-0 sm:px-4 sm:py-3.5 ${
                             isActive
                               ? 'border-[#d6a15f]/80 bg-[#d6a15f] text-[#15110d] shadow-[0_14px_34px_rgba(214,161,95,0.22)]'
                               : 'border-[#d6a15f]/55 bg-[#21170f]/45 text-[#f4eee4] hover:border-[#d6a15f]/80'
                           }`}
                         >
-                          <span className="block text-[13px] font-extrabold uppercase tracking-[0.14em] opacity-75">{day.weekday}</span>
-                          <span className="mt-1 block text-[20px] font-extrabold leading-none">{day.label}</span>
+                          <span className="block text-[11px] font-extrabold uppercase tracking-[0.14em] opacity-75 sm:text-[13px]">{day.weekday}</span>
+                          <span className="mt-1 block text-[16px] font-extrabold leading-none sm:text-[20px]">{day.label}</span>
                         </button>
                       );
                     })}
@@ -500,7 +541,7 @@ export default function BookingCalendar() {
                     }}
                     disabled={!canGoForward}
                     aria-disabled={!canGoForward}
-                    className={`flex items-center justify-center rounded-lg border text-2xl font-extrabold leading-none transition ${
+                    className={`flex min-h-[58px] items-center justify-center rounded-lg border text-2xl font-extrabold leading-none transition sm:min-h-0 ${
                       canGoForward
                         ? 'border-[#d6a15f]/55 bg-[#21170f]/45 text-[#d6a15f] hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d]'
                         : 'pointer-events-none border-[#d6a15f]/18 bg-[#17110c]/35 text-[#5f5448]'
@@ -583,16 +624,17 @@ export default function BookingCalendar() {
                     return (
                       <div key={group.id}>
                         <div className="mb-4 flex items-center justify-between">
-                          <h3 className="font-sans text-[21px] font-extrabold leading-none text-[#f4eee4]">{group.title}</h3>
-                          <span className="text-[17px] font-extrabold uppercase tracking-[0.08em] text-[#bfa06d]">
+                          <h3 className="font-sans text-[20px] font-extrabold leading-none text-[#f4eee4] sm:text-[21px]">{group.title}</h3>
+                          <span className="text-[15px] font-extrabold uppercase tracking-[0.06em] text-[#bfa06d] sm:text-[17px] sm:tracking-[0.08em]">
                             {group.from}-{group.to}
                           </span>
                         </div>
                         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 xl:grid-cols-2 2xl:grid-cols-3">
                           {slots.map((slot) => {
-                            const isSelected = selectedStartTime === slot.time;
-                            const isShortFree = slot.available && slot.canStartBooking === false;
-                            const isBookable = slot.available && !isShortFree;
+                            const isPastSlot = isPastSlotTime(selectedDay.date, slot.time, currentDate, currentMinutes);
+                            const isSelected = !isPastSlot && selectedStartTime === slot.time;
+                            const isShortFree = !isPastSlot && slot.available && slot.canStartBooking === false;
+                            const isBookable = !isPastSlot && slot.available && !isShortFree;
 
                             return (
                             <button
@@ -605,9 +647,11 @@ export default function BookingCalendar() {
                               }}
                               disabled={!isBookable}
                               aria-disabled={!isBookable}
-                              className={`group min-h-[64px] rounded-lg border px-4 py-2.5 transition-colors duration-300 ease-out ${
+                              className={`group relative min-h-[60px] rounded-lg border px-2.5 py-2.5 transition-colors duration-300 ease-out sm:min-h-[64px] sm:px-4 ${
                                 isSelected
                                   ? 'border-[#d6a15f] bg-[#d6a15f] text-[#15110d] shadow-[0_14px_34px_rgba(214,161,95,0.18)]'
+                                  : isPastSlot
+                                  ? 'pointer-events-none border-[#d6a15f]/12 bg-[#16110d]/24 text-[#50483f] opacity-55'
                                   : isBookable
                                   ? 'border-[#d6a15f]/75 bg-[#d6a15f]/13 text-[#f4eee4] hover:-translate-y-0.5 hover:bg-[#d6a15f] hover:text-[#15110d]'
                                   : isShortFree
@@ -617,14 +661,22 @@ export default function BookingCalendar() {
                                   : 'pointer-events-none border-[#d6a15f]/24 bg-[#17110c]/48 text-[#6f655b]'
                               }`}
                             >
-                              <span className="block text-[20px] font-extrabold leading-none">{slot.time}</span>
                               <span
-                                className={`mt-2 block font-extrabold uppercase ${
-                                  isShortFree ? 'whitespace-nowrap text-[12px] tracking-[0.01em]' : 'text-[12px] tracking-[0.06em]'
+                                className={`block text-[18px] font-extrabold leading-none sm:text-[20px] ${
+                                  isShortFree ? 'absolute left-1/2 top-[13px] -translate-x-1/2 sm:top-[14px]' : ''
                                 }`}
                               >
-                                {isSelected ? 'выбрано' : isBookable ? 'свободно' : isShortFree ? 'меньше 2ч' : slot.status === 'cleaning' ? 'уборка' : 'занято'}
+                                {slot.time}
                               </span>
+                              {!isPastSlot && (
+                                <span
+                                  className={`mt-2 block w-full text-center font-extrabold uppercase ${
+                                    isShortFree ? 'absolute left-1/2 top-[38px] mt-0 -translate-x-1/2 text-[11px] leading-none tracking-normal sm:top-[40px] sm:text-[12px]' : 'text-[11px] tracking-[0.04em] sm:text-[12px] sm:tracking-[0.06em]'
+                                  }`}
+                                >
+                                  {isSelected ? 'выбрано' : isBookable ? 'свободно' : isShortFree ? 'недоступно' : slot.status === 'cleaning' ? 'уборка' : 'занято'}
+                                </span>
+                              )}
                             </button>
                             );
                           })}

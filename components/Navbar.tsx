@@ -3,6 +3,8 @@
 import { AnimatePresence, motion, useScroll, useSpring } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
+type Theme = 'dark' | 'light';
+
 const navLinks = [
   { name: 'О нас', href: '#about' },
   { name: 'Бани', href: '#baths' },
@@ -15,8 +17,15 @@ const navLinks = [
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [theme, setTheme] = useState<Theme>('dark');
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 110, damping: 24, restDelta: 0.001 });
+
+  useEffect(() => {
+    const savedTheme = window.localStorage.getItem('banyamore-theme') === 'light' ? 'light' : 'dark';
+    setTheme(savedTheme);
+    document.documentElement.dataset.theme = savedTheme;
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 24);
@@ -44,13 +53,48 @@ export default function Navbar() {
     window.scrollTo({ top, behavior: 'smooth' });
   };
 
+  const toggleTheme = () => {
+    setTheme((currentTheme) => {
+      const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.documentElement.dataset.theme = nextTheme;
+      window.localStorage.setItem('banyamore-theme', nextTheme);
+      return nextTheme;
+    });
+  };
+
+  const renderThemeButton = () => (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      className="theme-toggle"
+      aria-label={theme === 'light' ? 'Включить тёмную тему' : 'Включить светлую тему'}
+      aria-pressed={theme === 'light'}
+      title={theme === 'light' ? 'Тёмная тема' : 'Светлая тема'}
+    >
+      <span className="theme-toggle__track" aria-hidden="true">
+        <span className="theme-toggle__icon theme-toggle__icon--sun">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12" />
+          </svg>
+        </span>
+        <span className="theme-toggle__icon theme-toggle__icon--moon">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M20.5 14.6A7.8 7.8 0 0 1 9.4 3.5a8.8 8.8 0 1 0 11.1 11.1Z" />
+          </svg>
+        </span>
+        <span className="theme-toggle__thumb" />
+      </span>
+    </button>
+  );
+
   return (
     <>
       <motion.header
         initial={{ opacity: 0, filter: 'blur(10px)' }}
         animate={{ opacity: 1, filter: 'blur(0px)' }}
         transition={{ duration: 0.42, ease: 'easeOut' }}
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+        className={`site-header fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
           isScrolled ? 'bg-[#090806]/78 shadow-[0_20px_70px_rgba(0,0,0,0.32)] backdrop-blur-2xl' : 'bg-transparent'
         }`}
       >
@@ -74,24 +118,27 @@ export default function Navbar() {
               </span>
             </a>
 
-            <nav
-              className="hidden items-center rounded-full border border-[#d6a15f]/20 bg-[#21170f]/50 px-3 py-2 shadow-[inset_0_1px_0_rgba(214,161,95,0.10),0_18px_55px_rgba(0,0,0,0.22)] backdrop-blur-xl lg:flex"
-              aria-label="Основная навигация"
-            >
-              {navLinks.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    goTo(link.href, link.external);
-                  }}
-                  className="rounded-full px-4 py-2 text-[15px] font-semibold text-[#d8d0c4] transition hover:bg-[#d6a15f]/12 hover:text-[#d6a15f]"
-                >
-                  <span className="inline-block scale-[1.08]">{link.name}</span>
-                </a>
-              ))}
-            </nav>
+            <div className="hidden items-center gap-2 lg:flex">
+              <nav
+                className="flex items-center rounded-full border border-[#d6a15f]/20 bg-[#21170f]/50 px-3 py-2 shadow-[inset_0_1px_0_rgba(214,161,95,0.10),0_18px_55px_rgba(0,0,0,0.22)] backdrop-blur-xl"
+                aria-label="Основная навигация"
+              >
+                {navLinks.map((link) => (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      goTo(link.href, link.external);
+                    }}
+                    className="rounded-full px-4 py-2 text-[15px] font-semibold text-[#d8d0c4] transition hover:bg-[#d6a15f]/12 hover:text-[#d6a15f]"
+                  >
+                    <span className="inline-block scale-[1.08]">{link.name}</span>
+                  </a>
+                ))}
+              </nav>
+              {renderThemeButton()}
+            </div>
 
             <div className="flex items-center gap-3">
               <span className="relative hidden sm:block">
@@ -108,6 +155,7 @@ export default function Navbar() {
                   +7 908 440 20 55
                 </a>
               </span>
+              <div className="lg:hidden">{renderThemeButton()}</div>
               <button
                 type="button"
                 onClick={() => setIsOpen((value) => !value)}

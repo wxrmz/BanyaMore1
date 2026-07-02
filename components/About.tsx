@@ -42,6 +42,8 @@ const stories = [
 
 export default function About() {
   const ref = useRef(null);
+  const carouselRef = useRef<HTMLDivElement | null>(null);
+  const storyRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const isInView = useInView(ref, { once: true, margin: '-120px' });
   const [active, setActive] = useState(0);
   const [viewer, setViewer] = useState<number | null>(null);
@@ -69,6 +71,20 @@ export default function About() {
     return () => window.clearTimeout(timer);
   }, [active, autoplayResumeAt, viewer]);
 
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    const activeStory = storyRefs.current[active];
+
+    if (window.innerWidth >= 768 || !carousel || !activeStory) {
+      return;
+    }
+
+    carousel.scrollTo({
+      left: activeStory.offsetLeft - (carousel.clientWidth - activeStory.clientWidth) / 2,
+      behavior: 'smooth',
+    });
+  }, [active]);
+
   return (
     <>
       <section
@@ -84,8 +100,8 @@ export default function About() {
           transition={{ duration: 0.68, ease: 'easeOut' }}
           className="relative mx-auto w-[calc(100%-24px)] overflow-hidden rounded-lg bg-transparent px-5 py-8 sm:w-[calc(100%-48px)] sm:px-8 sm:py-10 lg:w-[calc(100%-64px)] lg:px-12 lg:py-12 2xl:w-[calc(100%-88px)]"
         >
-          <div className="grid gap-10 xl:grid-cols-[minmax(320px,0.3fr)_minmax(0,1fr)] xl:items-center">
-            <div className="max-w-md xl:-translate-y-8 xl:max-w-[360px] 2xl:-translate-y-12">
+          <div className="grid min-w-0 gap-10 xl:grid-cols-[minmax(320px,0.3fr)_minmax(0,1fr)] xl:items-center">
+            <div className="min-w-0 max-w-full xl:-translate-y-8 xl:max-w-[360px] 2xl:-translate-y-12">
               <div className="eyebrow">О нас</div>
               <h2 className="mt-6 font-serif text-[clamp(3.05rem,4.45vw,5.05rem)] font-semibold leading-[0.94] text-[#f4eee4]">
                 История
@@ -105,14 +121,17 @@ export default function About() {
               </a>
             </div>
 
-            <div>
-              <div className="flex gap-3 overflow-x-auto pb-2 md:overflow-visible md:pb-0">
+            <div className="min-w-0">
+              <div ref={carouselRef} className="scrollbar-none flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto pb-2 md:overflow-visible md:pb-0">
                 {stories.map((story, index) => {
                   const isActive = active === index;
 
                   return (
                     <button
                       key={story.number}
+                      ref={(node) => {
+                        storyRefs.current[index] = node;
+                      }}
                       type="button"
                       onClick={() => {
                         if (isActive) {
@@ -122,7 +141,7 @@ export default function About() {
                         pauseAutoplay();
                         setActive(index);
                       }}
-                      className={`about-carousel-card group relative min-h-[400px] overflow-hidden rounded-lg border text-left sm:min-h-[470px] md:min-h-[545px] xl:min-h-[590px] ${
+                      className={`about-carousel-card group relative min-h-[400px] snap-center overflow-hidden rounded-lg border text-left sm:min-h-[470px] md:min-h-[545px] xl:min-h-[590px] ${
                         isActive
                           ? 'is-active border-[#d6a15f]/85 shadow-[0_0_0_1px_rgba(214,161,95,0.18),0_24px_80px_rgba(0,0,0,0.34)]'
                           : 'border-[#6b4523]/55 shadow-[0_18px_60px_rgba(0,0,0,0.22)] hover:border-[#9b6532]/80'
@@ -168,18 +187,18 @@ export default function About() {
                 })}
               </div>
 
-              <div className="mt-10 flex items-center justify-center gap-10">
+              <div className="mt-8 flex w-full items-center justify-center gap-3 sm:mt-10 sm:gap-10">
                 <button
                   type="button"
                   onClick={() => shift(-1)}
-                  className="grid h-12 w-12 -translate-y-0.5 place-items-center text-5xl leading-none text-[#8f857a] transition hover:text-[#d6a15f]"
+                  className="grid h-11 w-11 shrink-0 -translate-y-0.5 place-items-center text-4xl leading-none text-[#8f857a] transition hover:text-[#d6a15f] sm:h-12 sm:w-12 sm:text-5xl"
                   aria-label="Предыдущий шаг"
                 >
                   ←
                 </button>
-                <div className="flex items-center gap-4">
-                  <span className="text-2xl font-extrabold leading-none text-[#d6a15f]">{stories[active].number}</span>
-                  <div className="flex w-80 items-center gap-3">
+                <div className="flex min-w-0 flex-1 items-center gap-3 sm:flex-none sm:gap-4">
+                  <span className="shrink-0 text-xl font-extrabold leading-none text-[#d6a15f] sm:text-2xl">{stories[active].number}</span>
+                  <div className="flex min-w-0 flex-1 items-center gap-2 sm:w-80 sm:flex-none sm:gap-3">
                     {stories.map((story, index) => (
                       <button
                         key={story.number}
@@ -197,7 +216,7 @@ export default function About() {
                 <button
                   type="button"
                   onClick={() => shift(1)}
-                  className="grid h-12 w-12 -translate-y-0.5 place-items-center text-5xl leading-none text-[#8f857a] transition hover:text-[#d6a15f]"
+                  className="grid h-11 w-11 shrink-0 -translate-y-0.5 place-items-center text-4xl leading-none text-[#8f857a] transition hover:text-[#d6a15f] sm:h-12 sm:w-12 sm:text-5xl"
                   aria-label="Следующий шаг"
                 >
                   →
