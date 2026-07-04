@@ -273,7 +273,6 @@ export default function Baths() {
               <div className="baths-showcase__cardInfo">
                 <div>{bath.capacity}</div>
                 <h3>{bath.name}</h3>
-                <p>{bath.lead}</p>
                 <span>
                   {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true">→</b>
                 </span>
@@ -334,7 +333,6 @@ export default function Baths() {
             <div className="baths-showcase__cardInfo">
               <div>{bath.capacity}</div>
               <h3>{bath.name}</h3>
-              <p>{bath.lead}</p>
               <span>
                 {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true">→</b>
               </span>
@@ -397,7 +395,6 @@ export default function Baths() {
                 <div className="baths-showcase__cardInfo">
                   <div>{selectedBath.capacity}</div>
                   <h3 className={expanded === 2 ? 'is-wide-name' : undefined}>{selectedBath.name}</h3>
-                  <p>{selectedBath.lead}</p>
                   <span>
                     Открыть раздел <b aria-hidden="true">→</b>
                   </span>
@@ -436,7 +433,6 @@ export default function Baths() {
                   </button>
                   <div className="eyebrow">{selectedBath.capacity}</div>
                   <h3 className={expanded === 2 ? 'is-wide-name' : undefined}>{selectedBath.name}</h3>
-                  <p className="baths-showcase__lead">{selectedBath.lead}</p>
                   <p>{selectedBath.text}</p>
 
                   <div className="baths-showcase__bookingLabel">В бане</div>
