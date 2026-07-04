@@ -89,7 +89,7 @@ export default function About() {
     <>
       <section
         id="about"
-        className="about-section relative overflow-hidden bg-[#050403] pb-16 pt-14 sm:pb-20 sm:pt-16 lg:pb-24 lg:pt-20"
+        className="about-section layer-mid relative overflow-hidden bg-[#050403] pb-16 pt-14 sm:pb-20 sm:pt-16 lg:pb-24 lg:pt-20"
         ref={ref}
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_22%,rgba(214,161,95,0.10),transparent_34rem)]" />

@@ -57,11 +57,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative bg-[#090806] py-10 text-[#f4eee4] before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-[#d6a15f]/25 before:to-transparent">
-      <div
-        className="absolute left-1/2 top-0 z-10 h-px w-[min(1424px,calc(100%-92px))] -translate-x-1/2 bg-[#9b6532]"
-        aria-hidden="true"
-      />
+    <footer className="layer-footer relative bg-[#090806] py-10 text-[#f4eee4]">
       <div className="container-custom">
         <div className="grid gap-8 lg:grid-cols-[1fr_auto_auto] lg:items-start">
           <motion.div initial={{ y: 20, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.55 }}>

@@ -93,6 +93,26 @@ textarea {
   .section-title {
     @apply max-w-full text-4xl font-semibold leading-tight text-[#f4eee4] sm:text-6xl;
   }
+
+  .layer-high {
+    @apply relative z-[30] overflow-hidden rounded-b-[24px] shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:rounded-b-[32px] lg:rounded-b-[40px];
+  }
+
+  .layer-card {
+    @apply relative z-[30] overflow-hidden rounded-[24px] shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:rounded-[32px] lg:rounded-[40px];
+  }
+
+  .layer-mid {
+    @apply relative z-[20];
+  }
+
+  .layer-low {
+    @apply relative z-[20];
+  }
+
+  .layer-footer {
+    @apply relative z-[30] shadow-[0_-24px_80px_rgba(0,0,0,0.45)];
+  }
 }
 
 .theme-toggle {
@@ -735,6 +755,27 @@ main > .contacts-section::before {
   display: none;
 }
 
+main > .schedule-section::before {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(9, 8, 6, 0.24) 0%,
+      rgba(9, 8, 6, 0.07) 54%,
+      transparent 100%
+    );
+  height: 20px;
+}
+
+html[data-theme='light'] main > .schedule-section::before {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(109, 79, 45, 0.14) 0%,
+      rgba(109, 79, 45, 0.04) 54%,
+      transparent 100%
+    );
+}
+
 @keyframes steam-rise {
   0% {
     transform: translate3d(0, 28px, 0) scale(0.92);
@@ -1010,6 +1051,10 @@ main > .contacts-section::before {
   overflow: hidden;
   padding: 72px 0 44px;
   position: relative;
+}
+
+.baths-showcase.layer-card {
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
 }
 
 .baths-showcase__glow {

@@ -31,7 +31,7 @@ export default function Hero() {
   };
 
   return (
-    <section className="hero-section relative min-h-screen overflow-hidden bg-[#090806] pt-[76px]">
+    <section className="hero-section layer-high relative min-h-screen overflow-hidden bg-[#090806] pt-[76px]">
       <motion.img
         src="/images/20250721_204935.jpg"
         alt="Баня Море на берегу моря"

@@ -365,7 +365,7 @@ export default function Baths() {
   );
 
   return (
-    <section id="baths" className="baths-showcase" ref={ref}>
+    <section id="baths" className="baths-showcase layer-card" ref={ref}>
       <div className="baths-showcase__glow" />
 
       <div className="baths-showcase__head container-custom">

@@ -87,7 +87,7 @@ export default function Gallery() {
 
   return (
     <>
-      <section id="gallery" className="gallery-section section scroll-mt-20 bg-[#090806]" ref={ref}>
+      <section id="gallery" className="gallery-section layer-card section scroll-mt-20 bg-[#090806]" ref={ref}>
         <div className="container-custom">
           <div className="mb-10 grid gap-7 lg:grid-cols-[1fr_auto] lg:items-end">
             <motion.div

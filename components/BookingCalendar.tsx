@@ -335,7 +335,7 @@ export default function BookingCalendar() {
   }, [durationOptions, selectedDurationMinutes, selectedStartTime]);
 
   return (
-    <section id="schedule" className="schedule-section relative overflow-hidden bg-[#080706] pt-10 pb-14 sm:pt-12 sm:pb-16 lg:pt-16 lg:pb-20">
+    <section id="schedule" className="schedule-section layer-mid relative overflow-hidden bg-[#080706] pt-10 pb-14 sm:pt-12 sm:pb-16 lg:pt-16 lg:pb-20">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_18%,rgba(214,161,95,0.12),transparent_34rem),radial-gradient(circle_at_82%_44%,rgba(131,147,154,0.10),transparent_30rem)]" />
       <div className="relative mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-10">
         <div className="mb-10 grid gap-7 lg:grid-cols-[1fr_auto] lg:items-end">

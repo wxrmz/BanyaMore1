@@ -66,7 +66,7 @@ export default function Contacts() {
   const isInView = useInView(ref, { once: true, margin: '-120px' });
 
   return (
-    <section id="contacts" className="contacts-section section scroll-mt-20 bg-[#090806]" ref={ref}>
+    <section id="contacts" className="contacts-section layer-low section scroll-mt-20 bg-[#090806]" ref={ref}>
       <div className="container-custom">
         <div className="grid gap-8 lg:grid-cols-[0.58fr_1fr] lg:items-stretch">
           <motion.div
