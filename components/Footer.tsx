@@ -89,7 +89,7 @@ export default function Footer() {
                   event.preventDefault();
                   scroll(link.href);
                 }}
-                className="text-[15px] font-semibold text-[#d8d0c4] transition hover:text-[#d6a15f]"
+                className="footer-nav-link rounded-full px-4 py-2 text-[15px] font-semibold text-[#d8d0c4] transition hover:bg-[#d6a15f]/12 hover:text-[#d6a15f]"
               >
                 <span className="inline-block scale-[1.18]">{link.name}</span>
               </a>
@@ -106,7 +106,7 @@ export default function Footer() {
             {socials.map((social) => (
               <a
                 key={social.name}
-                className="grid h-12 w-12 place-items-center rounded-lg border border-[#d6a15f]/55 bg-[#21170f]/45 text-[#d6a15f] shadow-[inset_0_1px_0_rgba(214,161,95,0.08)] transition hover:-translate-y-0.5 hover:border-[#d6a15f] hover:bg-[#d6a15f]/12 hover:text-[#f3d09b]"
+                className="footer-social-link grid h-12 w-12 place-items-center rounded-lg border border-[#d6a15f]/55 bg-[#21170f]/45 text-[#d6a15f] shadow-[inset_0_1px_0_rgba(214,161,95,0.08)] transition hover:-translate-y-0.5 hover:border-[#d6a15f] hover:bg-[#d6a15f]/12 hover:text-[#f3d09b]"
                 href={social.href}
                 target={social.href.startsWith('http') ? '_blank' : undefined}
                 rel={social.href.startsWith('http') ? 'noopener noreferrer' : undefined}

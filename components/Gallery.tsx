@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion, useInView } from 'framer-motion';
-import { useMemo, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 const categories = [
   { id: 'all', name: 'Все' },
@@ -42,10 +42,13 @@ const imageSlideVariants = {
 
 export default function Gallery() {
   const ref = useRef(null);
+  const categoryBarRef = useRef<HTMLDivElement | null>(null);
+  const categoryRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const isInView = useInView(ref, { once: true, margin: '-120px' });
   const [filter, setFilter] = useState('all');
   const [selected, setSelected] = useState<number | null>(null);
   const [slideDirection, setSlideDirection] = useState<0 | -1 | 1>(0);
+  const [categoryPill, setCategoryPill] = useState<{ height: number; left: number; top: number; width: number } | null>(null);
   const visible = useMemo(() => gallery.filter((item) => filter === 'all' || item.category === filter), [filter]);
   const selectedImage = selected === null ? null : visible[selected];
 
@@ -56,6 +59,31 @@ export default function Gallery() {
       return (current + direction + visible.length) % visible.length;
     });
   };
+
+  useLayoutEffect(() => {
+    const updatePill = () => {
+      const bar = categoryBarRef.current;
+      const activeButton = categoryRefs.current[filter];
+
+      if (!bar || !activeButton) {
+        return;
+      }
+
+      const barRect = bar.getBoundingClientRect();
+      const activeRect = activeButton.getBoundingClientRect();
+
+      setCategoryPill({
+        height: activeRect.height,
+        left: activeRect.left - barRect.left,
+        top: activeRect.top - barRect.top,
+        width: activeRect.width,
+      });
+    };
+
+    updatePill();
+    window.addEventListener('resize', updatePill);
+    return () => window.removeEventListener('resize', updatePill);
+  }, [filter]);
 
   return (
     <>
@@ -75,11 +103,29 @@ export default function Gallery() {
               initial={{ y: 22, opacity: 0 }}
               animate={isInView ? { y: 0, opacity: 1 } : {}}
               transition={{ duration: 0.5, delay: 0.12 }}
-            className="flex min-h-[56px] flex-wrap items-center gap-1.5 rounded-2xl border border-[#d6a15f]/20 bg-[#21170f]/70 p-1 shadow-[inset_0_1px_0_rgba(214,161,95,0.14),0_18px_55px_rgba(0,0,0,0.26)] backdrop-blur-xl"
+              ref={categoryBarRef}
+              className="relative flex min-h-[56px] flex-wrap items-center gap-1.5 rounded-2xl border border-[#d6a15f]/20 bg-[#21170f]/70 p-1 shadow-[inset_0_1px_0_rgba(214,161,95,0.14),0_18px_55px_rgba(0,0,0,0.26)] backdrop-blur-xl"
             >
+              {categoryPill && (
+                <motion.span
+                  aria-hidden="true"
+                  initial={false}
+                  animate={{
+                    height: categoryPill.height,
+                    width: categoryPill.width,
+                    x: categoryPill.left,
+                    y: categoryPill.top,
+                  }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                  className="absolute left-0 top-0 z-0 rounded-xl border border-[#d6a15f]/55 bg-[#d6a15f] shadow-[0_12px_28px_rgba(214,161,95,0.22)]"
+                />
+              )}
               {categories.map((item) => (
                 <motion.button
                   key={item.id}
+                  ref={(node) => {
+                    categoryRefs.current[item.id] = node;
+                  }}
                   type="button"
                   whileTap={{ scale: 0.98 }}
                   onClick={() => {
@@ -87,18 +133,11 @@ export default function Gallery() {
                     setSelected(null);
                   }}
                   aria-pressed={filter === item.id}
-                className={`relative h-11 min-w-[82px] overflow-hidden rounded-xl px-3 text-[17px] font-extrabold transition-colors ${
+                  className={`relative z-10 h-11 min-w-[82px] rounded-xl px-3 text-[17px] font-extrabold transition-colors ${
                     filter === item.id ? 'text-[#15110d]' : 'text-[#d8d0c4] hover:text-[#f3d09b]'
                   }`}
                 >
-                  {filter === item.id && (
-                    <motion.span
-                      layoutId="gallery-active-category"
-                      className="absolute inset-0 rounded-xl border border-[#d6a15f]/55 bg-[#d6a15f] shadow-[0_12px_28px_rgba(214,161,95,0.22)]"
-                      transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-                    />
-                  )}
-                  <span className="relative z-10">{item.name}</span>
+                  {item.name}
                 </motion.button>
               ))}
             </motion.div>
@@ -135,7 +174,7 @@ export default function Gallery() {
                     <span className="absolute inset-x-0 bottom-0 h-[40%] bg-[linear-gradient(180deg,transparent_0%,rgba(9,8,6,0.32)_42%,rgba(9,8,6,0.9)_100%)]" />
                     <span className="absolute bottom-5 left-5 right-5">
                       <span className="block font-sans text-[25px] font-extrabold leading-tight text-[#f4eee4] sm:text-[27px]">{image.title}</span>
-                      <span className="mt-2.5 inline-flex h-5 items-center text-[13.5px] font-bold uppercase tracking-[0.14em] text-[#d6a15f] sm:text-[14.5px]">
+                      <span className="gallery-photo-cta mt-2.5 inline-flex h-6 items-center text-[15px] font-extrabold uppercase tracking-[0.15em] sm:text-[16px]">
                         Смотреть фото
                         <span className="relative ml-2 inline-block h-5 w-8 shrink-0 overflow-visible">
                           <span className="absolute left-0 top-[calc(50%-2px)] text-[36px] font-extrabold leading-none -translate-y-1/2">→</span>

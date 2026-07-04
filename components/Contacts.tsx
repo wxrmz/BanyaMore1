@@ -66,7 +66,7 @@ export default function Contacts() {
   const isInView = useInView(ref, { once: true, margin: '-120px' });
 
   return (
-    <section id="contacts" className="section scroll-mt-20 bg-[#090806]" ref={ref}>
+    <section id="contacts" className="contacts-section section scroll-mt-20 bg-[#090806]" ref={ref}>
       <div className="container-custom">
         <div className="grid gap-8 lg:grid-cols-[0.58fr_1fr] lg:items-stretch">
           <motion.div
@@ -76,7 +76,7 @@ export default function Contacts() {
             className="flex flex-col justify-between"
           >
             <div>
-              <div className="eyebrow">Контакты</div>
+              <div className="eyebrow text-[1.35rem] sm:text-[1.55rem] lg:text-[1.75rem]">Контакты</div>
               <h2 className="section-title mt-5">Приезжайте к морю.</h2>
               <p className="mt-6 max-w-xl text-lg leading-8 text-[#cfc5b8]">
                 Владивосток, район мыса Токаревского. Перед выездом лучше сверить дорогу по телефону или в Telegram.
@@ -93,7 +93,7 @@ export default function Contacts() {
                   href={item.href}
                   target={item.href.startsWith('http') ? '_blank' : undefined}
                   rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  className="group flex items-center justify-between gap-4 rounded-lg border border-[#d6a15f]/15 bg-[#21170f]/50 px-5 py-4 shadow-[inset_0_1px_0_rgba(214,161,95,0.08)] transition hover:border-[#d6a15f]/55 hover:bg-[#d6a15f]/10"
+                  className="contact-card group flex items-center justify-between gap-4 rounded-lg border border-[#d6a15f]/15 bg-[#21170f]/50 px-5 py-4 shadow-[inset_0_1px_0_rgba(214,161,95,0.08)] transition hover:border-[#d6a15f]/55 hover:bg-[#d6a15f]/10"
                 >
                   <span className="flex min-w-0 items-center gap-4">
                     <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-[#d6a15f]/55 bg-[#d6a15f]/10 text-[#d6a15f] shadow-[inset_0_1px_0_rgba(214,161,95,0.10)] transition group-hover:border-[#d6a15f] group-hover:bg-[#d6a15f]/14 group-hover:text-[#f3d09b]">
@@ -104,7 +104,7 @@ export default function Contacts() {
                       <span className="mt-1 block truncate text-base font-bold text-[#f4eee4] sm:text-lg">{item.value}</span>
                     </span>
                   </span>
-                  <span className="text-[34px] font-extrabold leading-none text-[#d6a15f] transition group-hover:translate-x-2">→</span>
+                  <span className="ml-2 shrink-0 text-[40px] font-extrabold leading-none text-[#d6a15f] transition group-hover:translate-x-2 sm:text-[42px] lg:text-[46px]">→</span>
                 </motion.a>
               ))}
             </div>

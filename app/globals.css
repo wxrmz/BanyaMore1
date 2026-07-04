@@ -201,6 +201,95 @@ html[data-theme='light'] body {
   color: #20170f;
 }
 
+html[data-theme='light'] .hero-section {
+  background: #f7efe3 !important;
+}
+
+html[data-theme='light'] .hero-image-motion {
+  filter: brightness(1.08) saturate(1.04);
+}
+
+html[data-theme='light'] .hero-overlay-side {
+  width: 74% !important;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(247, 239, 227, 0.98) 0%,
+      rgba(247, 239, 227, 0.96) 32%,
+      rgba(247, 239, 227, 0.86) 48%,
+      rgba(247, 239, 227, 0.62) 64%,
+      rgba(247, 239, 227, 0.28) 82%,
+      rgba(247, 239, 227, 0) 100%
+    ) !important;
+}
+
+html[data-theme='light'] .hero-overlay-bottom {
+  background:
+    linear-gradient(
+      0deg,
+      rgba(247, 239, 227, 0.72) 0%,
+      rgba(247, 239, 227, 0.34) 42%,
+      rgba(247, 239, 227, 0) 100%
+    ) !important;
+}
+
+html[data-theme='light'] .hero-overlay-top {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(247, 239, 227, 0.62) 0%,
+      rgba(247, 239, 227, 0.42) 36%,
+      rgba(247, 239, 227, 0.16) 72%,
+      rgba(247, 239, 227, 0) 100%
+    ) !important;
+}
+
+html[data-theme='light'] .hero-logo {
+  filter:
+    brightness(0)
+    saturate(100%)
+    invert(12%)
+    sepia(20%)
+    saturate(850%)
+    hue-rotate(347deg)
+    brightness(94%)
+    contrast(94%)
+    drop-shadow(0 16px 34px rgba(109, 79, 45, 0.18));
+}
+
+html[data-theme='light'] .hero-title {
+  color: #20170f !important;
+}
+
+html[data-theme='light'] .hero-copy {
+  color: #67594b !important;
+}
+
+html[data-theme='light'] .hero-section .btn-secondary {
+  background: rgba(255, 249, 239, 0.5);
+  border-color: rgba(155, 101, 50, 0.45);
+  color: #20170f;
+}
+
+html[data-theme='light'] .hero-section .btn-secondary:hover {
+  background: rgba(214, 161, 95, 0.12);
+  border-color: rgba(155, 101, 50, 0.7);
+}
+
+html[data-theme='light'] .hero-stats-panel {
+  background: rgba(255, 249, 239, 0.72) !important;
+  border-color: rgba(155, 101, 50, 0.22) !important;
+  box-shadow: 0 24px 80px rgba(109, 79, 45, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+}
+
+html[data-theme='light'] .hero-stats-panel > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(155, 101, 50, 0.2) !important;
+}
+
+html[data-theme='light'] .hero-stat-label {
+  color: #67594b !important;
+}
+
 html[data-theme='light'] .theme-toggle {
   background: rgba(255, 249, 239, 0.78);
   border-color: rgba(155, 101, 50, 0.34);
@@ -232,8 +321,15 @@ html[data-theme='light'] .theme-toggle[aria-pressed='false'] .theme-toggle__icon
 }
 
 html[data-theme='light'] .site-header {
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none;
+}
+
+html[data-theme='light'] .site-header.site-header--scrolled {
   background: rgba(255, 249, 239, 0.86) !important;
   box-shadow: 0 20px 70px rgba(109, 79, 45, 0.18) !important;
+  -webkit-backdrop-filter: blur(24px);
   backdrop-filter: blur(24px);
 }
 
@@ -243,9 +339,35 @@ html[data-theme='light'] .site-header [class*="text-[#b9aea0]"] {
   color: #2a1c12 !important;
 }
 
-html[data-theme='light'] .site-header nav,
 html[data-theme='light'] [class*="bg-[#11100d]"] {
   background-color: rgba(255, 249, 239, 0.94) !important;
+}
+
+html[data-theme='light'] .site-header nav {
+  background-color: rgba(255, 249, 239, 0.94) !important;
+  border-color: rgba(155, 101, 50, 0.22) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68), 0 18px 55px rgba(109, 79, 45, 0.12) !important;
+}
+
+html[data-theme='light'] .site-header nav a:hover {
+  background-color: rgba(214, 161, 95, 0.12);
+  color: #9b6532 !important;
+}
+
+html[data-theme='light'] .navbar-phone-link {
+  background: #e0ad6e !important;
+  background-clip: border-box;
+  border-color: rgba(155, 101, 50, 0.58) !important;
+  box-shadow: 0 14px 34px rgba(155, 101, 50, 0.18) !important;
+  color: #16110c !important;
+  line-height: 1;
+}
+
+html[data-theme='light'] .navbar-phone-link:hover {
+  background: #d6a15f !important;
+  border-color: #d6a15f !important;
+  box-shadow: 0 14px 34px rgba(155, 101, 50, 0.2) !important;
+  color: #16110c !important;
 }
 
 html[data-theme='light'] main > section:not(:first-of-type),
@@ -259,13 +381,11 @@ html[data-theme='light'] main > footer.relative::before {
   background:
     linear-gradient(
       180deg,
-      rgba(247, 239, 227, 0.78) 0%,
-      rgba(247, 239, 227, 0.42) 48%,
+      rgba(247, 239, 227, 0.58) 0%,
+      rgba(247, 239, 227, 0.22) 54%,
       transparent 100%
     );
-  box-shadow:
-    0 -8px 18px rgba(148, 112, 70, 0.12),
-    0 5px 16px rgba(148, 112, 70, 0.08);
+  box-shadow: none;
 }
 
 html[data-theme='light'] main > footer.relative::before {
@@ -320,8 +440,157 @@ html[data-theme='light'] .about-carousel-card p {
   color: #d8d0c4 !important;
 }
 
+html[data-theme='light'] .about-carousel-card {
+  box-shadow: none !important;
+}
+
+html[data-theme='light'] .about-carousel-card.is-active,
+html[data-theme='light'] .about-carousel-card:hover {
+  box-shadow: 0 0 0 1px rgba(155, 101, 50, 0.16) !important;
+}
+
 html[data-theme='light'] #contacts p {
   color: #67594b !important;
+}
+
+.about-section::after {
+  background: url('/images/decor/about-oak-branches.png?v=3') center / cover no-repeat;
+  content: "";
+  inset: 0;
+  opacity: 0.48;
+  pointer-events: none;
+  position: absolute;
+  z-index: 1;
+}
+
+.about-section > .absolute {
+  z-index: 0;
+}
+
+.about-section > .relative.mx-auto {
+  position: relative;
+  z-index: 2;
+}
+
+html[data-theme='light'] .about-section::after {
+  opacity: 0.56;
+}
+
+html[data-theme='light'] .about-section .eyebrow,
+html[data-theme='light'] .about-section h2,
+html[data-theme='light'] .about-section > .relative.mx-auto > .grid > div:first-child p,
+html[data-theme='light'] .about-section > .relative.mx-auto > .grid > div:first-child a {
+  text-shadow:
+    0 1px 10px rgba(255, 249, 239, 1),
+    0 0 22px rgba(247, 239, 227, 0.96),
+    0 0 42px rgba(255, 249, 239, 0.9),
+    0 0 68px rgba(247, 239, 227, 0.76);
+}
+
+html[data-theme='light'] .about-section > .relative.mx-auto > .grid > div:first-child,
+html[data-theme='light'] .about-section .about-carousel-controls {
+  filter:
+    drop-shadow(0 2px 14px rgba(255, 249, 239, 0.98))
+    drop-shadow(0 0 26px rgba(247, 239, 227, 0.88))
+    drop-shadow(0 0 46px rgba(255, 249, 239, 0.68));
+}
+
+html[data-theme='dark'] .about-section .eyebrow,
+html[data-theme='dark'] .about-section h2,
+html[data-theme='dark'] .about-section > .relative.mx-auto > .grid > div:first-child p,
+html[data-theme='dark'] .about-section > .relative.mx-auto > .grid > div:first-child a {
+  text-shadow:
+    0 1px 5px rgba(5, 4, 3, 0.82),
+    0 0 12px rgba(109, 79, 45, 0.32),
+    0 0 20px rgba(214, 161, 95, 0.12);
+}
+
+.about-carousel-controls {
+  transform: translateX(0);
+}
+
+@media (min-width: 768px) {
+  .about-carousel-controls {
+    transform: translateX(-9%);
+  }
+}
+
+@media (min-width: 1280px) {
+  .about-carousel-controls {
+    transform: translateX(-145px);
+  }
+}
+
+.schedule-section {
+  overflow: hidden;
+  position: relative;
+}
+
+.schedule-section::after {
+  background: url('/images/decor/about-oak-branches.png?v=3') center / cover no-repeat;
+  content: "";
+  inset: 0;
+  opacity: 0.48;
+  pointer-events: none;
+  position: absolute;
+  transform: scaleX(-1);
+  z-index: 1;
+}
+
+.schedule-section > .pointer-events-none {
+  z-index: 0;
+}
+
+.schedule-section > .relative {
+  position: relative;
+  z-index: 2;
+}
+
+html[data-theme='light'] .schedule-section::after {
+  opacity: 0.56;
+}
+
+.schedule-calendar-panel {
+  background: #15110d !important;
+}
+
+html[data-theme='light'] main .schedule-section .schedule-calendar-panel {
+  background: #fff9ef !important;
+  border-color: rgba(155, 101, 50, 0.34) !important;
+  box-shadow: 0 20px 70px rgba(109, 79, 45, 0.16) !important;
+}
+
+.contacts-section {
+  overflow: hidden;
+  position: relative;
+}
+
+.contacts-section::after {
+  background: url('/images/decor/contacts-oak-branches.png?v=2') center / cover no-repeat;
+  content: "";
+  inset: 0;
+  opacity: 0.48;
+  pointer-events: none;
+  position: absolute;
+  z-index: 1;
+}
+
+.contacts-section > .container-custom {
+  position: relative;
+  z-index: 2;
+}
+
+html[data-theme='light'] .contacts-section::after {
+  opacity: 0.56;
+}
+
+html[data-theme='light'] .contacts-section .contact-card:hover,
+html[data-theme='light'] .contacts-section .contact-card:focus-visible {
+  background: rgba(214, 161, 95, 0.18) !important;
+  border-color: rgba(155, 101, 50, 0.62) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 249, 239, 0.78),
+    0 16px 38px rgba(109, 79, 45, 0.14) !important;
 }
 
 html[data-theme='light'] main > section:not(:first-of-type) [class*="text-[#b9aea0]"],
@@ -345,6 +614,21 @@ html[data-theme='light'] main > footer [class*="border-[#d6a15f]"] {
 html[data-theme='light'] main > section:not(:first-of-type) .btn-secondary,
 html[data-theme='light'] main > footer .btn-secondary {
   color: #20170f !important;
+}
+
+html[data-theme='light'] main > footer .footer-nav-link:hover,
+html[data-theme='light'] main > footer .footer-nav-link:focus-visible {
+  background-color: rgba(214, 161, 95, 0.12) !important;
+  color: #9b6532 !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='light'] main > footer .footer-social-link:hover,
+html[data-theme='light'] main > footer .footer-social-link:focus-visible {
+  background-color: rgba(214, 161, 95, 0.12) !important;
+  border-color: rgba(155, 101, 50, 0.5) !important;
+  color: #9b6532 !important;
+  box-shadow: none !important;
 }
 
 html[data-theme='light'] .glass-panel,
@@ -386,17 +670,17 @@ html[data-theme='light'] .baths-showcase__mobileCard:not(.is-selected) > img {
 
 html[data-theme='light'] .baths-showcase__sideArrow,
 html[data-theme='light'] .baths-showcase__mobileArrow {
-  background: rgba(33, 23, 15, 0.84);
-  border-color: rgba(155, 101, 50, 0.52);
-  box-shadow: 0 18px 45px rgba(109, 79, 45, 0.22), inset 0 1px 0 rgba(214, 161, 95, 0.12);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
   color: #d6a15f;
 }
 
 html[data-theme='light'] .baths-showcase__sideArrow:hover,
 html[data-theme='light'] .baths-showcase__mobileArrow:not(:disabled):hover {
-  background: #d6a15f;
-  border-color: #d6a15f;
-  color: #15110d;
+  background: transparent;
+  border-color: transparent;
+  color: #9b6532;
 }
 
 html[data-theme='light'] .baths-showcase__cardShade,
@@ -411,6 +695,18 @@ html[data-theme='light'] .baths-showcase__expandedInfo {
     linear-gradient(180deg, rgba(255, 249, 239, 0.98), rgba(244, 233, 218, 0.98)) !important;
 }
 
+.about-carousel-cta,
+.gallery-photo-cta {
+  color: #d6a15f;
+  text-shadow: none;
+}
+
+html[data-theme='light'] .about-carousel-cta,
+html[data-theme='light'] .gallery-photo-cta {
+  color: #d6a15f !important;
+  text-shadow: none;
+}
+
 main > section,
 main > footer {
   position: relative;
@@ -418,24 +714,25 @@ main > footer {
 
 main > section:not(:first-of-type)::before,
 main > footer.relative::before {
-  -webkit-backdrop-filter: blur(5px);
-  backdrop-filter: blur(5px);
   background:
     linear-gradient(
       180deg,
-      rgba(9, 8, 6, 0.7) 0%,
-      rgba(9, 8, 6, 0.32) 48%,
+      rgba(9, 8, 6, 0.54) 0%,
+      rgba(9, 8, 6, 0.18) 54%,
       transparent 100%
     );
-  box-shadow:
-    0 -8px 18px rgba(9, 8, 6, 0.36),
-    0 5px 16px rgba(5, 4, 3, 0.22);
+  box-shadow: none;
   content: "";
-  height: 20px;
+  height: 34px;
   inset: 0 0 auto;
   pointer-events: none;
   position: absolute;
   z-index: 8;
+}
+
+main > .contacts-section::before {
+  content: none;
+  display: none;
 }
 
 @keyframes steam-rise {
@@ -1072,8 +1369,11 @@ main > footer.relative::before {
 }
 
 .baths-showcase__sideArrow {
+  background: transparent;
+  border-color: transparent;
   bottom: 39px;
-  font-size: 34px;
+  box-shadow: none;
+  font-size: 64px;
   height: 68px;
   position: absolute;
   top: auto;
@@ -1083,7 +1383,10 @@ main > footer.relative::before {
 }
 
 .baths-showcase__sideArrow:hover {
-  transform: translateY(-2px);
+  background: transparent;
+  border-color: transparent;
+  color: #f0b45e;
+  transform: none;
 }
 
 .baths-showcase__sideArrow--left {
@@ -1098,7 +1401,7 @@ main > footer.relative::before {
   align-items: center;
   bottom: 70px;
   display: flex;
-  gap: 18px;
+  gap: 22px;
   justify-content: center;
   left: 0;
   position: absolute;
@@ -1111,15 +1414,15 @@ main > footer.relative::before {
   border: 0;
   border-radius: 999px;
   cursor: pointer;
-  height: 5px;
+  height: 7px;
   padding: 0;
   transition: background 220ms ease, width 220ms ease;
-  width: 92px;
+  width: 128px;
 }
 
 .baths-showcase__dots button.is-active {
   background: #d6a15f;
-  width: 132px;
+  width: 172px;
 }
 
 .baths-showcase__expanded {
@@ -1597,8 +1900,8 @@ main > footer.relative::before {
     align-items: center;
     bottom: 36px;
     display: flex;
-    gap: 20px;
-    justify-content: space-between;
+    gap: 0;
+    justify-content: center;
     left: 50%;
     position: absolute;
     transform: translateX(-50%);
@@ -1658,9 +1961,9 @@ main > footer.relative::before {
     align-items: center;
     display: flex;
     flex: 1 1 auto;
-    gap: 12px;
+    gap: 14px;
     justify-content: center;
-    max-width: 280px;
+    max-width: 360px;
     min-width: 0;
   }
 
@@ -1670,17 +1973,17 @@ main > footer.relative::before {
     border-radius: 999px;
     cursor: pointer;
     flex: 1 1 0;
-    height: 4px;
-    max-width: 86px;
-    min-width: 32px;
+    height: 6px;
+    max-width: 112px;
+    min-width: 54px;
     padding: 0;
     transition: background 220ms ease, flex-basis 220ms ease, max-width 220ms ease;
   }
 
   .baths-showcase__mobileDots button.is-active {
     background: #d6a15f;
-    flex-basis: 96px;
-    max-width: 112px;
+    flex-basis: 128px;
+    max-width: 148px;
   }
 
   .baths-showcase__expandedContent {
@@ -1714,16 +2017,16 @@ main > footer.relative::before {
 
   .baths-showcase__dots {
     bottom: 55px;
-    gap: 14px;
+    gap: 18px;
   }
 
   .baths-showcase__dots button {
-    height: 4px;
-    width: 74px;
+    height: 6px;
+    width: 104px;
   }
 
   .baths-showcase__dots button.is-active {
-    width: 104px;
+    width: 142px;
   }
 }
 
@@ -1757,7 +2060,7 @@ main > footer.relative::before {
 
   .baths-showcase__mobileControls {
     bottom: 30px;
-    gap: 12px;
+    gap: 0;
     width: calc(100% - 40px);
   }
 
@@ -1776,17 +2079,17 @@ main > footer.relative::before {
   }
 
   .baths-showcase__mobileDots {
-    gap: 10px;
-    max-width: 210px;
+    gap: 12px;
+    max-width: 300px;
   }
 
   .baths-showcase__mobileDots button {
-    min-width: 22px;
+    min-width: 44px;
   }
 
   .baths-showcase__mobileDots button.is-active {
-    flex-basis: 64px;
-    max-width: 78px;
+    flex-basis: 96px;
+    max-width: 118px;
   }
 
   .baths-showcase__cardInfo {
@@ -1808,15 +2111,16 @@ main > footer.relative::before {
 
   .baths-showcase__dots {
     bottom: 38px;
-    gap: 10px;
+    gap: 14px;
   }
 
   .baths-showcase__dots button {
-    width: 52px;
+    height: 6px;
+    width: 74px;
   }
 
   .baths-showcase__dots button.is-active {
-    width: 76px;
+    width: 104px;
   }
 
   .baths-showcase__expandedMedia {

@@ -249,13 +249,6 @@ export default function Baths() {
 
   const slider = (
     <div className={sliderClassName}>
-      <button type="button" onClick={() => shift(-1)} className="baths-showcase__sideArrow baths-showcase__sideArrow--left" aria-label="Предыдущая баня">
-        ←
-      </button>
-      <button type="button" onClick={() => shift(1)} className="baths-showcase__sideArrow baths-showcase__sideArrow--right" aria-label="Следующая баня">
-        →
-      </button>
-
       {baths.map((bath, index) => {
         const isActive = index === active;
         const positionClass = index === 0 ? 'is-left' : index === 2 ? 'is-right' : 'is-center';
@@ -354,16 +347,6 @@ export default function Baths() {
 
   const mobileControls = (
     <div className="baths-showcase__mobileControls" aria-label="Mobile bath navigation">
-      <button
-        type="button"
-        onClick={() => shiftMobileBath(-1)}
-        className="baths-showcase__mobileArrow"
-        disabled={active === 0}
-        aria-label="Previous bath"
-      >
-        &larr;
-      </button>
-
       <div className="baths-showcase__mobileIndicator">
         <span>{String(active + 1).padStart(2, '0')}</span>
         <div className="baths-showcase__mobileDots" aria-label="Bath selection">
@@ -378,16 +361,6 @@ export default function Baths() {
           ))}
         </div>
       </div>
-
-      <button
-        type="button"
-        onClick={() => shiftMobileBath(1)}
-        className="baths-showcase__mobileArrow"
-        disabled={active === baths.length - 1}
-        aria-label="Next bath"
-      >
-        &rarr;
-      </button>
     </div>
   );
 
@@ -401,7 +374,7 @@ export default function Baths() {
           animate={isInView ? { y: 0, opacity: 1 } : {}}
           transition={{ duration: 0.62 }}
         >
-          <div className="eyebrow">Бани</div>
+          <div className="eyebrow text-[1.55rem] sm:text-[1.8rem] lg:text-[2rem]">Бани</div>
           <h2 className="section-title mt-5 max-w-4xl">Выберите свой формат у моря</h2>
         </motion.div>
       </div>

@@ -11,18 +11,19 @@ const navLinks = [
   { name: 'Запись', href: '#schedule' },
   { name: 'Галерея', href: '#gallery' },
   { name: 'Контакты', href: '#contacts' },
-  { name: 'Меню', href: '/menu_more.pdf', external: true },
+  { name: 'Меню', href: '/images/menu-full.png', external: true },
+  { name: 'Услуги', href: '/images/services-full.png', external: true },
 ];
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [theme, setTheme] = useState<Theme>('dark');
+  const [theme, setTheme] = useState<Theme>('light');
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 110, damping: 24, restDelta: 0.001 });
 
   useEffect(() => {
-    const savedTheme = window.localStorage.getItem('banyamore-theme') === 'light' ? 'light' : 'dark';
+    const savedTheme = window.localStorage.getItem('banyamore-theme') === 'dark' ? 'dark' : 'light';
     setTheme(savedTheme);
     document.documentElement.dataset.theme = savedTheme;
   }, []);
@@ -47,7 +48,7 @@ export default function Navbar() {
     }
 
     const headerOffset = 76;
-    const extraDown = href === '#about' ? 38 : href === '#baths' ? 44 : href === '#schedule' ? 12 : href === '#gallery' ? 72 : 0;
+    const extraDown = href === '#about' ? 24 : href === '#baths' ? 44 : href === '#schedule' ? 12 : href === '#gallery' ? 72 : 0;
     const top = target.getBoundingClientRect().top + window.scrollY - headerOffset + extraDown;
 
     window.scrollTo({ top, behavior: 'smooth' });
@@ -95,7 +96,7 @@ export default function Navbar() {
         animate={{ opacity: 1, filter: 'blur(0px)' }}
         transition={{ duration: 0.42, ease: 'easeOut' }}
         className={`site-header fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-          isScrolled ? 'bg-[#090806]/78 shadow-[0_20px_70px_rgba(0,0,0,0.32)] backdrop-blur-2xl' : 'bg-transparent'
+          isScrolled ? 'site-header--scrolled bg-[#090806]/78 shadow-[0_20px_70px_rgba(0,0,0,0.32)] backdrop-blur-2xl' : 'bg-transparent'
         }`}
       >
         <motion.div className="absolute inset-x-0 top-0 h-px origin-left bg-[#d6a15f]" style={{ scaleX }} />
@@ -150,7 +151,7 @@ export default function Navbar() {
                 </span>
                 <a
                   href="tel:+79084402055"
-                  className="absolute -left-6 top-0 flex h-12 items-center justify-center rounded-lg border border-[#d6a15f]/45 bg-[#d6a15f]/10 px-6 text-[17px] font-extrabold text-[#d6a15f] transition hover:bg-[#d6a15f] hover:text-[#16110c]"
+                  className="navbar-phone-link absolute -left-6 top-0 flex h-12 items-center justify-center overflow-hidden rounded-lg border border-[#d6a15f]/45 bg-[#d6a15f]/10 px-6 text-[17px] font-extrabold text-[#d6a15f] transition hover:bg-[#d6a15f] hover:text-[#16110c]"
                 >
                   +7 908 440 20 55
                 </a>
