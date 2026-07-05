@@ -1,8 +1,14 @@
 'use client';
 
-import { motion, useInView } from 'framer-motion';
+import { AnimatePresence, motion, useInView } from 'framer-motion';
 import type { PointerEvent } from 'react';
 import { useEffect, useRef, useState } from 'react';
+
+const PeopleIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+  </svg>
+);
 
 const baths = [
   {
@@ -54,6 +60,9 @@ export default function Baths() {
   const [active, setActive] = useState(1);
   const [expanded, setExpanded] = useState<number | null>(null);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const [prevGalleryIndex, setPrevGalleryIndex] = useState<number | null>(null);
+  const [isGalleryFading, setIsGalleryFading] = useState(false);
+  const galleryFadeTimer = useRef<number | null>(null);
   const [isClosing, setIsClosing] = useState(false);
 
   const shift = (direction: -1 | 1) => {
@@ -200,6 +209,9 @@ export default function Baths() {
       if (mobileScrollTimer.current) {
         window.clearTimeout(mobileScrollTimer.current);
       }
+      if (galleryFadeTimer.current) {
+        window.clearTimeout(galleryFadeTimer.current);
+      }
     };
   }, []);
 
@@ -224,7 +236,28 @@ export default function Baths() {
     window.setTimeout(() => {
       setExpanded(null);
       setIsClosing(false);
+      setGalleryIndex(0);
+      setPrevGalleryIndex(null);
+      setIsGalleryFading(false);
     }, 320);
+  };
+
+  const switchGallery = (nextIndex: number) => {
+    if (nextIndex === galleryIndex) {
+      return;
+    }
+
+    if (galleryFadeTimer.current) {
+      window.clearTimeout(galleryFadeTimer.current);
+    }
+
+    setPrevGalleryIndex(galleryIndex);
+    setGalleryIndex(nextIndex);
+    setIsGalleryFading(true);
+    galleryFadeTimer.current = window.setTimeout(() => {
+      setIsGalleryFading(false);
+      setPrevGalleryIndex(null);
+    }, 360);
   };
 
   const scrollToSchedule = () => {
@@ -273,11 +306,23 @@ export default function Baths() {
               <img src={bath.image} alt={bath.name} />
               <div className="baths-showcase__cardShade" />
               <div className="baths-showcase__cardInfo">
-                <div>{bath.capacity}</div>
+                <div>
+                  <PeopleIcon className="baths-showcase__peopleIcon" />
+                  {bath.capacity}
+                </div>
                 <h3>{bath.name}</h3>
-                <span>
-                  {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true">→</b>
-                </span>
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={isActive ? 'open' : 'select'}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.1 }}
+                    className="baths-showcase__cardAction"
+                  >
+                    {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true">→</b>
+                  </motion.span>
+                </AnimatePresence>
               </div>
             </div>
             <div className="baths-showcase__cardTop">
@@ -333,11 +378,23 @@ export default function Baths() {
               <strong>{bath.price}</strong>
             </div>
             <div className="baths-showcase__cardInfo">
-              <div>{bath.capacity}</div>
+              <div>
+                <PeopleIcon className="baths-showcase__peopleIcon" />
+                {bath.capacity}
+              </div>
               <h3>{bath.name}</h3>
-              <span>
-                {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true">→</b>
-              </span>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={isActive ? 'open' : 'select'}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.1 }}
+                  className="baths-showcase__cardAction"
+                >
+                  {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true">→</b>
+                </motion.span>
+              </AnimatePresence>
             </div>
           </button>
         );
@@ -395,7 +452,10 @@ export default function Baths() {
                 <img src={selectedBath.image} alt={selectedBath.name} />
                 <div className="baths-showcase__cardShade" />
                 <div className="baths-showcase__cardInfo">
-                  <div>{selectedBath.capacity}</div>
+                  <div>
+                    <PeopleIcon className="baths-showcase__peopleIcon" />
+                    {selectedBath.capacity}
+                  </div>
                   <h3 className={expanded === 2 ? 'is-wide-name' : undefined}>{selectedBath.name}</h3>
                   <span>
                     Открыть раздел <b aria-hidden="true">→</b>
@@ -407,19 +467,55 @@ export default function Baths() {
               </div>
             <div className="baths-showcase__expandedContent">
                 <div className="baths-showcase__expandedMedia">
+                  {isGalleryFading && prevGalleryIndex !== null && (
+                    <img
+                      key={selectedBath.gallery[prevGalleryIndex]}
+                      src={selectedBath.gallery[prevGalleryIndex]}
+                      alt={selectedBath.name}
+                      className="baths-showcase__expandedImage is-fading-out"
+                    />
+                  )}
                   <img
                     key={selectedBath.gallery[galleryIndex]}
                     src={selectedBath.gallery[galleryIndex]}
                     alt={selectedBath.name}
-                    className="baths-showcase__expandedImage"
+                    className={`baths-showcase__expandedImage ${isGalleryFading ? 'is-fading-in' : ''}`}
                   />
                   <div className="baths-showcase__expandedShade" />
+                  <button
+                    type="button"
+                    onClick={() => switchGallery((galleryIndex - 1 + selectedBath.gallery.length) % selectedBath.gallery.length)}
+                    className="baths-showcase__expandedSide baths-showcase__expandedSide--left"
+                    aria-label="Предыдущее фото"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => switchGallery((galleryIndex + 1) % selectedBath.gallery.length)}
+                    className="baths-showcase__expandedSide baths-showcase__expandedSide--right"
+                    aria-label="Следующее фото"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => switchGallery((galleryIndex - 1 + selectedBath.gallery.length) % selectedBath.gallery.length)}
+                    className="baths-showcase__expandedArrow baths-showcase__expandedArrow--left"
+                    aria-label="Предыдущее фото"
+                  >
+                    ←
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => switchGallery((galleryIndex + 1) % selectedBath.gallery.length)}
+                    className="baths-showcase__expandedArrow baths-showcase__expandedArrow--right"
+                    aria-label="Следующее фото"
+                  >
+                    →
+                  </button>
                   <div className="baths-showcase__thumbs" aria-label="Фотографии бани">
                     {selectedBath.gallery.map((image, index) => (
                       <button
                         key={image}
                         type="button"
-                        onClick={() => setGalleryIndex(index)}
+                        onClick={() => switchGallery(index)}
                         className={galleryIndex === index ? 'is-active' : ''}
                         aria-label={`Показать фото ${index + 1}`}
                       >
@@ -434,9 +530,12 @@ export default function Baths() {
                     <span className="baths-showcase__backArrow">←</span>
                     <span>Вернуться</span>
                   </button>
-                  <div className="eyebrow">{selectedBath.capacity}</div>
+                  <div className="eyebrow">
+                    <PeopleIcon className="baths-showcase__peopleIcon" />
+                    {selectedBath.capacity}
+                  </div>
                   <h3 className={expanded === 2 ? 'is-wide-name' : undefined}>{selectedBath.name}</h3>
-                  <p>{selectedBath.text}</p>
+                  <p className="baths-showcase__description">{selectedBath.text}</p>
 
                   <div className="baths-showcase__actions">
                     <div className="baths-showcase__price">

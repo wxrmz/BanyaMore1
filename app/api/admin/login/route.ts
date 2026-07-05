@@ -1,10 +1,33 @@
 import { NextResponse } from 'next/server';
-import { setAdminSessionCookie, validateAdminCredentials } from '@/lib/adminAuth';
+import {
+  clearFailedLogins,
+  getClientRateLimitKey,
+  isAdminAuthConfigured,
+  isLoginRateLimited,
+  isSameOriginRequest,
+  recordFailedLogin,
+  setAdminSessionCookie,
+  validateAdminCredentials,
+} from '@/lib/adminAuth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json({ ok: false, message: 'Forbidden.' }, { status: 403 });
+  }
+
+  if (!isAdminAuthConfigured()) {
+    return NextResponse.json({ ok: false, message: 'Admin authentication is not configured.' }, { status: 503 });
+  }
+
+  const rateLimitKey = getClientRateLimitKey(request);
+
+  if (isLoginRateLimited(rateLimitKey)) {
+    return NextResponse.json({ ok: false, message: 'Too many login attempts.' }, { status: 429 });
+  }
+
   let body: unknown;
 
   try {

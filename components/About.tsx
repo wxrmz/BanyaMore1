@@ -115,7 +115,7 @@ export default function About() {
               </p>
               <a
                 href="#baths"
-                className="mt-10 inline-flex items-center gap-3 text-[19px] font-extrabold uppercase tracking-[0.22em] text-[#d6a15f] transition hover:text-[#f3d09b] sm:text-[21px]"
+                className="mt-10 inline-flex items-center gap-3 text-[20px] font-extrabold uppercase tracking-[0.22em] text-[#d6a15f] transition hover:text-[#f3d09b] sm:text-[22px]"
               >
                 Наша философия <span className="-ml-1.5 inline-block -translate-y-[3px] text-[3.25rem] leading-none" aria-hidden="true">→</span>
               </a>

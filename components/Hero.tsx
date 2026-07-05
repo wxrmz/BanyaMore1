@@ -65,14 +65,14 @@ export default function Hero() {
             <p className="hero-copy mt-7 max-w-3xl text-xl leading-9 text-[#e0d7ca] sm:text-[1.65rem] sm:leading-[1.55]">
               Пар на дровах, морской воздух и приватный отдых во Владивостоке.
             </p>
-            <div className="mt-10 flex -translate-y-3 flex-col gap-3 sm:flex-row">
+            <div className="mt-10 flex -translate-y-1.5 flex-col gap-4 sm:flex-row">
               <a
                 href="#schedule"
                 onClick={(event) => {
                   event.preventDefault();
                   scrollToSchedule();
                 }}
-                className="btn-primary h-16 px-8 py-0 text-[19px] leading-none"
+                className="btn-primary h-[76px] px-12 py-0 text-[24px] leading-none"
               >
                 <span className="inline-block scale-[1.08]">Забронировать</span>
               </a>
@@ -82,7 +82,7 @@ export default function Hero() {
                   event.preventDefault();
                   scrollToAbout();
                 }}
-                className="btn-secondary h-16 px-8 py-0 text-[19px] leading-none"
+                className="btn-secondary h-[76px] px-12 py-0 text-[24px] leading-none"
               >
                 <span className="inline-block scale-[1.08]">О нас</span>
               </a>
