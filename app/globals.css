@@ -480,8 +480,16 @@ html[data-theme='light'] .gallery-section .section-title {
   color: #20170f !important;
 }
 
+html[data-theme='light'] .hero-section.layer-high {
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.2) !important;
+}
+
+html[data-theme='light'] .baths-showcase.layer-card {
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.2) !important;
+}
+
 html[data-theme='light'] .gallery-section.layer-card {
-  box-shadow: 0 18px 52px rgba(109, 79, 45, 0.14) !important;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.2) !important;
 }
 
 html[data-theme='light'] main .about-section .about-carousel-card h3,
@@ -713,6 +721,15 @@ html[data-theme='light'] .baths-showcase__mobileCard,
 html[data-theme='light'] .baths-showcase__expanded {
   background: #fff8ee !important;
   border-color: rgba(155, 101, 50, 0.38) !important;
+}
+
+html[data-theme='light'] .baths-showcase__card {
+  filter: drop-shadow(0 16px 18px rgba(42, 30, 19, 0.42));
+}
+
+html[data-theme='light'] .baths-showcase__card .baths-showcase__cardShell,
+html[data-theme='light'] .baths-showcase__mobileCard {
+  box-shadow: 0 16px 34px rgba(42, 30, 19, 0.42) !important;
 }
 
 html[data-theme='light'] .baths-showcase__card:not(.is-selected) .baths-showcase__cardShell {
@@ -1867,18 +1884,37 @@ html[data-theme='light'] main > .schedule-section::before {
 }
 
 .baths-showcase__back {
-  align-self: start;
+  align-self: flex-end;
+  align-items: center;
   background: rgba(9, 8, 6, 0.62);
   border: 1px solid rgba(214, 161, 95, 0.4);
   border-radius: 999px;
   color: #d6a15f;
-  font-size: 12px;
+  display: inline-flex;
+  font-size: 14px;
   font-weight: 800;
+  gap: 10px;
   letter-spacing: 0.16em;
-  padding: 12px 18px;
+  padding: 13px 20px;
   text-transform: uppercase;
+  transform: translateZ(0) scale(1.24);
+  transform-origin: top right;
   transition: background 220ms ease, color 220ms ease;
   width: fit-content;
+}
+
+.baths-showcase__backArrow {
+  display: inline-block;
+  font-size: 26px;
+  line-height: 0.7;
+  transform: translateY(-1px) scale(1.28);
+  transform-origin: center;
+}
+
+.baths-showcase__back > span:last-child {
+  display: inline-block;
+  transform: translate(-5px, 0) scale(1.14);
+  transform-origin: left center;
 }
 
 .baths-showcase__back:hover {
@@ -1906,35 +1942,49 @@ html[data-theme='light'] main > .schedule-section::before {
   will-change: opacity, transform;
 }
 
+.baths-showcase__expandedInfo .baths-showcase__back {
+  transform: translateZ(0) scale(1.48);
+  transform-origin: top right;
+}
+
 .baths-showcase__expandedInfo .eyebrow {
-  font-size: 15px;
+  font-size: 21px;
+  margin-top: 10px;
+  position: relative;
+  top: 28px;
+  transform: translateZ(0) scale(1.15);
+  transform-origin: left center;
 }
 
 .baths-showcase__expandedInfo h3 {
   color: #f4eee4;
   font-family: "Playfair Display", Georgia, serif;
-  font-size: clamp(52px, 3.45vw, 68px);
+  font-size: clamp(62px, 4vw, 78px);
   font-weight: 600;
   line-height: 0.95;
   margin: 0;
+  position: relative;
+  top: 28px;
 }
 
 .baths-showcase__expandedInfo h3.is-wide-name {
-  font-size: clamp(44px, 2.9vw, 60px);
+  font-size: clamp(54px, 3.4vw, 70px);
   white-space: nowrap;
 }
 
 .baths-showcase__expandedInfo p {
   color: #b9aea0;
-  font-size: 15.5px;
-  line-height: 1.6;
+  font-size: 21px;
+  line-height: 1.55;
   margin: 0;
-  max-width: 530px;
+  max-width: 610px;
+  position: relative;
+  top: 36px;
 }
 
 .baths-showcase__expandedInfo .baths-showcase__lead {
   color: #e0d7ca;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   line-height: 1.45;
   margin: 0;
@@ -1942,7 +1992,7 @@ html[data-theme='light'] main > .schedule-section::before {
 
 .baths-showcase__bookingLabel {
   color: #d6a15f;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -1959,9 +2009,9 @@ html[data-theme='light'] main > .schedule-section::before {
   border: 1px solid rgba(214, 161, 95, 0.18);
   border-radius: 999px;
   color: #f4eee4;
-  font-size: 12.5px;
+  font-size: 13.5px;
   font-weight: 800;
-  padding: 10px 13px;
+  padding: 10px 14px;
 }
 
 .baths-showcase__price {
@@ -1993,10 +2043,10 @@ html[data-theme='light'] main > .schedule-section::before {
 }
 
 html[data-theme='light'] .baths-showcase__back {
-  background: #6f5945;
-  border-color: rgba(111, 89, 69, 0.58);
-  box-shadow: 0 12px 28px rgba(109, 79, 45, 0.18), inset 0 1px 0 rgba(255, 238, 207, 0.18);
-  color: #ffd083;
+  background: #17110c;
+  border-color: rgba(214, 161, 95, 0.45);
+  box-shadow: inset 0 1px 0 rgba(214, 161, 95, 0.12), 0 14px 36px rgba(0, 0, 0, 0.28);
+  color: #d6a15f;
 }
 
 html[data-theme='light'] .baths-showcase__back:hover {
@@ -2279,7 +2329,7 @@ html[data-theme='light'] .baths-showcase__price span {
   }
 
   .baths-showcase__expandedInfo .eyebrow {
-    margin-top: 0;
+    margin-top: 8px;
   }
 
   .baths-showcase__sideArrow {

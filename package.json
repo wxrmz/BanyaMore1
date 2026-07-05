@@ -1,7 +1,7 @@
 {
   "name": "banyamore",
   "version": "1.0.0",
-  "description": "Русская баня на берегу моря - Владивосток",
+  "description": "Оздоровительный комплекс на берегу моря - Владивосток",
   "scripts": {
     "dev": "next dev --turbopack --hostname 0.0.0.0",
     "build": "next build",

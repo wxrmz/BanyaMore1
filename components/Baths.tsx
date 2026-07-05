@@ -431,18 +431,13 @@ export default function Baths() {
 
                 <div className="baths-showcase__expandedInfo">
                   <button type="button" onClick={closeBath} className="baths-showcase__back" disabled={isClosing}>
-                    ← Вернуться
+                    <span className="baths-showcase__backArrow">←</span>
+                    <span>Вернуться</span>
                   </button>
                   <div className="eyebrow">{selectedBath.capacity}</div>
                   <h3 className={expanded === 2 ? 'is-wide-name' : undefined}>{selectedBath.name}</h3>
                   <p>{selectedBath.text}</p>
 
-                  <div className="baths-showcase__bookingLabel">В бане</div>
-                  <div className="baths-showcase__detailList">
-                    {selectedBath.details.map((detail) => (
-                      <div key={detail}>{detail}</div>
-                    ))}
-                  </div>
                   <div className="baths-showcase__actions">
                     <div className="baths-showcase__price">
                       <strong>{selectedBath.price}</strong>

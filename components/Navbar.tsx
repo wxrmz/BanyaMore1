@@ -48,7 +48,7 @@ export default function Navbar() {
     }
 
     const headerOffset = 76;
-    const extraDown = href === '#about' ? 24 : href === '#baths' ? 44 : href === '#schedule' ? 12 : href === '#gallery' ? 72 : 0;
+    const extraDown = href === '#about' ? 24 : href === '#baths' ? 44 : href === '#schedule' ? 28 : href === '#gallery' ? 72 : 0;
     const top = target.getBoundingClientRect().top + window.scrollY - headerOffset + extraDown;
 
     window.scrollTo({ top, behavior: 'smooth' });

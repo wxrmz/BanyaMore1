@@ -65,7 +65,7 @@ export default function Footer() {
             <div className="font-serif text-[34px]">Баня Море</div>
             <p className="mt-3 h-14 max-w-md text-[17px] leading-7 text-[#b9aea0]">
               <span className="inline-block origin-left scale-[1.1]">
-                Русская баня на берегу моря во Владивостоке: пар на дровах, кафе и приватный отдых.
+                Оздоровительный комплекс на берегу моря во Владивостоке: пар на дровах, кафе и приватный отдых.
               </span>
             </p>
           </motion.div>
