@@ -85,9 +85,9 @@ export default function Footer() {
                   event.preventDefault();
                   scroll(link.href);
                 }}
-                className="footer-nav-link rounded-full px-4 py-2 text-[15px] font-semibold text-[#d8d0c4] transition hover:bg-[#d6a15f]/12 hover:text-[#d6a15f]"
+                className="footer-nav-link inline-block origin-center -translate-y-2 scale-[1.36] rounded-full px-3.5 py-1.5 text-[15px] font-semibold text-[#d8d0c4] transition hover:bg-[#d6a15f]/12 hover:text-[#d6a15f]"
               >
-                <span className="inline-block scale-[1.18]">{link.name}</span>
+                {link.name}
               </a>
             ))}
           </motion.nav>

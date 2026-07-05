@@ -46,6 +46,11 @@ type AvailabilityResponse = {
   days?: CalendarDay[];
 };
 
+type CalendarNoteResponse = {
+  ok: boolean;
+  text?: string;
+};
+
 const currentDateTime = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -146,6 +151,7 @@ export default function BookingCalendar() {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [message, setMessage] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
+  const [calendarNote, setCalendarNote] = useState('');
 
   useEffect(() => {
     let timer: number;
@@ -229,6 +235,31 @@ export default function BookingCalendar() {
       ignore = true;
     };
   }, [weekStart, reloadKey]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadCalendarNote() {
+      try {
+        const response = await fetch('/api/calendar-note', { cache: 'no-store' });
+        const payload = (await response.json()) as CalendarNoteResponse;
+
+        if (!ignore && response.ok && payload.ok) {
+          setCalendarNote((payload.text ?? '').trim());
+        }
+      } catch {
+        if (!ignore) {
+          setCalendarNote('');
+        }
+      }
+    }
+
+    loadCalendarNote();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const selectedBath = useMemo(() => baths.find((bath) => bath.id === selectedBathId) ?? baths[0], [baths, selectedBathId]);
   const days = selectedBath?.days ?? [];
@@ -462,7 +493,7 @@ export default function BookingCalendar() {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
               >
-                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <div className="mt-1 grid gap-3 sm:mt-2 sm:grid-cols-3 lg:mt-1">
                   {baths.map((bath) => {
                     const isActive = bath.id === selectedBath?.id;
 
@@ -691,6 +722,17 @@ export default function BookingCalendar() {
             )}
             </AnimatePresence>
           </motion.div>
+          {calendarNote ? (
+            <motion.p
+              initial={{ y: 10, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="schedule-calendar-note mx-auto mt-5 flex min-h-[62px] w-fit max-w-full items-center justify-center rounded-lg border border-[#d6a15f]/45 bg-[#15110d] px-6 py-4 text-center text-[20px] font-extrabold leading-8 text-[#f4eee4] shadow-[0_14px_38px_rgba(0,0,0,0.18)] sm:min-h-[70px] sm:px-8 sm:py-4 sm:text-[23px]"
+            >
+              {calendarNote}
+            </motion.p>
+          ) : null}
       </div>
     </section>
   );
