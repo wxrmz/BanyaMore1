@@ -1651,6 +1651,18 @@ html[data-theme='light'] main > .schedule-section::before {
   z-index: 60;
 }
 
+@media (min-width: 1024px) {
+  .baths-showcase__expanded {
+    height: 640px;
+    top: calc((100% - 640px) / 2);
+    width: min(calc(100% - 110px), 1600px);
+  }
+
+  .baths-showcase__expandedInfo {
+    padding-bottom: 0;
+  }
+}
+
 .baths-showcase__expanded.is-opening {
   animation: bath-detail-open 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -1875,12 +1887,13 @@ html[data-theme='light'] main > .schedule-section::before {
 }
 
 .baths-showcase__expandedInfo {
-  align-content: start;
   background:
     radial-gradient(circle at 78% 8%, rgba(214, 161, 95, 0.12), transparent 18rem),
     linear-gradient(180deg, rgba(18, 14, 10, 0.96), rgba(7, 6, 5, 0.98));
   border-left: 1px solid rgba(214, 161, 95, 0.16);
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   height: 100%;
   min-width: 0;
   padding: clamp(28px, 2.35vw, 40px);
@@ -1888,13 +1901,13 @@ html[data-theme='light'] main > .schedule-section::before {
 
 .baths-showcase__expandedInfo > * {
   backface-visibility: hidden;
+  margin-top: 0;
   transform: translateZ(0);
   will-change: opacity, transform;
 }
 
 .baths-showcase__expandedInfo .eyebrow {
   font-size: 15px;
-  margin-top: clamp(20px, 1.7vw, 28px);
 }
 
 .baths-showcase__expandedInfo h3 {
@@ -1903,7 +1916,7 @@ html[data-theme='light'] main > .schedule-section::before {
   font-size: clamp(52px, 3.45vw, 68px);
   font-weight: 600;
   line-height: 0.95;
-  margin: 12px 0 0;
+  margin: 0;
 }
 
 .baths-showcase__expandedInfo h3.is-wide-name {
@@ -1915,7 +1928,7 @@ html[data-theme='light'] main > .schedule-section::before {
   color: #b9aea0;
   font-size: 15.5px;
   line-height: 1.6;
-  margin: 12px 0 0;
+  margin: 0;
   max-width: 530px;
 }
 
@@ -1924,7 +1937,7 @@ html[data-theme='light'] main > .schedule-section::before {
   font-size: 16px;
   font-weight: 700;
   line-height: 1.45;
-  margin-top: 12px;
+  margin: 0;
 }
 
 .baths-showcase__bookingLabel {
@@ -1932,7 +1945,6 @@ html[data-theme='light'] main > .schedule-section::before {
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.18em;
-  margin-top: 20px;
   text-transform: uppercase;
 }
 
@@ -1940,7 +1952,6 @@ html[data-theme='light'] main > .schedule-section::before {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 12px;
 }
 
 .baths-showcase__detailList div {
@@ -1957,6 +1968,9 @@ html[data-theme='light'] main > .schedule-section::before {
   background: rgba(214, 161, 95, 0.13);
   border: 1px solid rgba(214, 161, 95, 0.16);
   border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   margin: 0;
   padding: 18px 20px;
 }
@@ -2033,16 +2047,19 @@ html[data-theme='light'] .baths-showcase__price span {
   align-items: stretch;
   display: grid;
   gap: 12px;
-  grid-template-columns: minmax(170px, 0.9fr) minmax(170px, 0.72fr);
-  margin-top: 18px;
-  min-height: 90px;
+  grid-template-columns: 1fr 1fr;
+  margin-top: auto;
+  min-height: 100px;
 }
 
 .baths-showcase__bookButton {
+  align-items: center;
+  display: flex;
+  justify-content: center;
   min-height: 100%;
   padding-left: 20px;
   padding-right: 20px;
-  font-size: 19px;
+  font-size: 25px;
   text-align: center;
   white-space: nowrap;
 }
@@ -2262,7 +2279,7 @@ html[data-theme='light'] .baths-showcase__price span {
   }
 
   .baths-showcase__expandedInfo .eyebrow {
-    margin-top: 28px;
+    margin-top: 0;
   }
 
   .baths-showcase__sideArrow {

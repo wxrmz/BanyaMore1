@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 const links = [
   { name: 'О нас', href: '#about' },
   { name: 'Бани', href: '#baths' },
+  { name: 'Запись', href: '#schedule' },
   { name: 'Галерея', href: '#gallery' },
   { name: 'Контакты', href: '#contacts' },
 ];
@@ -74,7 +75,7 @@ export default function Footer() {
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.55, delay: 0.08 }}
-            className="relative top-3 flex flex-wrap gap-x-6 gap-y-3 lg:max-w-md"
+            className="relative top-3 flex gap-x-6"
             aria-label="Навигация в футере"
           >
             {links.map((link) => (

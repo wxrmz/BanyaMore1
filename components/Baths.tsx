@@ -237,6 +237,8 @@ export default function Baths() {
     window.scrollTo({ top, behavior: 'smooth' });
   };
 
+
+
   const sliderClassName = [
     'baths-showcase__slider',
     `baths-showcase__slider--active-${active}`,
