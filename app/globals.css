@@ -131,10 +131,7 @@ textarea {
   }
 }
 
-html[data-theme='dark'] .layer-high,
-html[data-theme='dark'] .layer-card {
-  border-radius: 0 !important;
-}
+/* Keep rounded corners for layered sections in dark theme to match light theme. */
 
 .hero-overlay-bottom {
   background:
