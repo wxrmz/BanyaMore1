@@ -90,7 +90,7 @@ const baths: BathConfig[] = [
       {
         name: 'Большая 2',
         capacity: '1-8 человек',
-        price: '3 200 ₽/ч',
+        price: '3 000 ₽/ч',
         image: '/images/20250721_204935.jpg',
         gallery: ['/images/20250721_204935.jpg', '/images/photo-10.jpg', '/images/20201018182427_IMG_8862.JPG'],
         lead: 'Уютная большая баня с панорамным видом.',
@@ -922,7 +922,9 @@ export default function Baths() {
                     {selectedBath.capacity}
                   </div>
                   <h3 className={selectedBath.name === 'Большие бани' ? 'is-wide-name' : undefined}>{selectedBath.name}</h3>
-                  <p className="baths-showcase__description">{selectedBath.text}</p>
+                  <p className={`baths-showcase__description${selectedBath.name === 'Большая 2' ? ' baths-showcase__description--three-lines' : ''}`}>
+                    {selectedBath.text}
+                  </p>
 
                   <div className="baths-showcase__actions">
                     <div className="baths-showcase__price">
