@@ -1359,7 +1359,7 @@ html[data-theme='light'] main > .schedule-section::before {
   appearance: none;
   background: transparent;
   border: 0;
-  border-radius: 10px;
+  border-radius: 16px;
   color: inherit;
   cursor: pointer;
   display: block;
@@ -1626,10 +1626,19 @@ html[data-theme='light'] main > .schedule-section::before {
 
 .baths-showcase__peopleIcon {
   display: inline-block;
-  height: 1.2em;
+  filter:
+    drop-shadow(0 1px 3px rgba(5, 4, 3, 0.96))
+    drop-shadow(0 0 12px rgba(5, 4, 3, 0.84))
+    drop-shadow(0 0 26px rgba(5, 4, 3, 0.6));
+  height: 1.4em;
   margin-right: 0.35em;
-  vertical-align: -0.22em;
-  width: 1.2em;
+  vertical-align: -0.25em;
+  width: 1.4em;
+}
+
+.baths-showcase__expandedInfo .baths-showcase__peopleIcon,
+.baths-showcase__morphPreview .baths-showcase__peopleIcon {
+  filter: none;
 }
 
 .baths-showcase__cardInfo .baths-showcase__cardAction {
@@ -1641,6 +1650,135 @@ html[data-theme='light'] main > .schedule-section::before {
 
 .baths-showcase__cardInfo .baths-showcase__cardAction > b {
   margin-left: 0;
+}
+
+.baths-showcase__subView {
+  --bath-sub-content-width: min(calc(100% - 64px), 1800px);
+  align-items: center;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  left: 0;
+  opacity: 1;
+  padding: 0 max(24px, calc((100% - var(--bath-sub-content-width)) / 2));
+  position: absolute;
+  top: 0;
+  transition: opacity 420ms ease;
+  width: 100%;
+  z-index: 1;
+}
+
+.baths-showcase__subView--2 {
+  gap: clamp(20px, 2.4vw, 40px);
+}
+
+.baths-showcase__subView--1 .baths-showcase__card--sub {
+  --bath-card-width: min(46vw, calc(var(--bath-sub-content-width) - 120px));
+  --bath-card-height: 580px;
+}
+
+.baths-showcase__subBack {
+  align-items: center;
+  background: rgba(9, 8, 6, 0.62);
+  border: 1px solid rgba(214, 161, 95, 0.4);
+  border-radius: 999px;
+  color: #d6a15f;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 800;
+  gap: 8px;
+  left: auto;
+  letter-spacing: 0.16em;
+  padding: 11px 18px;
+  position: absolute;
+  right: max(24px, calc((100% - var(--bath-sub-content-width)) / 2));
+  text-transform: uppercase;
+  top: -4px;
+  transform: translateZ(0);
+  transform-origin: top right;
+  transition: background 220ms ease, color 220ms ease;
+  width: fit-content;
+  z-index: 10;
+}
+
+.baths-showcase__subBack:hover {
+  background: #d6a15f;
+  color: #15110d;
+}
+
+.baths-showcase__subBackArrow {
+  display: inline-block;
+  font-size: 20px;
+  line-height: 0.7;
+  transform: translate(-1px, 0);
+  transform-origin: center;
+}
+
+.baths-showcase__subBack > span:last-child {
+  display: inline-block;
+  transform: translate(-2px, 0);
+  transform-origin: left center;
+}
+
+.baths-showcase__card--sub {
+  --bath-card-width: min(42vw, calc((var(--bath-sub-content-width) - 40px) / 2));
+  --bath-card-height: 540px;
+  flex: 1 1 0;
+  left: auto;
+  max-width: var(--bath-card-width);
+  opacity: 1;
+  position: relative;
+  top: auto;
+  transform: none;
+  transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.baths-showcase__card--sub .baths-showcase__cardShell {
+  filter: brightness(1) saturate(1);
+  opacity: 1;
+}
+
+html[data-theme='light'] .baths-showcase__subView .baths-showcase__card--sub .baths-showcase__cardShell {
+  filter: brightness(1) saturate(1);
+  opacity: 1;
+}
+
+html[data-theme='light'] .baths-showcase__mobileList--sub .baths-showcase__mobileCard,
+html[data-theme='light'] .baths-showcase__mobileList--sub .baths-showcase__mobileCard > img {
+  filter: brightness(1) saturate(1);
+  opacity: 1;
+}
+
+.baths-showcase__subView .baths-showcase__card--sub .baths-showcase__cardInfo div {
+  font-size: 22px;
+}
+
+.baths-showcase__subView .baths-showcase__card--sub .baths-showcase__cardInfo h3 {
+  font-size: clamp(48px, 4.2vw, 66px);
+  transform: translateY(-6px);
+}
+
+.baths-showcase__subView .baths-showcase__card--sub .baths-showcase__cardInfo span {
+  font-size: 20px;
+}
+
+.baths-showcase__subView .baths-showcase__card--sub .baths-showcase__cardTop strong {
+  font-size: 23px;
+  min-height: 48px;
+  padding: 0 20px;
+}
+
+.baths-showcase__card--sub:hover {
+  transform: scale(1.02);
+}
+
+.baths-showcase__viewWrap {
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
 }
 
 .baths-showcase__sideArrow {
@@ -1703,7 +1841,7 @@ html[data-theme='light'] main > .schedule-section::before {
 .baths-showcase__expanded {
   background: rgba(13, 10, 8, 0.82);
   border: 1px solid rgba(214, 161, 95, 0.18);
-  border-radius: 10px;
+  border-radius: 16px;
   box-shadow: 0 34px 120px rgba(0, 0, 0, 0.36);
   clip-path: none;
   height: var(--bath-expanded-height);
@@ -1735,7 +1873,7 @@ html[data-theme='light'] main > .schedule-section::before {
 }
 
 .baths-showcase__expanded.is-closing {
-  animation: bath-detail-close 280ms ease-out both;
+  animation: bath-detail-close 200ms ease-out both;
   pointer-events: none;
 }
 
@@ -1797,7 +1935,7 @@ html[data-theme='light'] main > .schedule-section::before {
 .baths-showcase__morphPreview {
   background: #0d0a08;
   border: 1px solid rgba(214, 161, 95, 0.82);
-  border-radius: 10px;
+  border-radius: 16px;
   box-shadow: 0 0 0 1px rgba(214, 161, 95, 0.16), 0 38px 110px rgba(0, 0, 0, 0.46);
   display: none;
   height: var(--bath-card-height);
@@ -2145,6 +2283,18 @@ html[data-theme='light'] main > .schedule-section::before {
   transform-origin: left top;
 }
 
+.baths-showcase__expanded.is-closing .baths-showcase__expandedInfo .baths-showcase__back {
+  transform: translateZ(0) scale(1);
+}
+
+.baths-showcase__expanded.is-closing .baths-showcase__expandedInfo .eyebrow {
+  transform: translateZ(0) scale(1);
+}
+
+.baths-showcase__expanded.is-closing .baths-showcase__expandedInfo .baths-showcase__description {
+  transform: translateY(30px) scale(1) translateZ(0) !important;
+}
+
 .baths-showcase__expandedInfo .baths-showcase__lead {
   color: #e0d7ca;
   font-size: 18px;
@@ -2213,6 +2363,19 @@ html[data-theme='light'] .baths-showcase__back {
 }
 
 html[data-theme='light'] .baths-showcase__back:hover {
+  background: #d6a15f;
+  border-color: #d6a15f;
+  color: #16110c;
+}
+
+html[data-theme='light'] .baths-showcase__subBack {
+  background: #17110c;
+  border-color: rgba(214, 161, 95, 0.45);
+  box-shadow: inset 0 1px 0 rgba(214, 161, 95, 0.12), 0 14px 36px rgba(0, 0, 0, 0.28);
+  color: #d6a15f;
+}
+
+html[data-theme='light'] .baths-showcase__subBack:hover {
   background: #d6a15f;
   border-color: #d6a15f;
   color: #16110c;
@@ -2317,6 +2480,10 @@ html[data-theme='light'] .baths-showcase__price span {
     display: none;
   }
 
+  .baths-showcase__subView {
+    display: none;
+  }
+
   .baths-showcase__mobileList {
     display: flex;
     gap: 16px;
@@ -2350,7 +2517,7 @@ html[data-theme='light'] .baths-showcase__price span {
     appearance: none;
     background: #0d0a08;
     border: 1px solid rgba(107, 69, 35, 0.58);
-    border-radius: 10px;
+    border-radius: 16px;
     color: inherit;
     cursor: pointer;
     flex: 0 0 var(--bath-mobile-card-width);
@@ -2478,6 +2645,57 @@ html[data-theme='light'] .baths-showcase__price span {
     max-width: 148px;
   }
 
+  .baths-showcase__mobileList--sub {
+    scroll-padding-left: max(24px, calc((100% - var(--bath-mobile-card-width)) / 2));
+    scroll-padding-right: max(24px, calc((100% - var(--bath-mobile-card-width)) / 2));
+  }
+
+  .baths-showcase__mobileControls .baths-showcase__subBack {
+    flex: 0 0 auto;
+    font-size: 11px;
+    gap: 6px;
+    left: auto;
+    padding: 9px 12px;
+    position: relative;
+    right: auto;
+    top: auto;
+    transform: translateZ(0);
+    transform-origin: center;
+    width: auto;
+  }
+
+  .baths-showcase__mobileControls .baths-showcase__subBack:hover {
+    transform: translateZ(0);
+  }
+
+  .baths-showcase__mobileControls .baths-showcase__subBackArrow {
+    font-size: 18px;
+    transform: translate(-1px, 0);
+  }
+
+  .baths-showcase__mobileControls .baths-showcase__subBack > span:last-child {
+    transform: translate(-1px, 0);
+  }
+
+  .baths-showcase__mobileList--sub .baths-showcase__mobileCard .baths-showcase__cardInfo div {
+    font-size: 20px;
+  }
+
+  .baths-showcase__mobileList--sub .baths-showcase__mobileCard .baths-showcase__cardInfo h3 {
+    font-size: 48px;
+    transform: translateY(-4px);
+  }
+
+  .baths-showcase__mobileList--sub .baths-showcase__mobileCard .baths-showcase__cardInfo span {
+    font-size: 18px;
+  }
+
+  .baths-showcase__mobileList--sub .baths-showcase__mobileCard .baths-showcase__cardTop strong {
+    font-size: 19px;
+    min-height: 42px;
+    padding: 0 16px;
+  }
+
   .baths-showcase__expandedContent {
     grid-template-columns: 1fr;
   }
@@ -2596,6 +2814,25 @@ html[data-theme='light'] .baths-showcase__price span {
   .baths-showcase__cardInfo h3,
   .baths-showcase__card:not(.is-selected) .baths-showcase__cardInfo h3 {
     font-size: 42px;
+  }
+
+  .baths-showcase__mobileList--sub .baths-showcase__mobileCard .baths-showcase__cardInfo div {
+    font-size: 20px;
+  }
+
+  .baths-showcase__mobileList--sub .baths-showcase__mobileCard .baths-showcase__cardInfo h3 {
+    font-size: 48px;
+    transform: translateY(-4px);
+  }
+
+  .baths-showcase__mobileList--sub .baths-showcase__mobileCard .baths-showcase__cardInfo span {
+    font-size: 18px;
+  }
+
+  .baths-showcase__mobileList--sub .baths-showcase__mobileCard .baths-showcase__cardTop strong {
+    font-size: 19px;
+    min-height: 42px;
+    padding: 0 16px;
   }
 
   .baths-showcase__card:not(.is-selected) .baths-showcase__cardInfo p {
