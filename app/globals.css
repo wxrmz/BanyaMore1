@@ -316,6 +316,16 @@ html[data-theme='light'] .hero-title {
   color: #20170f !important;
 }
 
+@media (max-width: 639px) {
+  html[data-theme='light'] .hero-title {
+    text-shadow:
+      0 1px 10px rgba(255, 249, 239, 1),
+      0 0 22px rgba(247, 239, 227, 0.96),
+      0 0 42px rgba(255, 249, 239, 0.9),
+      0 0 68px rgba(247, 239, 227, 0.76);
+  }
+}
+
 html[data-theme='light'] .hero-copy {
   color: #67594b !important;
 }
@@ -329,6 +339,65 @@ html[data-theme='light'] .hero-section .btn-secondary {
 html[data-theme='light'] .hero-section .btn-secondary:hover {
   background: rgba(214, 161, 95, 0.12);
   border-color: rgba(155, 101, 50, 0.7);
+}
+
+.hero-about-btn {
+  background: #f4eee4 !important;
+  border-color: #f4eee4 !important;
+  color: #16110c !important;
+}
+
+.hero-about-btn:hover {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
+html[data-theme='light'] .hero-about-btn {
+  background: #f7efe3 !important;
+  border-color: #f7efe3 !important;
+  color: #20170f !important;
+}
+
+html[data-theme='light'] .hero-about-btn:hover {
+  background: #fff9ef !important;
+  border-color: #fff9ef !important;
+}
+
+@media (max-width: 639px) {
+  html:not([data-theme='light']) .hero-about-btn {
+    background: #1c130e !important;
+    border-color: rgba(214, 161, 95, 0.15) !important;
+    color: #f4eee4 !important;
+  }
+
+  html:not([data-theme='light']) .hero-about-btn:hover {
+    background: #271b14 !important;
+    border-color: rgba(214, 161, 95, 0.35) !important;
+  }
+}
+
+@media (min-width: 640px) {
+  .hero-about-btn {
+    background: transparent !important;
+    border-color: rgba(214, 161, 95, 0.55) !important;
+    color: #f4eee4 !important;
+  }
+
+  .hero-about-btn:hover {
+    background: rgba(214, 161, 95, 0.1) !important;
+    border-color: #d6a15f !important;
+  }
+
+  html[data-theme='light'] .hero-about-btn {
+    background: rgba(255, 249, 239, 0.5) !important;
+    border-color: rgba(155, 101, 50, 0.45) !important;
+    color: #20170f !important;
+  }
+
+  html[data-theme='light'] .hero-about-btn:hover {
+    background: rgba(214, 161, 95, 0.12) !important;
+    border-color: rgba(155, 101, 50, 0.7) !important;
+  }
 }
 
 html[data-theme='light'] .hero-stats-panel {
@@ -423,6 +492,37 @@ html[data-theme='light'] .navbar-phone-link:hover {
   border-color: #d6a15f !important;
   box-shadow: 0 14px 34px rgba(155, 101, 50, 0.2) !important;
   color: #16110c !important;
+}
+
+html[data-theme='light'] .navbar-menu-button {
+  background: rgba(255, 249, 239, 0.78);
+  border-color: rgba(155, 101, 50, 0.34);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72), 0 18px 55px rgba(109, 79, 45, 0.14);
+  color: #2b2017;
+}
+
+html[data-theme='light'] .navbar-menu-button:hover {
+  background: rgba(255, 249, 239, 0.94);
+  border-color: rgba(155, 101, 50, 0.58);
+  color: #9b6532;
+}
+
+html[data-theme='light'] .mobile-menu-panel {
+  background: rgba(255, 249, 239, 0.98) !important;
+  border-color: rgba(155, 101, 50, 0.22) !important;
+  box-shadow: -24px 0 80px rgba(109, 79, 45, 0.18) !important;
+}
+
+html[data-theme='light'] .mobile-menu-link {
+  background: rgba(255, 249, 239, 0.78);
+  border-color: rgba(155, 101, 50, 0.2);
+  color: #2b2017;
+}
+
+html[data-theme='light'] .mobile-menu-link:hover {
+  background: rgba(214, 161, 95, 0.12);
+  border-color: rgba(155, 101, 50, 0.34);
+  color: #9b6532;
 }
 
 html[data-theme='light'] main > section:not(:first-of-type),
@@ -1915,14 +2015,6 @@ html[data-theme='light'] .baths-showcase__mobileList--sub .baths-showcase__mobil
   animation-delay: 375ms;
 }
 
-.baths-showcase__expanded.is-opening .baths-showcase__expandedInfo > :nth-child(7) {
-  animation-delay: 390ms;
-}
-
-.baths-showcase__expanded.is-opening .baths-showcase__expandedInfo > :nth-child(8) {
-  animation-delay: 405ms;
-}
-
 .baths-showcase__expanded.is-opening .baths-showcase__thumbs {
   animation-delay: 345ms;
 }
@@ -2233,10 +2325,10 @@ html[data-theme='light'] .baths-showcase__mobileList--sub .baths-showcase__mobil
   border-left: 1px solid rgba(214, 161, 95, 0.16);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: clamp(14px, 1.2vw, 20px);
   height: 100%;
   min-width: 0;
-  padding: clamp(28px, 2.35vw, 40px);
+  padding: clamp(24px, 2vw, 36px);
 }
 
 .baths-showcase__expandedInfo > * {
@@ -2247,54 +2339,136 @@ html[data-theme='light'] .baths-showcase__mobileList--sub .baths-showcase__mobil
 }
 
 .baths-showcase__expandedInfo .baths-showcase__back {
-  transform: translateZ(0) scale(1.48);
+  transform: translateZ(0) scale(1.24);
   transform-origin: top right;
   transition: transform 200ms ease-out, opacity 200ms ease-out;
-}
-
-.baths-showcase__expandedInfo .eyebrow {
-  font-size: 27px;
-  margin-top: 10px;
-  position: relative;
-  top: 28px;
-  transform: translateZ(0) scale(1.15);
-  transform-origin: left center;
 }
 
 .baths-showcase__expandedInfo h3 {
   color: #f4eee4;
   font-family: "Playfair Display", Georgia, serif;
-  font-size: clamp(62px, 4vw, 78px);
+  font-size: clamp(52px, 3.6vw, 72px);
   font-weight: 600;
   line-height: 0.95;
   margin: 0;
-  position: relative;
-  top: 28px;
-  transform: translateY(12px) !important;
 }
 
 .baths-showcase__expandedInfo h3.is-wide-name {
-  font-size: clamp(54px, 3.4vw, 70px);
+  font-size: clamp(48px, 3.2vw, 66px);
   white-space: nowrap;
 }
 
-.baths-showcase__expandedInfo p {
-  color: #b9aea0;
-  font-size: 21px;
-  line-height: 1.55;
-  margin: 0;
-  max-width: 610px;
+.baths-showcase__capacity {
+  align-items: center;
+  color: #9b6532;
+  display: inline-flex;
+  font-size: clamp(16px, 1.2vw, 20px);
+  font-weight: 800;
+  gap: 10px;
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+  text-transform: uppercase;
+}
+
+.baths-showcase__capacityIcon {
+  color: #9b6532;
+  flex-shrink: 0;
+  height: 24px;
+  width: 24px;
+}
+
+.baths-showcase__included {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.baths-showcase__includedTitle {
+  color: #f4eee4;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.baths-showcase__includedList {
+  align-items: center;
+  display: flex;
+}
+
+.baths-showcase__includedItem {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  padding: 0 clamp(20px, 1.8vw, 32px);
   position: relative;
-  top: 36px;
 }
 
-.baths-showcase__expandedInfo .baths-showcase__description {
-  transform: translateY(30px) scale(1.14) translateZ(0) !important;
-  transform-origin: left top;
+.baths-showcase__includedItem:first-child {
+  padding-left: 0;
 }
 
-.baths-showcase__expandedInfo .baths-showcase__description.baths-showcase__description--three-lines {
-  max-width: 440px;
+.baths-showcase__includedItem:last-child {
+  padding-right: 0;
+}
+
+.baths-showcase__includedItem:not(:last-child)::after {
+  background: rgba(214, 161, 95, 0.28);
+  content: '';
+  height: 46px;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+}
+
+.baths-showcase__includedIcon {
+  flex-shrink: 0;
+  height: 54px;
+  object-fit: contain;
+  width: 54px;
+}
+
+.baths-showcase__includedCount {
+  color: #f4eee4;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  min-width: 28px;
+}
+
+.baths-showcase__meta {
+  align-items: center;
+  background: rgba(214, 161, 95, 0.12);
+  border: 1px solid rgba(214, 161, 95, 0.18);
+  border-radius: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 2px;
+  padding: 14px 30px;
+  width: 100%;
+}
+
+.baths-showcase__metaItem {
+  align-items: center;
+  color: #f4eee4;
+  display: inline-flex;
+  font-size: 15px;
+  font-weight: 800;
+  gap: 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.baths-showcase__metaIcon {
+  flex-shrink: 0;
+  height: 26px;
+  object-fit: contain;
+  width: 26px;
 }
 
 .baths-showcase__expanded.is-closing .baths-showcase__expandedInfo .baths-showcase__back {
@@ -2392,8 +2566,7 @@ html[data-theme='light'] .baths-showcase__expandedInfo {
   color: #20170f;
 }
 
-html[data-theme='light'] .baths-showcase__expandedInfo .eyebrow,
-html[data-theme='light'] .baths-showcase__bookingLabel {
+html[data-theme='light'] .baths-showcase__expandedInfo .baths-showcase__bookingLabel {
   color: #9b6532 !important;
 }
 
@@ -2402,8 +2575,25 @@ html[data-theme='light'] .baths-showcase__expandedInfo h3 {
   text-shadow: none;
 }
 
-html[data-theme='light'] .baths-showcase__expandedInfo p {
-  color: #665648;
+html[data-theme='light'] .baths-showcase__capacity {
+  color: #9b6532;
+}
+
+html[data-theme='light'] .baths-showcase__includedTitle {
+  color: #2a1c12;
+}
+
+html[data-theme='light'] .baths-showcase__includedCount {
+  color: #2a1c12;
+}
+
+html[data-theme='light'] .baths-showcase__meta {
+  background: rgba(214, 161, 95, 0.16);
+  border-color: rgba(155, 101, 50, 0.22);
+}
+
+html[data-theme='light'] .baths-showcase__metaItem {
+  color: #5a3b22;
 }
 
 html[data-theme='light'] .baths-showcase__detailList div {
@@ -2721,8 +2911,63 @@ html[data-theme='light'] .baths-showcase__price span {
     border-top: 1px solid rgba(214, 161, 95, 0.16);
   }
 
-  .baths-showcase__expandedInfo .eyebrow {
-    margin-top: 8px;
+  .baths-showcase__capacity {
+    font-size: 16px;
+    margin-top: 0;
+  }
+
+  .baths-showcase__capacityIcon {
+    height: 22px;
+    width: 22px;
+  }
+
+  .baths-showcase__includedTitle {
+    font-size: 13px;
+  }
+
+  .baths-showcase__includedList {
+    gap: 0;
+  }
+
+  .baths-showcase__includedItem {
+    padding: 0 18px;
+  }
+
+  .baths-showcase__includedItem:first-child {
+    padding-left: 0;
+  }
+
+  .baths-showcase__includedItem:last-child {
+    padding-right: 0;
+  }
+
+  .baths-showcase__includedItem:not(:last-child)::after {
+    height: 38px;
+  }
+
+  .baths-showcase__includedIcon {
+    height: 48px;
+    width: 48px;
+  }
+
+  .baths-showcase__includedCount {
+    font-size: 38px;
+  }
+
+  .baths-showcase__meta {
+    border-radius: 12px;
+    gap: 14px;
+    padding: 11px 20px;
+    width: 100%;
+  }
+
+  .baths-showcase__metaItem {
+    font-size: 12px;
+  }
+
+  .baths-showcase__metaIcon {
+    height: 22px;
+    width: 22px;
   }
 
   .baths-showcase__sideArrow {
@@ -2754,21 +2999,30 @@ html[data-theme='light'] .baths-showcase__price span {
 
 @media (max-width: 640px) {
   .baths-showcase {
-    padding: 58px 0 44px;
+    padding: 18px 0 0;
+  }
+
+  .baths-showcase__head {
+    transform: translateY(86px);
+  }
+
+  .baths-showcase__head .eyebrow {
+    transform: scale(1.2);
+    transform-origin: center top;
   }
 
   .baths-showcase__stage {
-    --bath-card-height: 390px;
+    --bath-card-height: 410px;
     --bath-card-inset-bottom: 508px;
     --bath-card-inset-top: 52px;
     --bath-card-top: 45%;
     --bath-expanded-offset: 30px;
     --bath-card-width: min(calc(100vw - 36px), 100%);
-    --bath-mobile-card-width: min(78vw, 320px);
+    --bath-mobile-card-width: min(92vw, 400px);
     --bath-expanded-height: 980px;
     --bath-expanded-width: min(calc(100vw - 36px), 100%);
-    height: 520px;
-    margin-top: 24px;
+    height: 518px;
+    margin-top: 110px;
   }
 
   .baths-showcase__stage:has(.baths-showcase__expanded) {
@@ -2777,7 +3031,7 @@ html[data-theme='light'] .baths-showcase__price span {
 
   .baths-showcase__mobileList {
     gap: 14px;
-    padding-bottom: 86px;
+    padding-bottom: 70px;
   }
 
   .baths-showcase__mobileControls {
@@ -2874,16 +3128,66 @@ html[data-theme='light'] .baths-showcase__price span {
   }
 
   .baths-showcase__expandedInfo h3 {
-    font-size: 48px;
+    font-size: 44px;
   }
 
   .baths-showcase__expandedInfo h3.is-wide-name {
-    font-size: 44px;
+    font-size: 40px;
     white-space: normal;
   }
 
-  .baths-showcase__expandedInfo .baths-showcase__lead {
-    font-size: 18px;
+  .baths-showcase__capacity {
+    font-size: 14px;
+  }
+
+  .baths-showcase__capacityIcon {
+    height: 20px;
+    width: 20px;
+  }
+
+  .baths-showcase__includedList {
+    gap: 0;
+  }
+
+  .baths-showcase__includedItem {
+    padding: 0 14px;
+  }
+
+  .baths-showcase__includedItem:first-child {
+    padding-left: 0;
+  }
+
+  .baths-showcase__includedItem:last-child {
+    padding-right: 0;
+  }
+
+  .baths-showcase__includedItem:not(:last-child)::after {
+    height: 32px;
+  }
+
+  .baths-showcase__includedIcon {
+    height: 42px;
+    width: 42px;
+  }
+
+  .baths-showcase__includedCount {
+    font-size: 32px;
+  }
+
+  .baths-showcase__meta {
+    border-radius: 10px;
+    flex-direction: column;
+    gap: 8px;
+    padding: 9px 14px;
+  }
+
+  .baths-showcase__metaItem {
+    font-size: 11px;
+  }
+
+  .baths-showcase__metaIcon {
+    height: 20px;
+    width: 20px;
   }
 
   .baths-showcase__thumbs {

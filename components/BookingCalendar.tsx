@@ -388,19 +388,19 @@ export default function BookingCalendar() {
             transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
             className="hidden min-h-[56px] items-center gap-4 rounded-2xl border border-[#d6a15f]/55 bg-[#21170f]/70 px-5 py-3 shadow-[inset_0_1px_0_rgba(214,161,95,0.14),0_18px_55px_rgba(0,0,0,0.26)] backdrop-blur-xl sm:flex"
           >
-            <span className="inline-flex items-center gap-2 text-[13px] font-extrabold uppercase tracking-[0.14em] text-[#d8d0c4]">
+            <span className="inline-flex items-center gap-2 text-[15px] font-extrabold uppercase tracking-[0.14em] text-[#d8d0c4]">
               <span className="h-2.5 w-2.5 rounded-full bg-[#d6a15f]" />
               свободно
             </span>
-            <span className="inline-flex items-center gap-2 text-[13px] font-extrabold uppercase tracking-[0.14em] text-[#8f857a]">
+            <span className="inline-flex items-center gap-2 text-[15px] font-extrabold uppercase tracking-[0.14em] text-[#8f857a]">
               <span className="h-2.5 w-2.5 rounded-full bg-[#3a3026]" />
               занято
             </span>
-            <span className="inline-flex items-center gap-2 text-[13px] font-extrabold uppercase tracking-[0.14em] text-[#bfa06d]">
+            <span className="inline-flex items-center gap-2 text-[15px] font-extrabold uppercase tracking-[0.14em] text-[#bfa06d]">
               <span className="h-2.5 w-2.5 rounded-full bg-[#6b4523]" />
               уборка 30 мин
             </span>
-            <span className="inline-flex items-center gap-2 text-[13px] font-extrabold uppercase tracking-[0.14em] text-[#b9a58a]">
+            <span className="inline-flex items-center gap-2 text-[15px] font-extrabold uppercase tracking-[0.14em] text-[#b9a58a]">
               <span className="h-2.5 w-2.5 rounded-full border border-[#d6a15f]/65 bg-[#2c241c]" />
               недоступно
             </span>
@@ -422,7 +422,7 @@ export default function BookingCalendar() {
                   <div className="mt-2 text-sm font-bold uppercase tracking-[0.16em] text-[#bfa06d]">{selectedBath.title}</div>
                 )}
               </div>
-              <div className="flex flex-wrap items-center gap-3 text-[12px] font-bold text-[#b9aea0] sm:hidden">
+              <div className="flex flex-wrap items-center gap-3 text-[14px] font-bold text-[#b9aea0] sm:hidden">
                 <span className="inline-flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-[#d6a15f]" />
                   свободно
@@ -541,7 +541,7 @@ export default function BookingCalendar() {
                   >
                     ‹
                   </button>
-                  <div className="scrollbar-none flex min-w-0 snap-x gap-1.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:gap-2 sm:overflow-visible sm:pb-0 md:grid-cols-4 lg:grid-cols-7">
+                  <div className="scrollbar-none flex min-w-0 snap-x gap-1.5 overflow-x-auto py-1 sm:grid sm:grid-cols-2 sm:gap-2 sm:overflow-visible sm:py-0 md:grid-cols-4 lg:grid-cols-7">
                     {visibleDays.map((day) => {
                       const isActive = day.date === selectedDay.date;
 
@@ -550,14 +550,14 @@ export default function BookingCalendar() {
                           key={day.date}
                           type="button"
                           onClick={() => setSelectedDate(day.date)}
-                          className={`min-w-[84px] snap-start rounded-lg border px-2.5 py-2.5 text-left transition duration-300 ease-out sm:min-w-0 sm:px-4 sm:py-3.5 ${
+                          className={`min-w-[92px] snap-start rounded-lg border px-3 py-3 text-left transition duration-300 ease-out sm:min-w-0 sm:px-4 sm:py-3.5 ${
                             isActive
                               ? '-translate-y-0.5 border-[#d6a15f]/80 bg-[#d6a15f] text-[#15110d] shadow-[0_14px_34px_rgba(214,161,95,0.22)]'
                               : 'border-[#d6a15f]/55 bg-[#21170f]/45 text-[#f4eee4] hover:-translate-y-0.5 hover:border-[#d6a15f]/80'
                           }`}
                         >
-                          <span className="block text-[11px] font-extrabold uppercase tracking-[0.14em] opacity-75 sm:text-[13px]">{day.weekday}</span>
-                          <span className="mt-1 block text-[16px] font-extrabold leading-none sm:text-[20px]">{day.label}</span>
+                          <span className="block text-[12px] font-extrabold uppercase tracking-[0.14em] opacity-75 sm:text-[13px]">{day.weekday}</span>
+                          <span className="mt-1 block text-[18px] font-extrabold leading-none sm:text-[20px]">{day.label}</span>
                         </button>
                       );
                     })}
@@ -698,11 +698,7 @@ export default function BookingCalendar() {
                                 {slot.time}
                               </span>
                               {!isPastSlot && (
-                                <span
-                                  className={`mt-2 block w-full text-center text-[11px] font-extrabold uppercase tracking-[0.04em] sm:text-[12px] sm:tracking-[0.06em] ${
-                                    isShortFree ? '-translate-x-[10px]' : ''
-                                  }`}
-                                >
+                                <span className="mt-2 block w-full text-center text-[13px] font-extrabold uppercase tracking-[0.04em] sm:text-[14px] sm:tracking-[0.06em]">
                                   {isSelected ? 'выбрано' : isBookable ? 'свободно' : isShortFree ? 'недоступно' : slot.status === 'cleaning' ? 'уборка' : 'занято'}
                                 </span>
                               )}

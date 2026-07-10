@@ -3,12 +3,15 @@
 import { AnimatePresence, motion, useInView } from 'framer-motion';
 import type { PointerEvent } from 'react';
 import { useEffect, useRef, useState } from 'react';
+import { PeopleIcon } from './BathIcons';
 
-const PeopleIcon = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-  </svg>
-);
+const iconPaths = {
+  towel: '/images/icons/polotenca.png?v=3',
+  hat: '/images/icons/shapka.png?v=3',
+  slippers: '/images/icons/tapochki.png?v=3',
+  peoplePlus: '/images/icons/dop_chelovek.png?v=3',
+  location: '/images/icons/metka.png?v=3',
+};
 
 type BathConfig = {
   name: string;
@@ -19,6 +22,9 @@ type BathConfig = {
   lead: string;
   text: string;
   details: string[];
+  distance: string;
+  extraPerson: string;
+  included: { icon: 'towel' | 'hat' | 'slippers'; count: number }[];
   subBaths?: BathConfig[];
 };
 
@@ -32,6 +38,13 @@ const baths: BathConfig[] = [
     lead: 'Камерные бани для пары или небольшой компании.',
     text: 'Уютная парная, отдельная зона отдыха и спокойный вечер у моря без лишней суеты.',
     details: ['Дровяная печь', 'Отдельная терраса', 'Чайная зона', 'Тихий отдых'],
+    distance: '20 метров от моря',
+    extraPerson: '+ 400 ₽ доп. человек',
+    included: [
+      { icon: 'towel', count: 4 },
+      { icon: 'hat', count: 4 },
+      { icon: 'slippers', count: 4 },
+    ],
     subBaths: [
       {
         name: 'Малая 1',
@@ -42,6 +55,13 @@ const baths: BathConfig[] = [
         lead: 'Камерная баня для пары или небольшой компании.',
         text: 'Уютная парная, отдельная зона отдыха и спокойный вечер у моря без лишней суеты.',
         details: ['Дровяная печь', 'Отдельная терраса', 'Чайная зона', 'Тихий отдых'],
+        distance: '20 метров от моря',
+        extraPerson: '+ 400 ₽ доп. человек',
+        included: [
+          { icon: 'towel', count: 4 },
+          { icon: 'hat', count: 4 },
+          { icon: 'slippers', count: 4 },
+        ],
       },
     ],
   },
@@ -54,6 +74,13 @@ const baths: BathConfig[] = [
     lead: 'Удобные бани для компании у моря.',
     text: 'Два уровня для отдыха, просторная парная и отдельные зоны, чтобы удобно провести вечер семьей или компанией друзей.',
     details: ['Два этажа', 'Просторная парная', 'Вид на море', 'Для компании'],
+    distance: '20 метров от моря',
+    extraPerson: '+ 400 ₽ доп. человек',
+    included: [
+      { icon: 'towel', count: 6 },
+      { icon: 'hat', count: 6 },
+      { icon: 'slippers', count: 6 },
+    ],
     subBaths: [
       {
         name: 'Средняя 1',
@@ -64,6 +91,13 @@ const baths: BathConfig[] = [
         lead: 'Удобная баня для компании у моря.',
         text: 'Два уровня для отдыха, просторная парная и отдельные зоны, чтобы удобно провести вечер семьей или компанией друзей.',
         details: ['Два этажа', 'Просторная парная', 'Вид на море', 'Для компании'],
+        distance: '20 метров от моря',
+        extraPerson: '+ 400 ₽ доп. человек',
+        included: [
+          { icon: 'towel', count: 6 },
+          { icon: 'hat', count: 6 },
+          { icon: 'slippers', count: 6 },
+        ],
       },
     ],
   },
@@ -76,6 +110,13 @@ const baths: BathConfig[] = [
     lead: 'Просторные бани для свободного отдыха.',
     text: 'Много воздуха, широкая зона отдыха и комфортный общий стол для длинного вечера после парной.',
     details: ['Очень просторно', 'Большая терраса', 'Мини-кухня', 'Для компании'],
+    distance: '20 метров от моря',
+    extraPerson: '+ 400 ₽ доп. человек',
+    included: [
+      { icon: 'towel', count: 8 },
+      { icon: 'hat', count: 8 },
+      { icon: 'slippers', count: 8 },
+    ],
     subBaths: [
       {
         name: 'Большая 1',
@@ -86,6 +127,13 @@ const baths: BathConfig[] = [
         lead: 'Просторная баня с большой террасой.',
         text: 'Много воздуха, широкая зона отдыха и комфортный общий стол для длинного вечера после парной.',
         details: ['Очень просторно', 'Большая терраса', 'Мини-кухня', 'Для компании'],
+        distance: '20 метров от моря',
+        extraPerson: '+ 400 ₽ доп. человек',
+        included: [
+          { icon: 'towel', count: 8 },
+          { icon: 'hat', count: 8 },
+          { icon: 'slippers', count: 8 },
+        ],
       },
       {
         name: 'Большая 2',
@@ -96,6 +144,13 @@ const baths: BathConfig[] = [
         lead: 'Уютная большая баня с панорамным видом.',
         text: 'Просторная парная, отдельная зона отдыха и всё необходимое для большой компании у моря.',
         details: ['Панорамный вид', 'Просторная парная', 'Большой стол', 'Для компании'],
+        distance: '20 метров от моря',
+        extraPerson: '+ 400 ₽ доп. человек',
+        included: [
+          { icon: 'towel', count: 8 },
+          { icon: 'hat', count: 8 },
+          { icon: 'slippers', count: 8 },
+        ],
       },
     ],
   },
@@ -917,14 +972,37 @@ export default function Baths() {
                     <span className="baths-showcase__backArrow">←</span>
                     <span>Вернуться</span>
                   </button>
-                  <div className="eyebrow">
-                    <PeopleIcon className="baths-showcase__peopleIcon" />
+                  <div className="baths-showcase__capacity">
+                    <PeopleIcon className="baths-showcase__capacityIcon" />
                     {selectedBath.capacity}
                   </div>
                   <h3 className={selectedBath.name === 'Большие бани' ? 'is-wide-name' : undefined}>{selectedBath.name}</h3>
-                  <p className={`baths-showcase__description${selectedBath.name === 'Большая 2' ? ' baths-showcase__description--three-lines' : ''}`}>
-                    {selectedBath.text}
-                  </p>
+
+                  <div className="baths-showcase__included">
+                    <div className="baths-showcase__includedTitle">Включено в баню:</div>
+                    <div className="baths-showcase__includedList">
+                      {selectedBath.included.map((item) => {
+                        const src = iconPaths[item.icon];
+                        return (
+                          <div key={item.icon} className="baths-showcase__includedItem">
+                            <img src={src} alt="" className="baths-showcase__includedIcon" />
+                            <span className="baths-showcase__includedCount">{item.count}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="baths-showcase__meta">
+                    <div className="baths-showcase__metaItem">
+                      <img src={iconPaths.location} alt="" className="baths-showcase__metaIcon" />
+                      <span>{selectedBath.distance}</span>
+                    </div>
+                    <div className="baths-showcase__metaItem">
+                      <img src={iconPaths.peoplePlus} alt="" className="baths-showcase__metaIcon" />
+                      <span>{selectedBath.extraPerson}</span>
+                    </div>
+                  </div>
 
                   <div className="baths-showcase__actions">
                     <div className="baths-showcase__price">

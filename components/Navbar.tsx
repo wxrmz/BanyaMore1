@@ -160,13 +160,13 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setIsOpen((value) => !value)}
-                className="grid h-11 w-11 place-items-center rounded-lg border border-[#d6a15f]/20 bg-[#21170f]/55 text-[#f4eee4] shadow-[inset_0_1px_0_rgba(214,161,95,0.10)] lg:hidden"
+                className="navbar-menu-button inline-flex h-12 w-12 items-center justify-center rounded-xl border border-[#d6a15f]/25 bg-[#21170f]/60 text-[#f4eee4] shadow-[inset_0_1px_0_rgba(214,161,95,0.12)] transition hover:border-[#d6a15f]/45 hover:bg-[#21170f]/80 lg:hidden"
                 aria-label={isOpen ? 'Закрыть меню' : 'Открыть меню'}
               >
-                <span className="relative h-4 w-5">
-                  <span className={`absolute left-0 top-0 h-0.5 w-5 bg-current transition ${isOpen ? 'translate-y-[7px] rotate-45' : ''}`} />
-                  <span className={`absolute left-0 top-[7px] h-0.5 w-5 bg-current transition ${isOpen ? 'opacity-0' : ''}`} />
-                  <span className={`absolute left-0 top-[14px] h-0.5 w-5 bg-current transition ${isOpen ? '-translate-y-[7px] -rotate-45' : ''}`} />
+                <span className="relative h-5 w-5">
+                  <span className={`absolute left-0 top-0 h-0.5 w-5 rounded-full bg-current transition ${isOpen ? 'translate-y-[9px] rotate-45' : ''}`} />
+                  <span className={`absolute left-0 top-[9px] h-0.5 w-5 rounded-full bg-current transition ${isOpen ? 'opacity-0' : ''}`} />
+                  <span className={`absolute left-0 top-[18px] h-0.5 w-5 rounded-full bg-current transition ${isOpen ? '-translate-y-[9px] -rotate-45' : ''}`} />
                 </span>
               </button>
             </div>
@@ -188,27 +188,24 @@ export default function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', stiffness: 220, damping: 28 }}
-              className="ml-auto flex h-full w-[min(88vw,380px)] flex-col gap-3 border-l border-[#d6a15f]/20 bg-[#11100d] p-6 pt-24 shadow-[-24px_0_80px_rgba(0,0,0,0.36)]"
+              className="mobile-menu-panel ml-auto flex h-full w-[min(78vw,320px)] flex-col gap-2 rounded-l-2xl border-l border-[#d6a15f]/20 bg-[#11100d] p-5 pt-24 shadow-[-24px_0_80px_rgba(0,0,0,0.36)]"
               onClick={(event) => event.stopPropagation()}
             >
-              {navLinks.map((link, index) => (
-                <motion.a
+              {navLinks.map((link) => (
+                <a
                   key={link.name}
                   href={link.href}
-                  initial={{ x: 24, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: index * 0.045 }}
                   onClick={(event) => {
                     event.preventDefault();
                     goTo(link.href, link.external);
                   }}
-                  className="rounded-lg border border-[#d6a15f]/15 bg-[#21170f]/45 px-4 py-4 text-lg font-semibold text-[#f4eee4] transition hover:bg-[#d6a15f]/10"
+                  className="mobile-menu-link rounded-lg border border-[#d6a15f]/15 bg-[#21170f]/45 px-4 py-4 text-lg font-semibold text-[#f4eee4] transition hover:bg-[#d6a15f]/15"
                 >
                   {link.name}
-                </motion.a>
+                </a>
               ))}
               <a href="tel:+79084402055" className="btn-primary mt-3 w-full">
-                Позвонить
+                +7 908 440 20 55
               </a>
             </motion.nav>
           </motion.div>

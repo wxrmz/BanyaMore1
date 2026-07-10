@@ -75,7 +75,7 @@ export default function Footer() {
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.55, delay: 0.08 }}
-            className="relative top-3 flex gap-x-6"
+            className="relative top-[22px] flex gap-x-6 lg:top-3"
             aria-label="Навигация в футере"
           >
             {links.map((link) => (

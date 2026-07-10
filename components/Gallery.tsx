@@ -49,7 +49,10 @@ export default function Gallery() {
   const [selected, setSelected] = useState<number | null>(null);
   const [slideDirection, setSlideDirection] = useState<0 | -1 | 1>(0);
   const [categoryPill, setCategoryPill] = useState<{ height: number; left: number; top: number; width: number } | null>(null);
+  const [visibleCount, setVisibleCount] = useState(6);
   const visible = useMemo(() => gallery.filter((item) => filter === 'all' || item.category === filter), [filter]);
+  const displayed = useMemo(() => visible.slice(0, visibleCount), [visible, visibleCount]);
+  const canShowMore = visibleCount < visible.length;
   const selectedImage = selected === null ? null : visible[selected];
 
   const shift = (direction: -1 | 1) => {
@@ -59,6 +62,10 @@ export default function Gallery() {
       return (current + direction + visible.length) % visible.length;
     });
   };
+
+  useLayoutEffect(() => {
+    setVisibleCount(6);
+  }, [filter]);
 
   useLayoutEffect(() => {
     const updatePill = () => {
@@ -104,7 +111,7 @@ export default function Gallery() {
               animate={isInView ? { y: 0, opacity: 1 } : {}}
               transition={{ duration: 0.5, delay: 0.12 }}
               ref={categoryBarRef}
-              className="relative flex min-h-[56px] flex-wrap items-center gap-1.5 rounded-2xl border border-[#d6a15f]/20 bg-[#21170f]/70 p-1 shadow-[inset_0_1px_0_rgba(214,161,95,0.14),0_18px_55px_rgba(0,0,0,0.26)] backdrop-blur-xl"
+              className="relative mx-auto flex min-h-[60px] w-fit flex-wrap items-center justify-center gap-2 rounded-2xl border border-[#d6a15f]/20 bg-[#21170f]/70 p-1.5 shadow-[inset_0_1px_0_rgba(214,161,95,0.14),0_18px_55px_rgba(0,0,0,0.26)] backdrop-blur-xl sm:min-h-[64px] lg:mx-0 lg:w-auto lg:justify-start"
             >
               {categoryPill && (
                 <motion.span
@@ -133,7 +140,7 @@ export default function Gallery() {
                     setSelected(null);
                   }}
                   aria-pressed={filter === item.id}
-                  className={`relative z-10 h-11 min-w-[82px] rounded-xl px-3 text-[17px] font-extrabold transition-colors ${
+                  className={`relative z-10 h-12 min-w-[80px] rounded-xl px-3 text-[18px] font-extrabold transition-colors sm:h-13 sm:min-w-[92px] sm:px-4 sm:text-[21px] ${
                     filter === item.id ? 'text-[#15110d]' : 'text-[#d8d0c4] hover:text-[#f3d09b]'
                   }`}
                 >
@@ -152,7 +159,7 @@ export default function Gallery() {
               transition={{ duration: 0.34, ease: 'easeOut' }}
               className="columns-1 gap-4 md:columns-2 xl:columns-3"
             >
-              {visible.map((image, index) => (
+              {displayed.map((image, index) => (
                 <motion.button
                   key={image.src}
                   type="button"
@@ -167,17 +174,17 @@ export default function Gallery() {
                     setSlideDirection(0);
                     setSelected(index);
                   }}
-                  className={`group mb-4 block w-full break-inside-avoid overflow-hidden rounded-2xl bg-[#15110d] text-left shadow-[0_20px_70px_rgba(0,0,0,0.24)] ${image.height}`}
+                  className={`group mb-4 block w-full break-inside-avoid rounded-2xl bg-[#15110d] text-left shadow-[0_20px_70px_rgba(0,0,0,0.24)] ${image.height}`}
                 >
-                  <span className="relative block h-full w-full">
+                  <span className="relative block h-full w-full overflow-hidden rounded-2xl">
                     <img src={image.src} alt={image.title} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                     <span className="absolute inset-x-0 bottom-0 h-[40%] bg-[linear-gradient(180deg,transparent_0%,rgba(9,8,6,0.32)_42%,rgba(9,8,6,0.9)_100%)]" />
                     <span className="absolute bottom-5 left-5 right-5">
-                      <span className="block font-sans text-[25px] font-extrabold leading-tight text-[#f4eee4] sm:text-[27px]">{image.title}</span>
-                      <span className="gallery-photo-cta mt-2.5 inline-flex h-6 items-center text-[15px] font-extrabold uppercase tracking-[0.15em] sm:text-[16px]">
+                      <span className="block font-sans text-[27px] font-extrabold leading-tight text-[#f4eee4] sm:text-[30px]">{image.title}</span>
+                      <span className="gallery-photo-cta mt-3 inline-flex h-7 items-center text-[16px] font-extrabold uppercase tracking-[0.15em] sm:text-[18px]">
                         Смотреть фото
-                        <span className="relative ml-2 inline-block h-5 w-8 shrink-0 overflow-visible">
-                          <span className="absolute left-0 top-[calc(50%-2px)] text-[36px] font-extrabold leading-none -translate-y-1/2">→</span>
+                        <span className="relative ml-2.5 inline-block h-5 w-9 shrink-0 overflow-visible">
+                          <span className="absolute left-0 top-[calc(50%-2px)] text-[40px] font-extrabold leading-none -translate-y-1/2">→</span>
                         </span>
                       </span>
                     </span>
@@ -185,6 +192,43 @@ export default function Gallery() {
                 </motion.button>
               ))}
             </motion.div>
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {canShowMore && (
+              <motion.div
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 12 }}
+                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                className="mt-8 flex justify-center sm:mt-10"
+              >
+                <motion.button
+                  type="button"
+                  onClick={() => setVisibleCount((count) => count + 6)}
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.96 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 24 }}
+                  className="group inline-flex h-16 items-center rounded-2xl border border-[#d6a15f]/55 bg-[#d6a15f] px-8 text-[21px] font-extrabold text-[#15110d] shadow-[0_16px_38px_rgba(214,161,95,0.26)] transition-colors hover:bg-[#e3ac68] sm:h-20 sm:px-10 sm:text-[27px]"
+                >
+                  Показать ещё
+                  <span className="relative ml-3 inline-block h-8 w-8 overflow-visible transition-transform duration-300 group-hover:translate-y-0.5 sm:h-9 sm:w-9">
+                    <svg
+                      width="32"
+                      height="32"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </span>
+                </motion.button>
+              </motion.div>
+            )}
           </AnimatePresence>
         </div>
       </section>
