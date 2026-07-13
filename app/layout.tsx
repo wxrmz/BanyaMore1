@@ -31,7 +31,7 @@ export default function RootLayout({
     <html lang="ru" suppressHydrationWarning>
       <body>
         <Script id="theme-boot" strategy="beforeInteractive">
-          {`try{var theme=localStorage.getItem('banyamore-theme');document.documentElement.dataset.theme=theme==='dark'?'dark':'light';}catch(e){document.documentElement.dataset.theme='light';}`}
+          {`try{var theme=localStorage.getItem('banyamore-theme');document.documentElement.dataset.theme=theme==='light'?'light':'dark';}catch(e){document.documentElement.dataset.theme='dark';}`}
         </Script>
         <Script id="scroll-restoration" strategy="beforeInteractive">
           {`if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; window.scrollTo(0, 0);`}

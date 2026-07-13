@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, useInView } from 'framer-motion';
 import type { PointerEvent } from 'react';
 import { useEffect, useRef, useState } from 'react';
+import { ArrowIcon } from './ArrowIcon';
 import { PeopleIcon } from './BathIcons';
 
 const iconPaths = {
@@ -74,7 +75,7 @@ const baths: BathConfig[] = [
     lead: 'Удобные бани для компании у моря.',
     text: 'Два уровня для отдыха, просторная парная и отдельные зоны, чтобы удобно провести вечер семьей или компанией друзей.',
     details: ['Два этажа', 'Просторная парная', 'Вид на море', 'Для компании'],
-    distance: '20 метров от моря',
+    distance: '10 метров от моря',
     extraPerson: '+ 400 ₽ доп. человек',
     included: [
       { icon: 'towel', count: 6 },
@@ -91,7 +92,7 @@ const baths: BathConfig[] = [
         lead: 'Удобная баня для компании у моря.',
         text: 'Два уровня для отдыха, просторная парная и отдельные зоны, чтобы удобно провести вечер семьей или компанией друзей.',
         details: ['Два этажа', 'Просторная парная', 'Вид на море', 'Для компании'],
-        distance: '20 метров от моря',
+        distance: '10 метров от моря',
         extraPerson: '+ 400 ₽ доп. человек',
         included: [
           { icon: 'towel', count: 6 },
@@ -110,7 +111,7 @@ const baths: BathConfig[] = [
     lead: 'Просторные бани для свободного отдыха.',
     text: 'Много воздуха, широкая зона отдыха и комфортный общий стол для длинного вечера после парной.',
     details: ['Очень просторно', 'Большая терраса', 'Мини-кухня', 'Для компании'],
-    distance: '20 метров от моря',
+    distance: '10 метров от моря',
     extraPerson: '+ 400 ₽ доп. человек',
     included: [
       { icon: 'towel', count: 8 },
@@ -127,7 +128,7 @@ const baths: BathConfig[] = [
         lead: 'Просторная баня с большой террасой.',
         text: 'Много воздуха, широкая зона отдыха и комфортный общий стол для длинного вечера после парной.',
         details: ['Очень просторно', 'Большая терраса', 'Мини-кухня', 'Для компании'],
-        distance: '20 метров от моря',
+        distance: '10 метров от моря',
         extraPerson: '+ 400 ₽ доп. человек',
         included: [
           { icon: 'towel', count: 8 },
@@ -144,7 +145,7 @@ const baths: BathConfig[] = [
         lead: 'Уютная большая баня с панорамным видом.',
         text: 'Просторная парная, отдельная зона отдыха и всё необходимое для большой компании у моря.',
         details: ['Панорамный вид', 'Просторная парная', 'Большой стол', 'Для компании'],
-        distance: '20 метров от моря',
+        distance: '10 метров от моря',
         extraPerson: '+ 400 ₽ доп. человек',
         included: [
           { icon: 'towel', count: 8 },
@@ -618,7 +619,7 @@ export default function Baths() {
                     transition={{ duration: 0.1 }}
                     className="baths-showcase__cardAction"
                   >
-                    {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true">→</b>
+                    {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>
                   </motion.span>
                 </AnimatePresence>
               </div>
@@ -690,7 +691,7 @@ export default function Baths() {
                   transition={{ duration: 0.1 }}
                   className="baths-showcase__cardAction"
                 >
-                  {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true">→</b>
+                  {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>
                 </motion.span>
               </AnimatePresence>
             </div>
@@ -723,7 +724,7 @@ export default function Baths() {
 
   const subBack = (
     <button type="button" onClick={closeSubView} className="baths-showcase__subBack">
-      <span className="baths-showcase__subBackArrow">←</span>
+      <ArrowIcon className="baths-showcase__subBackArrow" direction="left" />
       <span>Назад</span>
     </button>
   );
@@ -748,7 +749,7 @@ export default function Baths() {
               </div>
               <h3>{bath.name}</h3>
               <span className="baths-showcase__cardAction">
-                Открыть раздел <b aria-hidden="true">→</b>
+                Открыть раздел <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>
               </span>
             </div>
           </div>
@@ -806,7 +807,7 @@ export default function Baths() {
                   transition={{ duration: 0.1 }}
                   className="baths-showcase__cardAction"
                 >
-                  {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true">→</b>
+                  {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>
                 </motion.span>
               </AnimatePresence>
             </div>
@@ -900,7 +901,7 @@ export default function Baths() {
                   </div>
                   <h3 className={selectedBath.name === 'Большие бани' ? 'is-wide-name' : undefined}>{selectedBath.name}</h3>
                   <span>
-                    Открыть раздел <b aria-hidden="true">→</b>
+                    Открыть раздел <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>
                   </span>
                 </div>
                 <div className="baths-showcase__cardTop">
@@ -942,7 +943,9 @@ export default function Baths() {
                     className="baths-showcase__expandedArrow baths-showcase__expandedArrow--left"
                     aria-label="Предыдущее фото"
                   >
-                    ←
+                    <svg viewBox="0 0 32 32" aria-hidden="true">
+                      <path d="M27 16H7M14 9l-7 7 7 7" />
+                    </svg>
                   </button>
                   <button
                     type="button"
@@ -950,7 +953,9 @@ export default function Baths() {
                     className="baths-showcase__expandedArrow baths-showcase__expandedArrow--right"
                     aria-label="Следующее фото"
                   >
-                    →
+                    <svg viewBox="0 0 32 32" aria-hidden="true">
+                      <path d="M5 16h20M18 9l7 7-7 7" />
+                    </svg>
                   </button>
                   <div className="baths-showcase__thumbs" aria-label="Фотографии бани">
                     {selectedBath.gallery.map((image, index) => (
@@ -969,7 +974,9 @@ export default function Baths() {
 
                 <div className="baths-showcase__expandedInfo">
                   <button type="button" onClick={closeBath} className="baths-showcase__back" disabled={isClosing}>
-                    <span className="baths-showcase__backArrow">←</span>
+                    <svg className="baths-showcase__backArrow" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M20 12H4M10 6l-6 6 6 6" />
+                    </svg>
                     <span>Вернуться</span>
                   </button>
                   <div className="baths-showcase__capacity">
@@ -979,7 +986,7 @@ export default function Baths() {
                   <h3 className={selectedBath.name === 'Большие бани' ? 'is-wide-name' : undefined}>{selectedBath.name}</h3>
 
                   <div className="baths-showcase__included">
-                    <div className="baths-showcase__includedTitle">Включено в баню:</div>
+                    <div className="baths-showcase__includedTitle">Включено в стоимость:</div>
                     <div className="baths-showcase__includedList">
                       {selectedBath.included.map((item) => {
                         const src = iconPaths[item.icon];
@@ -999,7 +1006,7 @@ export default function Baths() {
                       <span>{selectedBath.distance}</span>
                     </div>
                     <div className="baths-showcase__metaItem">
-                      <img src={iconPaths.peoplePlus} alt="" className="baths-showcase__metaIcon" />
+                      <img src={iconPaths.peoplePlus} alt="" className="baths-showcase__metaIcon baths-showcase__metaIcon--people" />
                       <span>{selectedBath.extraPerson}</span>
                     </div>
                   </div>

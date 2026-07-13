@@ -18,12 +18,12 @@ const navLinks = [
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<Theme>('dark');
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 110, damping: 24, restDelta: 0.001 });
 
   useEffect(() => {
-    const savedTheme = window.localStorage.getItem('banyamore-theme') === 'dark' ? 'dark' : 'light';
+    const savedTheme = window.localStorage.getItem('banyamore-theme') === 'light' ? 'light' : 'dark';
     setTheme(savedTheme);
     document.documentElement.dataset.theme = savedTheme;
   }, []);

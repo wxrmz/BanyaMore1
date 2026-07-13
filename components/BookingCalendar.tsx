@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
+import { ArrowIcon } from './ArrowIcon';
 
 type CalendarSlot = {
   time: string;
@@ -539,7 +540,7 @@ export default function BookingCalendar() {
                         : 'pointer-events-none border-[#d6a15f]/18 bg-[#17110c]/35 text-[#5f5448]'
                     }`}
                   >
-                    ‹
+                    <ArrowIcon className="h-6 w-6" direction="left" />
                   </button>
                   <div className="scrollbar-none flex min-w-0 snap-x gap-1.5 overflow-x-auto py-1 sm:grid sm:grid-cols-2 sm:gap-2 sm:overflow-visible sm:py-0 md:grid-cols-4 lg:grid-cols-7">
                     {visibleDays.map((day) => {
@@ -578,7 +579,7 @@ export default function BookingCalendar() {
                         : 'pointer-events-none border-[#d6a15f]/18 bg-[#17110c]/35 text-[#5f5448]'
                     }`}
                   >
-                    ›
+                    <ArrowIcon className="h-6 w-6" />
                   </button>
                 </div>
 
@@ -596,12 +597,12 @@ export default function BookingCalendar() {
                     <div className="p-5 sm:p-6">
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
                       <div className="shrink-0">
-                        <div className="text-[14px] font-extrabold uppercase tracking-[0.16em] text-[#d6a15f]">Выбранный промежуток</div>
+                        <div className="text-[16px] font-extrabold uppercase tracking-[0.16em] text-[#d6a15f] sm:text-[18px]">Выбранный промежуток</div>
                         <div className="mt-2 text-3xl font-extrabold text-[#f4eee4] sm:text-[34px]">
                           {selectedStartTime}
                           {selectedEndTime ? `-${selectedEndTime}` : ''}
                         </div>
-                        <div className="mt-2 text-base font-bold text-[#b9aea0] sm:text-lg">{selectedBath?.title}</div>
+                        <div className="mt-2 text-lg font-bold text-[#b9aea0] sm:text-xl">{selectedBath?.title}</div>
                       </div>
 
                       <div className="flex min-w-0 flex-1 flex-wrap justify-start gap-3 sm:pl-3 lg:pl-6">
@@ -619,7 +620,7 @@ export default function BookingCalendar() {
                                   : 'border-[#d6a15f]/45 bg-[#15110d]/70 text-[#f4eee4] hover:border-[#d6a15f]/80'
                               }`}
                             >
-                              {service.label}
+                              <span className="inline-block scale-[1.1]">{service.label}</span>
                             </button>
                           );
                         })}
@@ -639,7 +640,7 @@ export default function BookingCalendar() {
                           href={selectedBookingUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex min-h-[54px] items-center justify-center rounded-lg border border-[#d6a15f] bg-[#d6a15f] px-6 text-[14px] font-extrabold uppercase tracking-[0.12em] text-[#15110d] transition hover:-translate-y-0.5 sm:px-7 sm:text-[15px]"
+                          className="inline-flex min-h-[54px] items-center justify-center rounded-lg border border-[#d6a15f] bg-[#d6a15f] px-6 text-[14px] font-extrabold uppercase tracking-[0.12em] text-[#15110d] transition duration-300 ease-out hover:-translate-y-0.5 hover:border-[#e5b374] hover:bg-[#e5b374] sm:px-7 sm:text-[15px]"
                         >
                           <span className="inline-block origin-center scale-[1.12] transform-gpu">Забронировать</span>
                         </a>
@@ -698,7 +699,11 @@ export default function BookingCalendar() {
                                 {slot.time}
                               </span>
                               {!isPastSlot && (
-                                <span className="mt-2 block w-full text-center text-[13px] font-extrabold uppercase tracking-[0.04em] sm:text-[14px] sm:tracking-[0.06em]">
+                                <span
+                                  className={`mt-2 block w-full text-center text-[13px] font-extrabold uppercase tracking-[0.04em] sm:text-[12px] sm:tracking-[0.06em] ${
+                                    isShortFree ? '-translate-x-[10px] sm:-translate-x-[10px]' : ''
+                                  }`}
+                                >
                                   {isSelected ? 'выбрано' : isBookable ? 'свободно' : isShortFree ? 'недоступно' : slot.status === 'cleaning' ? 'уборка' : 'занято'}
                                 </span>
                               )}

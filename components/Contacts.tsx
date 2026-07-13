@@ -2,6 +2,7 @@
 
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
+import { ArrowIcon } from './ArrowIcon';
 
 const contacts = [
   { label: 'Телефон', value: '+7 908 440 20 55', href: 'tel:+79084402055', icon: 'phone' },
@@ -104,7 +105,7 @@ export default function Contacts() {
                       <span className="mt-1 block truncate text-base font-bold text-[#f4eee4] sm:text-lg">{item.value}</span>
                     </span>
                   </span>
-                  <span className="ml-2 shrink-0 text-[40px] font-extrabold leading-none text-[#d6a15f] transition group-hover:translate-x-2 sm:text-[42px] lg:text-[46px]">→</span>
+                  <ArrowIcon className="ml-2 h-10 w-10 shrink-0 text-[#d6a15f] transition group-hover:translate-x-2 sm:h-[42px] sm:w-[42px] lg:h-[46px] lg:w-[46px]" />
                 </motion.a>
               ))}
             </div>

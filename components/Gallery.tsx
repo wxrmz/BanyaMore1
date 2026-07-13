@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion, useInView } from 'framer-motion';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { ArrowIcon } from './ArrowIcon';
 
 const categories = [
   { id: 'all', name: 'Все' },
@@ -183,8 +184,8 @@ export default function Gallery() {
                       <span className="block font-sans text-[27px] font-extrabold leading-tight text-[#f4eee4] sm:text-[30px]">{image.title}</span>
                       <span className="gallery-photo-cta mt-3 inline-flex h-7 items-center text-[16px] font-extrabold uppercase tracking-[0.15em] sm:text-[18px]">
                         Смотреть фото
-                        <span className="relative ml-2.5 inline-block h-5 w-9 shrink-0 overflow-visible">
-                          <span className="absolute left-0 top-[calc(50%-2px)] text-[40px] font-extrabold leading-none -translate-y-1/2">→</span>
+                        <span className="relative ml-0.5 inline-block h-5 w-9 shrink-0 overflow-visible">
+                          <ArrowIcon className="absolute left-0 top-[calc(50%-2px)] h-10 w-10 -translate-y-1/2" />
                         </span>
                       </span>
                     </span>
@@ -212,7 +213,7 @@ export default function Gallery() {
                   className="group inline-flex h-16 items-center rounded-2xl border border-[#d6a15f]/55 bg-[#d6a15f] px-8 text-[21px] font-extrabold text-[#15110d] shadow-[0_16px_38px_rgba(214,161,95,0.26)] transition-colors hover:bg-[#e3ac68] sm:h-20 sm:px-10 sm:text-[27px]"
                 >
                   Показать ещё
-                  <span className="relative ml-3 inline-block h-8 w-8 overflow-visible transition-transform duration-300 group-hover:translate-y-0.5 sm:h-9 sm:w-9">
+                  <span className="relative top-[3px] ml-3 inline-block h-8 w-8 overflow-visible transition-transform duration-300 group-hover:translate-y-0.5 sm:h-9 sm:w-9">
                     <svg
                       width="32"
                       height="32"
@@ -283,7 +284,7 @@ export default function Gallery() {
                   className="absolute left-3 top-1/2 grid h-14 w-14 -translate-y-1/2 place-items-center rounded-xl border border-[#d6a15f]/35 bg-[#21170f]/75 text-5xl font-bold leading-none text-[#f4eee4] shadow-[0_18px_45px_rgba(0,0,0,0.36)] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d] sm:-left-20 sm:h-16 sm:w-16"
                   aria-label="Предыдущее фото"
                 >
-                  <span className="block translate-y-[-2px] leading-none">‹</span>
+                  <ArrowIcon className="h-[60px] w-[60px] -translate-y-[2px]" direction="left" />
                 </button>
                 <button
                   type="button"
@@ -294,7 +295,7 @@ export default function Gallery() {
                   className="absolute right-3 top-1/2 grid h-14 w-14 -translate-y-1/2 place-items-center rounded-xl border border-[#d6a15f]/35 bg-[#21170f]/75 text-5xl font-bold leading-none text-[#f4eee4] shadow-[0_18px_45px_rgba(0,0,0,0.36)] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d] sm:-right-20 sm:h-16 sm:w-16"
                   aria-label="Следующее фото"
                 >
-                  <span className="block translate-y-[-2px] leading-none">›</span>
+                  <ArrowIcon className="h-[60px] w-[60px] -translate-y-[2px]" />
                 </button>
               </div>
               <figcaption className="mt-5 text-center font-sans text-[clamp(1.3rem,1.85vw,2.2rem)] font-extrabold leading-tight text-[#f4eee4]">{selectedImage.title}</figcaption>
