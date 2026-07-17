@@ -74,7 +74,7 @@ export default function Hero() {
                 }}
                 className="btn-primary h-[76px] px-12 py-0 text-[24px] leading-none"
               >
-                <span className="inline-block scale-[1.08]">Забронировать</span>
+                <span className="inline-block scale-[1.2]">Забронировать</span>
               </a>
               <a
                 href="#about"
@@ -84,7 +84,7 @@ export default function Hero() {
                 }}
                 className="btn-secondary h-[76px] px-12 py-0 text-[24px] leading-none"
               >
-                <span className="inline-block scale-[1.08]">О нас</span>
+                <span className="inline-block scale-[1.2]">О нас</span>
               </a>
             </div>
           </motion.div>

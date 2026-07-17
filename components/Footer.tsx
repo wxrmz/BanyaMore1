@@ -116,8 +116,10 @@ export default function Footer() {
         </div>
 
         <div className="mt-14 flex -translate-y-3 flex-col gap-4 text-[15px] text-[#8f857a] sm:flex-row sm:items-center sm:justify-between">
-          <span>© {new Date().getFullYear()} Баня Море. Все права защищены.</span>
-          <span className="inline-block [transform:translateY(-8px)_scale(1.08)]">
+          <span className="inline-block origin-left translate-y-[6px] scale-[1.1]">
+            © {new Date().getFullYear()} Баня Море. Все права защищены.
+          </span>
+          <span className="inline-block [transform:translateY(-8px)_scale(1.14)]">
             <a
               href="tel:+79084402055"
               className="inline-flex min-h-11 w-fit items-center justify-center rounded-full border border-[#d6a15f]/55 px-5 text-base font-extrabold text-[#d6a15f] transition hover:border-[#d6a15f] hover:bg-[#d6a15f]/10 hover:text-[#f3d09b]"

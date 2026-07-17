@@ -14,7 +14,7 @@ const contacts = [
 function ContactIcon({ name }: { name: string }) {
   if (name === 'telegram') {
     return (
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-8 w-8">
+      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-8 w-8 scale-[1.18]">
         <path
           fill="currentColor"
           d="M21.6 4.2 18.3 20c-.25 1.12-.9 1.4-1.82.87l-5.02-3.7-2.42 2.33c-.27.27-.5.5-1.02.5l.36-5.12 9.32-8.42c.4-.36-.09-.56-.63-.2L5.55 13.5.6 11.95c-1.08-.34-1.1-1.08.22-1.6L20.2 2.88c.9-.34 1.68.2 1.4 1.32Z"
@@ -25,7 +25,7 @@ function ContactIcon({ name }: { name: string }) {
 
   if (name === 'instagram') {
     return (
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-9 w-9">
+      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-9 w-9 scale-[1.27]">
         <rect width="15.5" height="15.5" x="4.25" y="4.25" rx="4" fill="none" stroke="currentColor" strokeWidth="1.9" />
         <circle cx="12" cy="12" r="3.15" fill="none" stroke="currentColor" strokeWidth="1.9" />
         <circle cx="16.9" cy="7.1" r="1.1" fill="currentColor" />
@@ -35,7 +35,7 @@ function ContactIcon({ name }: { name: string }) {
 
   if (name === 'email') {
     return (
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-9 w-9">
+      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-9 w-9 scale-[1.18]">
         <path
           fill="none"
           stroke="currentColor"
@@ -49,7 +49,7 @@ function ContactIcon({ name }: { name: string }) {
   }
 
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-9 w-9">
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-9 w-9 scale-[1.25]">
       <path
         fill="none"
         stroke="currentColor"
@@ -97,7 +97,7 @@ export default function Contacts() {
                   className="contact-card group flex items-center justify-between gap-4 rounded-lg border border-[#d6a15f]/15 bg-[#21170f]/50 px-5 py-4 shadow-[inset_0_1px_0_rgba(214,161,95,0.08)] transition hover:border-[#d6a15f]/55 hover:bg-[#d6a15f]/10"
                 >
                   <span className="flex min-w-0 items-center gap-4">
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-[#d6a15f]/55 bg-[#d6a15f]/10 text-[#d6a15f] shadow-[inset_0_1px_0_rgba(214,161,95,0.10)] transition group-hover:border-[#d6a15f] group-hover:bg-[#d6a15f]/14 group-hover:text-[#f3d09b]">
+                    <span className="grid h-11 w-11 shrink-0 place-items-center text-[#d6a15f] transition group-hover:text-[#f3d09b]">
                       <ContactIcon name={item.icon} />
                     </span>
                     <span className="min-w-0">

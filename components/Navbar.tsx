@@ -134,7 +134,7 @@ export default function Navbar() {
                     }}
                     className="rounded-full px-4 py-2 text-[15px] font-semibold text-[#d8d0c4] transition hover:bg-[#d6a15f]/12 hover:text-[#d6a15f]"
                   >
-                    <span className="inline-block scale-[1.08]">{link.name}</span>
+                    <span className="inline-block scale-[1.14]">{link.name}</span>
                   </a>
                 ))}
               </nav>
@@ -153,7 +153,7 @@ export default function Navbar() {
                   href="tel:+79084402055"
                   className="navbar-phone-link absolute -left-6 top-0 flex h-12 items-center justify-center overflow-hidden rounded-lg border border-[#d6a15f]/45 bg-[#d6a15f]/10 px-6 text-[17px] font-extrabold text-[#d6a15f] transition hover:bg-[#d6a15f] hover:text-[#16110c]"
                 >
-                  +7 908 440 20 55
+                  <span className="inline-block translate-y-[1.5px] scale-[1.06]">+7 908 440 20 55</span>
                 </a>
               </span>
               <div className="lg:hidden">{renderThemeButton()}</div>

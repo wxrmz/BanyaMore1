@@ -210,7 +210,7 @@ export default function Gallery() {
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.96 }}
                   transition={{ type: 'spring', stiffness: 420, damping: 24 }}
-                  className="group inline-flex h-16 items-center rounded-2xl border border-[#d6a15f]/55 bg-[#d6a15f] px-8 text-[21px] font-extrabold text-[#15110d] shadow-[0_16px_38px_rgba(214,161,95,0.26)] transition-colors hover:bg-[#e3ac68] sm:h-20 sm:px-10 sm:text-[27px]"
+                  className="group inline-flex h-14 items-center rounded-2xl border border-[#d6a15f]/55 bg-[#d6a15f] px-7 text-[21px] font-extrabold text-[#15110d] shadow-[0_16px_38px_rgba(214,161,95,0.26)] transition-colors hover:bg-[#e3ac68] sm:h-[72px] sm:px-8 sm:text-[27px]"
                 >
                   Показать ещё
                   <span className="relative top-[3px] ml-3 inline-block h-8 w-8 overflow-visible transition-transform duration-300 group-hover:translate-y-0.5 sm:h-9 sm:w-9">

@@ -724,7 +724,9 @@ export default function Baths() {
 
   const subBack = (
     <button type="button" onClick={closeSubView} className="baths-showcase__subBack">
-      <ArrowIcon className="baths-showcase__subBackArrow" direction="left" />
+      <svg className="baths-showcase__subBackArrow" viewBox="0 0 24 24" aria-hidden="true" fill="none">
+        <path d="M20 12H4M10 6l-6 6 6 6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
       <span>Назад</span>
     </button>
   );
@@ -992,7 +994,11 @@ export default function Baths() {
                         const src = iconPaths[item.icon];
                         return (
                           <div key={item.icon} className="baths-showcase__includedItem">
-                            <img src={src} alt="" className="baths-showcase__includedIcon" />
+                            <span
+                              aria-hidden="true"
+                              className="baths-showcase__includedIcon"
+                              style={{ WebkitMaskImage: `url(${src})`, maskImage: `url(${src})` }}
+                            />
                             <span className="baths-showcase__includedCount">{item.count}</span>
                           </div>
                         );
@@ -1002,11 +1008,25 @@ export default function Baths() {
 
                   <div className="baths-showcase__meta">
                     <div className="baths-showcase__metaItem">
-                      <img src={iconPaths.location} alt="" className="baths-showcase__metaIcon" />
+                      <span
+                        aria-hidden="true"
+                        className="baths-showcase__metaIcon"
+                        style={{
+                          WebkitMaskImage: `url(${iconPaths.location})`,
+                          maskImage: `url(${iconPaths.location})`,
+                        }}
+                      />
                       <span>{selectedBath.distance}</span>
                     </div>
                     <div className="baths-showcase__metaItem">
-                      <img src={iconPaths.peoplePlus} alt="" className="baths-showcase__metaIcon baths-showcase__metaIcon--people" />
+                      <span
+                        aria-hidden="true"
+                        className="baths-showcase__metaIcon baths-showcase__metaIcon--people"
+                        style={{
+                          WebkitMaskImage: `url(${iconPaths.peoplePlus})`,
+                          maskImage: `url(${iconPaths.peoplePlus})`,
+                        }}
+                      />
                       <span>{selectedBath.extraPerson}</span>
                     </div>
                   </div>
