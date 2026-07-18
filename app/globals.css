@@ -1184,6 +1184,77 @@ html[data-theme='light'] main > .schedule-section::before {
   }
 }
 
+@keyframes bath-detail-media-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(-18px, 0, 0) scale(1.025);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes bath-detail-media-out {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-8px, 0, 0) scale(1.01);
+  }
+}
+
+@keyframes bath-detail-item-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes bath-sub-card-in {
+  0% {
+    filter: blur(5px);
+    opacity: 0;
+    scale: 0.97;
+    translate: 0 26px;
+  }
+  65% {
+    filter: blur(0);
+  }
+  100% {
+    filter: blur(0);
+    opacity: 1;
+    scale: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes bath-sub-image-in {
+  0% {
+    transform: scale(1.09);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes bath-sub-control-in {
+  0% {
+    opacity: 0;
+    translate: 0 12px;
+  }
+  100% {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
 @keyframes bath-morph-preview-out {
   0% {
     opacity: 1;
@@ -1855,6 +1926,42 @@ html[data-theme='light'] main > .schedule-section::before {
   transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.baths-showcase__subView .baths-showcase__subBack {
+  animation: bath-sub-control-in 420ms cubic-bezier(0.16, 1, 0.3, 1) 80ms backwards;
+}
+
+.baths-showcase__subView .baths-showcase__card--sub {
+  animation: bath-sub-card-in 580ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.baths-showcase__subView .baths-showcase__card--sub:nth-child(2) {
+  animation-delay: 130ms;
+}
+
+.baths-showcase__subView .baths-showcase__card--sub:nth-child(3) {
+  animation-delay: 220ms;
+}
+
+.baths-showcase__subView .baths-showcase__card--sub:nth-child(4) {
+  animation-delay: 310ms;
+}
+
+.baths-showcase__subView .baths-showcase__card--sub .baths-showcase__cardShell > img {
+  animation: bath-sub-image-in 920ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.baths-showcase__subView .baths-showcase__card--sub:nth-child(2) .baths-showcase__cardShell > img {
+  animation-delay: 130ms;
+}
+
+.baths-showcase__subView .baths-showcase__card--sub:nth-child(3) .baths-showcase__cardShell > img {
+  animation-delay: 220ms;
+}
+
+.baths-showcase__subView .baths-showcase__card--sub:nth-child(4) .baths-showcase__cardShell > img {
+  animation-delay: 310ms;
+}
+
 .baths-showcase__card--sub .baths-showcase__cardShell {
   filter: brightness(1) saturate(1);
   opacity: 1;
@@ -1991,33 +2098,37 @@ html[data-theme='light'] .baths-showcase__mobileList--sub .baths-showcase__mobil
 }
 
 .baths-showcase__expanded.is-opening {
-  animation: bath-detail-open 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: bath-detail-open 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .baths-showcase__expanded.is-closing {
-  animation: bath-detail-close 200ms ease-out both;
+  animation: bath-detail-close 200ms ease-in both;
   pointer-events: none;
+}
+
+.baths-showcase__expanded.is-opening .baths-showcase__expandedMedia {
+  animation: bath-detail-media-in 680ms cubic-bezier(0.16, 1, 0.3, 1) 70ms both;
 }
 
 .baths-showcase__expanded.is-opening .baths-showcase__expandedInfo > *,
 .baths-showcase__expanded.is-opening .baths-showcase__thumbs {
-  animation: bath-detail-content-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: bath-detail-content-in 460ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .baths-showcase__expanded.is-opening .baths-showcase__expandedInfo > :nth-child(1) {
-  animation-delay: 300ms;
+  animation-delay: 130ms;
 }
 
 .baths-showcase__expanded.is-opening .baths-showcase__expandedInfo > :nth-child(2) {
-  animation-delay: 315ms;
+  animation-delay: 180ms;
 }
 
 .baths-showcase__expanded.is-opening .baths-showcase__expandedInfo > :nth-child(3) {
-  animation-delay: 330ms;
+  animation-delay: 230ms;
 }
 
 .baths-showcase__expanded.is-opening .baths-showcase__expandedInfo > :nth-child(4) {
-  animation-delay: 345ms;
+  animation-delay: 290ms;
 }
 
 .baths-showcase__expanded.is-opening .baths-showcase__expandedInfo > :nth-child(5) {
@@ -2025,25 +2136,36 @@ html[data-theme='light'] .baths-showcase__mobileList--sub .baths-showcase__mobil
 }
 
 .baths-showcase__expanded.is-opening .baths-showcase__expandedInfo > :nth-child(6) {
-  animation-delay: 375ms;
+  animation-delay: 430ms;
 }
 
 .baths-showcase__expanded.is-opening .baths-showcase__thumbs {
-  animation-delay: 345ms;
+  animation-delay: 330ms;
 }
 
-.baths-showcase__expanded.is-opening .baths-showcase__expandedInfo > *,
-.baths-showcase__expanded.is-opening .baths-showcase__thumbs {
-  animation-delay: 150ms;
+.baths-showcase__expanded.is-opening .baths-showcase__includedItem {
+  animation: bath-detail-item-in 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.baths-showcase__expanded.is-opening .baths-showcase__includedItem:nth-child(1) {
+  animation-delay: 370ms;
+}
+
+.baths-showcase__expanded.is-opening .baths-showcase__includedItem:nth-child(2) {
+  animation-delay: 420ms;
+}
+
+.baths-showcase__expanded.is-opening .baths-showcase__includedItem:nth-child(3) {
+  animation-delay: 470ms;
 }
 
 .baths-showcase__expanded.is-closing .baths-showcase__expandedInfo > *,
 .baths-showcase__expanded.is-closing .baths-showcase__thumbs {
-  animation: none;
+  animation: bath-detail-content-out 150ms ease-in both;
 }
 
-.baths-showcase__expanded.is-closing .baths-showcase__expandedContent {
-  animation: none;
+.baths-showcase__expanded.is-closing .baths-showcase__expandedMedia {
+  animation: bath-detail-media-out 180ms ease-in both;
 }
 
 .baths-showcase__morphPreview {
@@ -2963,6 +3085,46 @@ html[data-theme='light'] .baths-showcase__price span {
   .baths-showcase__mobileList--sub {
     scroll-padding-left: max(24px, calc((100% - var(--bath-mobile-card-width)) / 2));
     scroll-padding-right: max(24px, calc((100% - var(--bath-mobile-card-width)) / 2));
+  }
+
+  .baths-showcase__mobileList--sub .baths-showcase__mobileCard {
+    animation: bath-sub-card-in 560ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+
+  .baths-showcase__mobileList--sub .baths-showcase__mobileCard:nth-child(1) {
+    animation-delay: 120ms;
+  }
+
+  .baths-showcase__mobileList--sub .baths-showcase__mobileCard:nth-child(2) {
+    animation-delay: 210ms;
+  }
+
+  .baths-showcase__mobileList--sub .baths-showcase__mobileCard:nth-child(3) {
+    animation-delay: 300ms;
+  }
+
+  .baths-showcase__mobileList--sub .baths-showcase__mobileCard > img {
+    animation: bath-sub-image-in 880ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+
+  .baths-showcase__mobileList--sub .baths-showcase__mobileCard:nth-child(1) > img {
+    animation-delay: 120ms;
+  }
+
+  .baths-showcase__mobileList--sub .baths-showcase__mobileCard:nth-child(2) > img {
+    animation-delay: 210ms;
+  }
+
+  .baths-showcase__mobileList--sub .baths-showcase__mobileCard:nth-child(3) > img {
+    animation-delay: 300ms;
+  }
+
+  .baths-showcase__mobileControls--sub .baths-showcase__subBack {
+    animation: bath-sub-control-in 400ms cubic-bezier(0.16, 1, 0.3, 1) 90ms backwards;
+  }
+
+  .baths-showcase__mobileControls--sub .baths-showcase__mobileIndicator {
+    animation: bath-sub-control-in 440ms cubic-bezier(0.16, 1, 0.3, 1) 270ms backwards;
   }
 
   .baths-showcase__mobileControls .baths-showcase__subBack {

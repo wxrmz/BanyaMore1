@@ -820,7 +820,10 @@ export default function Baths() {
   );
 
   const mobileSubControls = (
-    <div className="baths-showcase__mobileControls" aria-label="Mobile large bath navigation">
+    <div
+      className="baths-showcase__mobileControls baths-showcase__mobileControls--sub"
+      aria-label="Mobile large bath navigation"
+    >
       {subBack}
       <div className="baths-showcase__mobileIndicator">
         <span>{String(subActive + 1).padStart(2, '0')}</span>
