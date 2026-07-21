@@ -61,7 +61,7 @@ export default function Footer() {
     <footer className="layer-footer relative bg-[#090806] py-10 text-[#f4eee4]">
       <div className="container-custom">
         <div className="grid gap-8 lg:grid-cols-[1fr_auto_auto] lg:items-start">
-          <motion.div initial={{ y: 20, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.55 }}>
+          <motion.div className="footer-brand" initial={{ y: 20, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.55 }}>
             <div className="font-serif text-[34px]">Баня Море</div>
             <p className="mt-3 h-14 max-w-md text-[17px] leading-7 text-[#b9aea0]">
               <span className="inline-block origin-left scale-[1.1]">
@@ -75,7 +75,7 @@ export default function Footer() {
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.55, delay: 0.08 }}
-            className="relative top-[25px] flex gap-x-6 sm:top-[22px] lg:top-3"
+            className="footer-nav relative top-[25px] flex gap-x-6 sm:top-[22px] lg:top-3"
             aria-label="Навигация в футере"
           >
             {links.map((link) => (
@@ -98,7 +98,7 @@ export default function Footer() {
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.55, delay: 0.16 }}
-            className="relative flex gap-3 max-sm:top-[13px] max-sm:gap-6"
+            className="footer-socials relative flex gap-3 max-sm:top-[13px] max-sm:gap-6"
           >
             {socials.map((social) => (
               <a
@@ -121,7 +121,7 @@ export default function Footer() {
           </motion.div>
         </div>
 
-        <div className="mt-14 flex -translate-y-3 flex-col gap-4 text-[15px] text-[#8f857a] sm:flex-row sm:items-center sm:justify-between">
+        <div className="footer-bottom mt-14 flex -translate-y-3 flex-col gap-4 text-[15px] text-[#8f857a] sm:flex-row sm:items-center sm:justify-between">
           <span className="inline-block origin-left translate-y-[6px] scale-[1.1]">
             © {new Date().getFullYear()} Баня Море. Все права защищены.
           </span>

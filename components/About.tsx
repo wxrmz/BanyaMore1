@@ -99,10 +99,10 @@ export default function About() {
           initial={{ y: 34, opacity: 0 }}
           animate={isInView ? { y: 0, opacity: 1 } : {}}
           transition={{ duration: 0.68, ease: 'easeOut' }}
-          className="relative mx-auto w-[calc(100%-24px)] overflow-hidden rounded-lg bg-transparent px-5 py-8 sm:w-[calc(100%-48px)] sm:px-8 sm:py-10 lg:w-[calc(100%-64px)] lg:px-12 lg:py-12 2xl:w-[calc(100%-88px)]"
+          className="about-shell relative mx-auto w-[calc(100%-24px)] overflow-hidden rounded-lg bg-transparent px-5 py-8 sm:w-[calc(100%-48px)] sm:px-8 sm:py-10 lg:w-[calc(100%-64px)] lg:px-12 lg:py-12 2xl:w-[calc(100%-88px)]"
         >
           <div className="grid min-w-0 gap-10 xl:grid-cols-[minmax(320px,0.3fr)_minmax(0,1fr)] xl:items-center">
-            <div className="min-w-0 max-w-full xl:-translate-y-8 xl:max-w-[360px] 2xl:-translate-y-12">
+            <div className="about-intro min-w-0 max-w-full xl:-translate-y-8 xl:max-w-[360px] 2xl:-translate-y-12">
               <div className="eyebrow text-[1.35rem] sm:text-[1.55rem] lg:text-[1.75rem]">О нас</div>
               <h2 className="mt-6 font-serif text-[clamp(3.05rem,4.45vw,5.05rem)] font-semibold leading-[0.94] text-[#f4eee4]">
                 История
@@ -123,7 +123,7 @@ export default function About() {
             </div>
 
             <div className="min-w-0">
-              <div ref={carouselRef} className="scrollbar-none flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto pb-2 md:overflow-visible md:pb-0">
+              <div ref={carouselRef} className="about-carousel scrollbar-none flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto pb-2 md:overflow-visible md:pb-0">
                 {stories.map((story, index) => {
                   const isActive = active === index;
 
