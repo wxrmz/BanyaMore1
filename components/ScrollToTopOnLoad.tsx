@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 
 export default function ScrollToTopOnLoad() {
   useEffect(() => {
+    document.documentElement.dataset.appHydrated = 'true';
+
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
     }

@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion, useInView } from 'framer-motion';
-import type { PointerEvent } from 'react';
+import type { CSSProperties, PointerEvent } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowIcon } from './ArrowIcon';
 import { PeopleIcon } from './BathIcons';
@@ -161,18 +161,16 @@ const wrapIndex = (value: number) => (value + baths.length) % baths.length;
 
 export default function Baths() {
   const ref = useRef(null);
-  const mobileBathRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const mobileBathListRef = useRef<HTMLDivElement | null>(null);
+  const mobileBathTrackRef = useRef<HTMLDivElement | null>(null);
   const mobileSubBathRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const mobileSubBathListRef = useRef<HTMLDivElement | null>(null);
-  const mobileScrollTimer = useRef<number | null>(null);
-  const mobileSubScrollTimer = useRef<number | null>(null);
-  const mobileDrag = useRef({
+  const mobileBathDrag = useRef({
+    deltaX: 0,
     hasDragged: false,
     isDragging: false,
-    startScrollLeft: 0,
     startX: 0,
   });
+  const mobileSubScrollTimer = useRef<number | null>(null);
   const mobileSubDrag = useRef({
     hasDragged: false,
     isDragging: false,
@@ -199,125 +197,10 @@ export default function Baths() {
     setActive(Math.max(0, Math.min(baths.length - 1, index)));
   };
 
-  const shiftMobileBath = (direction: -1 | 1) => {
-    setActive((value) => Math.max(0, Math.min(baths.length - 1, value + direction)));
-  };
-
-  const centerMobileBath = (index: number, behavior: ScrollBehavior = 'smooth') => {
-    const list = mobileBathListRef.current;
-    const item = mobileBathRefs.current[index];
-
-    if (!list || !item) {
-      return;
-    }
-
-    const pageLeft = window.scrollX;
-    const pageTop = window.scrollY;
-    const restorePagePosition = () => {
-      window.scrollTo({ behavior: 'auto', left: pageLeft, top: pageTop });
-    };
-
-    list.scrollTo({
-      behavior,
-      left: item.offsetLeft - (list.clientWidth - item.clientWidth) / 2,
-    });
-
-    window.requestAnimationFrame(restorePagePosition);
-
-    if (behavior === 'smooth') {
-      window.setTimeout(restorePagePosition, 260);
-    }
-  };
-
-  const selectNearestMobileBath = () => {
-    const list = mobileBathListRef.current;
-
-    if (!list) {
-      return;
-    }
-
-    const listCenter = list.getBoundingClientRect().left + list.clientWidth / 2;
-    const nearest = mobileBathRefs.current.reduce(
-      (closest, node, index) => {
-        if (!node) {
-          return closest;
-        }
-
-        const rect = node.getBoundingClientRect();
-        const distance = Math.abs(rect.left + rect.width / 2 - listCenter);
-        return distance < closest.distance ? { distance, index } : closest;
-      },
-      { distance: Number.POSITIVE_INFINITY, index: active },
-    );
-
-    setActive(nearest.index);
-  };
-
-  const handleMobileBathScroll = () => {
-    if (mobileScrollTimer.current) {
-      window.clearTimeout(mobileScrollTimer.current);
-    }
-
-    mobileScrollTimer.current = window.setTimeout(selectNearestMobileBath, 90);
-  };
-
-  const handleMobileBathPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (event.pointerType === 'mouse' && event.button !== 0) {
-      return;
-    }
-
-    const list = mobileBathListRef.current;
-
-    if (!list) {
-      return;
-    }
-
-    mobileDrag.current = {
-      hasDragged: false,
-      isDragging: true,
-      startScrollLeft: list.scrollLeft,
-      startX: event.clientX,
-    };
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-
-  const handleMobileBathPointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    const list = mobileBathListRef.current;
-
-    if (!list || !mobileDrag.current.isDragging) {
-      return;
-    }
-
-    const deltaX = event.clientX - mobileDrag.current.startX;
-
-    if (Math.abs(deltaX) > 4) {
-      mobileDrag.current.hasDragged = true;
-    }
-
-    if (mobileDrag.current.hasDragged) {
-      list.scrollLeft = mobileDrag.current.startScrollLeft - deltaX;
-      event.preventDefault();
-    }
-  };
-
-  const finishMobileBathDrag = (event: PointerEvent<HTMLDivElement>) => {
-    if (!mobileDrag.current.isDragging) {
-      return;
-    }
-
-    mobileDrag.current.isDragging = false;
-
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-
-    window.setTimeout(selectNearestMobileBath, 0);
-  };
-
   const handleMobileBathClick = (index: number, isActive: boolean) => {
-    if (mobileDrag.current.hasDragged) {
+    if (mobileBathDrag.current.hasDragged) {
       window.setTimeout(() => {
-        mobileDrag.current.hasDragged = false;
+        mobileBathDrag.current.hasDragged = false;
       }, 0);
       return;
     }
@@ -328,6 +211,65 @@ export default function Baths() {
     }
 
     selectMobileBath(index);
+  };
+
+  const handleMobileBathPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) {
+      return;
+    }
+
+    mobileBathDrag.current = {
+      deltaX: 0,
+      hasDragged: false,
+      isDragging: true,
+      startX: event.clientX,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleMobileBathPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (!mobileBathDrag.current.isDragging) {
+      return;
+    }
+
+    const deltaX = event.clientX - mobileBathDrag.current.startX;
+    mobileBathDrag.current.deltaX = deltaX;
+
+    if (Math.abs(deltaX) <= 5) {
+      return;
+    }
+
+    mobileBathDrag.current.hasDragged = true;
+    event.currentTarget.classList.add('is-dragging');
+    mobileBathTrackRef.current?.style.setProperty('--bath-mobile-drag-offset', `${deltaX}px`);
+    event.preventDefault();
+  };
+
+  const finishMobileBathDrag = (event: PointerEvent<HTMLDivElement>, cancelled = false) => {
+    if (!mobileBathDrag.current.isDragging) {
+      return;
+    }
+
+    const list = event.currentTarget;
+    const { deltaX, hasDragged } = mobileBathDrag.current;
+    mobileBathDrag.current.isDragging = false;
+
+    if (list.hasPointerCapture(event.pointerId)) {
+      list.releasePointerCapture(event.pointerId);
+    }
+
+    if (!cancelled && hasDragged) {
+      const threshold = Math.min(72, list.clientWidth * 0.14);
+
+      if (Math.abs(deltaX) >= threshold) {
+        selectMobileBath(active + (deltaX < 0 ? 1 : -1));
+      }
+    }
+
+    window.requestAnimationFrame(() => {
+      mobileBathTrackRef.current?.style.removeProperty('--bath-mobile-drag-offset');
+      list.classList.remove('is-dragging');
+    });
   };
 
   const selectMobileSubBath = (index: number) => {
@@ -463,9 +405,6 @@ export default function Baths() {
 
   useEffect(() => {
     return () => {
-      if (mobileScrollTimer.current) {
-        window.clearTimeout(mobileScrollTimer.current);
-      }
       if (mobileSubScrollTimer.current) {
         window.clearTimeout(mobileSubScrollTimer.current);
       }
@@ -482,11 +421,6 @@ export default function Baths() {
 
     if (subView && subExpanded === null) {
       centerMobileSubBath(subActive);
-      return;
-    }
-
-    if (!subView && expanded === null) {
-      centerMobileBath(active);
     }
   }, [active, expanded, subActive, subExpanded, subView]);
 
@@ -645,59 +579,66 @@ export default function Baths() {
     </div>
   );
 
+  const mobileBathOffsets = [
+    '0px',
+    'calc(0px - var(--bath-mobile-card-width) - var(--bath-mobile-gap))',
+    'calc(0px - var(--bath-mobile-card-width) - var(--bath-mobile-gap) - var(--bath-mobile-card-width) - var(--bath-mobile-gap))',
+  ];
+
   const mobileSlider = (
     <div
-      ref={mobileBathListRef}
       className="baths-showcase__mobileList scrollbar-none"
-      onScroll={handleMobileBathScroll}
-      onPointerCancel={finishMobileBathDrag}
+      onPointerCancel={(event) => finishMobileBathDrag(event, true)}
       onPointerDown={handleMobileBathPointerDown}
-      onPointerLeave={finishMobileBathDrag}
       onPointerMove={handleMobileBathPointerMove}
       onPointerUp={finishMobileBathDrag}
       aria-label="Выбор бани"
     >
-      {baths.map((bath, index) => {
-        const isActive = active === index;
+      <div
+        ref={mobileBathTrackRef}
+        className="baths-showcase__mobileTrack"
+        style={{ '--bath-mobile-offset': mobileBathOffsets[active] } as CSSProperties}
+      >
+        {baths.map((bath, index) => {
+          const isActive = active === index;
 
-        return (
-          <button
-            key={bath.name}
-            ref={(node) => {
-              mobileBathRefs.current[index] = node;
-            }}
-            type="button"
-            onClick={() => handleMobileBathClick(index, isActive)}
-            className={`baths-showcase__mobileCard ${isActive ? 'is-selected' : ''}`}
-            aria-pressed={isActive}
-          >
-            <img src={bath.image} alt={bath.name} />
-            <div className="baths-showcase__cardShade" />
-            <div className="baths-showcase__cardTop">
-              <strong>{bath.price}</strong>
-            </div>
-            <div className="baths-showcase__cardInfo">
-              <div>
-                <PeopleIcon className="baths-showcase__peopleIcon" />
-                {bath.capacity}
+          return (
+            <button
+              key={bath.name}
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => handleMobileBathClick(index, isActive)}
+              className={`baths-showcase__mobileCard ${isActive ? 'is-selected' : ''}`}
+              aria-pressed={isActive}
+            >
+              <img src={bath.image} alt={bath.name} />
+              <div className="baths-showcase__cardShade" />
+              <div className="baths-showcase__cardTop">
+                <strong>{bath.price}</strong>
               </div>
-              <h3>{bath.name}</h3>
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.span
-                  key={isActive ? 'open' : 'select'}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.1 }}
-                  className="baths-showcase__cardAction"
-                >
-                  {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>
-                </motion.span>
-              </AnimatePresence>
-            </div>
-          </button>
-        );
-      })}
+              <div className="baths-showcase__cardInfo">
+                <div>
+                  <PeopleIcon className="baths-showcase__peopleIcon" />
+                  {bath.capacity}
+                </div>
+                <h3>{bath.name}</h3>
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={isActive ? 'open' : 'select'}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.1 }}
+                    className="baths-showcase__cardAction"
+                  >
+                    {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>
+                  </motion.span>
+                </AnimatePresence>
+              </div>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 
@@ -819,29 +760,6 @@ export default function Baths() {
     </div>
   );
 
-  const mobileSubControls = (
-    <div
-      className="baths-showcase__mobileControls baths-showcase__mobileControls--sub"
-      aria-label="Mobile large bath navigation"
-    >
-      {subBack}
-      <div className="baths-showcase__mobileIndicator">
-        <span>{String(subActive + 1).padStart(2, '0')}</span>
-        <div className="baths-showcase__mobileDots" aria-label="Large bath selection">
-          {subBaths.map((bath, index) => (
-            <button
-              key={bath.name}
-              type="button"
-              onClick={() => selectMobileSubBath(index)}
-              className={subActive === index ? 'is-active' : ''}
-              aria-label={`Show large bath ${index + 1}`}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <section id="baths" className="baths-showcase layer-card" ref={ref}>
       <div className="baths-showcase__glow" />
@@ -887,9 +805,18 @@ export default function Baths() {
               transition={{ duration: 0.25, ease: 'easeInOut' }}
               className="baths-showcase__viewWrap"
             >
+              <button
+                type="button"
+                onClick={closeSubView}
+                className="baths-showcase__mobileClose"
+                aria-label="Вернуться к выбору разделов"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 5l14 14M19 5L5 19" />
+                </svg>
+              </button>
               {subSlider}
               {mobileSubSlider}
-              {mobileSubControls}
             </motion.div>
           )}
         </AnimatePresence>

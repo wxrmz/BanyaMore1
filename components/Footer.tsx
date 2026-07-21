@@ -75,7 +75,7 @@ export default function Footer() {
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.55, delay: 0.08 }}
-            className="relative top-[22px] flex gap-x-6 lg:top-3"
+            className="relative top-[25px] flex gap-x-6 sm:top-[22px] lg:top-3"
             aria-label="Навигация в футере"
           >
             {links.map((link) => (
@@ -98,12 +98,12 @@ export default function Footer() {
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.55, delay: 0.16 }}
-            className="flex gap-3"
+            className="relative flex gap-3 max-sm:top-[13px] max-sm:gap-6"
           >
             {socials.map((social) => (
               <a
                 key={social.name}
-                className="footer-social-link grid h-12 w-12 place-items-center rounded-lg border border-[#d6a15f]/55 bg-[#21170f]/45 text-[#d6a15f] shadow-[inset_0_1px_0_rgba(214,161,95,0.08)] transition hover:-translate-y-0.5 hover:border-[#d6a15f] hover:bg-[#d6a15f]/12 hover:text-[#f3d09b]"
+                className="footer-social-link grid h-12 w-12 place-items-center rounded-lg border border-[#d6a15f]/55 bg-[#21170f]/45 text-[#d6a15f] shadow-[inset_0_1px_0_rgba(214,161,95,0.08)] transition hover:-translate-y-0.5 hover:border-[#d6a15f] hover:bg-[#d6a15f]/12 hover:text-[#f3d09b] max-sm:scale-110"
                 href={social.href}
                 target={social.href.startsWith('http') ? '_blank' : undefined}
                 rel={social.href.startsWith('http') ? 'noopener noreferrer' : undefined}
@@ -112,6 +112,12 @@ export default function Footer() {
                 {social.icon}
               </a>
             ))}
+            <a
+              href="tel:+79084402055"
+              className="inline-flex min-h-12 w-[158px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-[#d6a15f]/55 px-3 text-base font-extrabold text-[#d6a15f] transition hover:border-[#d6a15f] hover:bg-[#d6a15f]/10 hover:text-[#f3d09b] max-[359px]:scale-[0.825] max-sm:relative max-sm:left-0.5 max-sm:scale-110 sm:hidden"
+            >
+              <span className="relative -left-px">+7 908 440 20 55</span>
+            </a>
           </motion.div>
         </div>
 
@@ -119,7 +125,7 @@ export default function Footer() {
           <span className="inline-block origin-left translate-y-[6px] scale-[1.1]">
             © {new Date().getFullYear()} Баня Море. Все права защищены.
           </span>
-          <span className="inline-block [transform:translateY(-8px)_scale(1.14)]">
+          <span className="hidden [transform:translateY(-8px)_scale(1.14)] sm:inline-block">
             <a
               href="tel:+79084402055"
               className="inline-flex min-h-11 w-fit items-center justify-center rounded-full border border-[#d6a15f]/55 px-5 text-base font-extrabold text-[#d6a15f] transition hover:border-[#d6a15f] hover:bg-[#d6a15f]/10 hover:text-[#f3d09b]"

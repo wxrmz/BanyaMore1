@@ -43,7 +43,7 @@ export default function Hero() {
       <div className="hero-overlay-top absolute inset-x-0 top-0 h-44 bg-[linear-gradient(180deg,rgba(9,8,6,0.8)_0%,rgba(9,8,6,0.76)_24%,rgba(9,8,6,0.52)_58%,rgba(9,8,6,0)_100%)]" />
 
       <div className="relative z-10 flex min-h-[calc(100vh-76px)] w-full flex-col justify-end px-5 pb-8 sm:px-8 lg:px-16 lg:pb-12 2xl:px-24">
-        <div className="grid w-full gap-10 lg:grid-cols-[minmax(0,40%)_minmax(0,60%)] lg:items-end">
+        <div className="hero-content-grid grid w-full gap-10 lg:grid-cols-[minmax(0,40%)_minmax(0,60%)] lg:items-end">
           <motion.div
             initial={{ y: 34, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -65,7 +65,7 @@ export default function Hero() {
             <p className="hero-copy mt-7 max-w-3xl text-xl leading-9 text-[#e0d7ca] sm:text-[1.65rem] sm:leading-[1.55]">
               Пар на дровах, морской воздух и приватный отдых во Владивостоке.
             </p>
-            <div className="mt-10 flex -translate-y-1.5 flex-col gap-4 sm:flex-row">
+            <div className="hero-actions mt-10 flex -translate-y-1.5 flex-col gap-4 sm:flex-row">
               <a
                 href="#schedule"
                 onClick={(event) => {
@@ -82,7 +82,7 @@ export default function Hero() {
                   event.preventDefault();
                   scrollToAbout();
                 }}
-                className="btn-secondary h-[76px] px-12 py-0 text-[24px] leading-none"
+                className="hero-about-btn btn-secondary h-[76px] px-12 py-0 text-[24px] leading-none"
               >
                 <span className="inline-block scale-[1.2]">О нас</span>
               </a>
