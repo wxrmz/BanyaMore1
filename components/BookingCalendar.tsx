@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowIcon } from './ArrowIcon';
 
 type CalendarSlot = {
@@ -139,6 +139,8 @@ const buildBookingUrl = (baseUrl: string, companyId: string, bath: CalendarBath,
 };
 
 export default function BookingCalendar() {
+  const selectedTimePanelRef = useRef<HTMLDivElement | null>(null);
+  const selectedTimePanelVisibleRef = useRef(false);
   const [baths, setBaths] = useState<CalendarBath[]>([]);
   const [selectedBathId, setSelectedBathId] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
@@ -330,7 +332,6 @@ export default function BookingCalendar() {
     selectedBath && selectedDay && selectedStartTime && selectedService
       ? buildBookingUrl(bookingUrl, companyId, selectedBath, selectedDay.date, selectedStartTime, selectedService)
       : bookingUrl;
-  const hasSelectedTime = Boolean(selectedStartTime && selectedSlot?.available);
   const isLoadingSchedule = status === 'loading';
   const canGoBack = weekStart > currentDate && !isLoadingSchedule;
   const canGoForward = !isLoadingSchedule;
@@ -365,6 +366,34 @@ export default function BookingCalendar() {
       setSelectedDurationMinutes(durationOptions[0].durationMinutes);
     }
   }, [durationOptions, selectedDurationMinutes, selectedStartTime]);
+
+  useEffect(() => {
+    if (!selectedStartTime) {
+      selectedTimePanelVisibleRef.current = false;
+      return;
+    }
+
+    const isOpening = !selectedTimePanelVisibleRef.current;
+    selectedTimePanelVisibleRef.current = true;
+
+    if (window.innerWidth > 639) {
+      return;
+    }
+
+    const scrollFrame = window.requestAnimationFrame(() => {
+      const panel = selectedTimePanelRef.current;
+      if (!panel) {
+        return;
+      }
+
+      const headerOffset = 76;
+      const entranceTravel = isOpening ? 28 : 0;
+      const top = panel.getBoundingClientRect().top + window.scrollY + entranceTravel - headerOffset - 16;
+      window.scrollTo({ top, behavior: 'smooth' });
+    });
+
+    return () => window.cancelAnimationFrame(scrollFrame);
+  }, [selectedStartTime]);
 
   return (
     <section id="schedule" className="schedule-section layer-mid relative overflow-hidden bg-[#080706] pt-10 pb-14 sm:pt-12 sm:pb-16 lg:pt-16 lg:pb-20">
@@ -542,23 +571,27 @@ export default function BookingCalendar() {
                   >
                     <ArrowIcon className="h-6 w-6" direction="left" />
                   </button>
-                  <div className="scrollbar-none flex min-w-0 snap-x gap-1.5 overflow-x-auto py-1 sm:grid sm:grid-cols-2 sm:gap-2 sm:overflow-visible sm:py-0 md:grid-cols-4 lg:grid-cols-7">
+                  <div className="schedule-date-strip scrollbar-none flex min-w-0 snap-x gap-1.5 overflow-x-auto py-1 sm:grid sm:grid-cols-2 sm:gap-2 sm:overflow-visible sm:py-0 md:grid-cols-4 lg:grid-cols-7">
                     {visibleDays.map((day) => {
                       const isActive = day.date === selectedDay.date;
+                      const [dayNumber, ...dayMonthParts] = day.label.split(' ');
 
                       return (
                         <button
                           key={day.date}
                           type="button"
                           onClick={() => setSelectedDate(day.date)}
-                          className={`min-w-[92px] snap-start rounded-lg border px-3 py-3 text-left transition duration-300 ease-out sm:min-w-0 sm:px-4 sm:py-3.5 ${
+                          className={`schedule-date-button${isActive ? ' schedule-date-button--active' : ''} min-w-[92px] snap-start rounded-lg border px-3 py-3 text-left transition duration-300 ease-out sm:min-w-0 sm:px-4 sm:py-3.5 ${
                             isActive
                               ? '-translate-y-0.5 border-[#d6a15f]/80 bg-[#d6a15f] text-[#15110d] shadow-[0_14px_34px_rgba(214,161,95,0.22)]'
                               : 'border-[#d6a15f]/55 bg-[#21170f]/45 text-[#f4eee4] hover:-translate-y-0.5 hover:border-[#d6a15f]/80'
                           }`}
                         >
                           <span className="block text-[12px] font-extrabold uppercase tracking-[0.14em] opacity-75 sm:text-[13px]">{day.weekday}</span>
-                          <span className="mt-1 block text-[18px] font-extrabold leading-none sm:text-[20px]">{day.label}</span>
+                          <span className="mt-1 block text-[18px] font-extrabold leading-none sm:text-[20px]">
+                            <span>{dayNumber}</span>
+                            {dayMonthParts.length > 0 && <span className="schedule-date-month"> {dayMonthParts.join(' ')}</span>}
+                          </span>
                         </button>
                       );
                     })}
@@ -586,6 +619,7 @@ export default function BookingCalendar() {
                 <AnimatePresence initial={false}>
                   {selectedStartTime && selectedSlot?.available && (
                   <motion.div
+                    ref={selectedTimePanelRef}
                     key="selected-time-panel"
                     initial={{ height: 0, opacity: 0, y: -8, marginTop: 0 }}
                     animate={{ height: 'auto', opacity: 1, y: 0, marginTop: 20 }}
@@ -640,7 +674,7 @@ export default function BookingCalendar() {
                           href={selectedBookingUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex min-h-[54px] items-center justify-center rounded-lg border border-[#d6a15f] bg-[#d6a15f] px-6 text-[14px] font-extrabold uppercase tracking-[0.12em] text-[#15110d] transition duration-300 ease-out hover:-translate-y-0.5 hover:border-[#e5b374] hover:bg-[#e5b374] sm:px-7 sm:text-[15px]"
+                          className="schedule-selected-book-button inline-flex min-h-[54px] items-center justify-center rounded-lg border border-[#d6a15f] bg-[#d6a15f] px-6 text-[14px] font-extrabold uppercase tracking-[0.12em] text-[#15110d] transition duration-300 ease-out hover:-translate-y-0.5 hover:border-[#e5b374] hover:bg-[#e5b374] sm:px-7 sm:text-[15px]"
                         >
                           <span className="inline-block origin-center scale-[1.12] transform-gpu">Забронировать</span>
                         </a>
@@ -700,7 +734,7 @@ export default function BookingCalendar() {
                               </span>
                               {!isPastSlot && (
                                 <span
-                                  className="schedule-slot-status mt-2 block w-full text-center text-[13px] font-extrabold uppercase tracking-[0.04em] sm:text-[12px] sm:tracking-[0.06em]"
+                                  className={`schedule-slot-status${isBookable && !isSelected ? ' schedule-slot-status--free' : ''} mt-2 block w-full text-center text-[13px] font-extrabold uppercase tracking-[0.04em] sm:text-[12px] sm:tracking-[0.06em]`}
                                 >
                                   {isSelected ? 'выбрано' : isBookable ? 'свободно' : isShortFree ? 'недоступно' : slot.status === 'cleaning' ? 'уборка' : 'занято'}
                                 </span>

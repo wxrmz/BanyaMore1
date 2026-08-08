@@ -360,7 +360,7 @@ async function runPool<T>(tasks: (() => Promise<T>)[], limit: number) {
 async function fetchFreeSlots(date: string, services: Awaited<ReturnType<typeof getServices>>, staff: Awaited<ReturnType<typeof getStaff>>) {
   const slots = new Map<string, PublicSlot>();
   const staffCandidates = staff.length > 0 ? staff : [{ id: 0, name: 'Любой специалист' }];
-  const tasks = services.flatMap((service) =>
+  const tasks = services.flatMap(() =>
     staffCandidates.map(() => async () => undefined),
   );
 
@@ -511,31 +511,6 @@ function buildActualAvailabilitySlotDays(freeStartSlotsByDay: Map<string, Public
       : { time, available: false, canStartBooking: false, status: 'busy' as const };
   }),
   );
-}
-
-function buildActualAvailabilitySlots(freeStartSlots: Map<string, PublicSlot>, durationMinutes: number) {
-  return buildActualAvailabilitySlotDays([freeStartSlots], durationMinutes)[0] ?? [];
-}
-
-async function buildDay(
-  date: string,
-  services: Awaited<ReturnType<typeof getServices>>,
-  staff: Awaited<ReturnType<typeof getStaff>>,
-  durationMinutes = 0,
-): Promise<PublicDay> {
-  const freeSlots = await fetchFreeSlots(date, services, staff);
-  const slots =
-    durationMinutes > 0
-      ? buildActualAvailabilitySlots(freeSlots, durationMinutes)
-      : makeDayTimes().map((time) => freeSlots.get(time) ?? { time, available: false });
-
-  return {
-    date,
-    label: dayLabel(date),
-    weekday: weekdayLabel(date),
-    freeCount: countBookableSlots(slots),
-    slots,
-  };
 }
 
 async function buildBathAvailability(bath: BathConfig, dates: string[]): Promise<PublicBath> {

@@ -10,6 +10,7 @@ const categories = [
   { id: 'interior', name: 'Интерьер' },
   { id: 'steam', name: 'Парная' },
   { id: 'outside', name: 'Снаружи' },
+  { id: 'cafe', name: 'Кафе' },
 ];
 
 const gallery = [
@@ -18,7 +19,7 @@ const gallery = [
   { src: '/images/20211117_183306.jpg', title: 'Парная на дровах', category: 'steam', height: 'h-[360px]' },
   { src: '/images/20210509_200041.jpg', title: 'Воздух у воды', category: 'sea', height: 'h-[430px]' },
   { src: '/images/20201018182427_IMG_8862.JPG', title: 'Вечерний берег', category: 'sea', height: 'h-[300px]' },
-  { src: '/images/20240502_210421.jpg', title: 'Терраса', category: 'outside', height: 'h-[390px]' },
+  { src: '/images/20240502_210421.jpg', title: 'Терраса', category: 'cafe', height: 'h-[390px]' },
   { src: '/images/photo-22.jpg', title: 'Дерево и тепло', category: 'interior', height: 'h-[310px]' },
   { src: '/images/photo-10.jpg', title: 'Большая баня', category: 'outside', height: 'h-[460px]' },
 ];
@@ -112,7 +113,7 @@ export default function Gallery() {
               animate={isInView ? { y: 0, opacity: 1 } : {}}
               transition={{ duration: 0.5, delay: 0.12 }}
               ref={categoryBarRef}
-              className="relative mx-auto flex min-h-[60px] w-fit flex-wrap items-center justify-center gap-2 rounded-2xl border border-[#d6a15f]/20 bg-[#21170f]/70 p-1.5 shadow-[inset_0_1px_0_rgba(214,161,95,0.14),0_18px_55px_rgba(0,0,0,0.26)] backdrop-blur-xl sm:min-h-[64px] lg:mx-0 lg:w-auto lg:justify-start"
+              className="gallery-category-bar relative mx-auto flex min-h-[60px] w-fit flex-wrap items-center justify-center gap-2 rounded-2xl border border-[#d6a15f]/20 bg-[#21170f]/70 p-1.5 shadow-[inset_0_1px_0_rgba(214,161,95,0.14),0_18px_55px_rgba(0,0,0,0.26)] backdrop-blur-xl sm:min-h-[64px] lg:mx-0 lg:w-auto lg:justify-start"
             >
               {categoryPill && (
                 <motion.span
@@ -240,18 +241,18 @@ export default function Gallery() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md"
+            className="gallery-lightbox fixed inset-0 z-[70] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md"
             onClick={() => setSelected(null)}
           >
             <motion.figure
               initial={{ y: 30, scale: 0.96, opacity: 0 }}
               animate={{ y: 0, scale: 1, opacity: 1 }}
               exit={{ y: 30, scale: 0.96, opacity: 0 }}
-              className="relative flex max-h-[92vh] w-full max-w-6xl flex-col items-center"
+              className="gallery-lightbox__figure relative flex max-h-[92vh] w-full max-w-6xl flex-col items-center"
               onClick={(event) => event.stopPropagation()}
             >
-              <div className="relative inline-flex max-h-[82vh] max-w-full items-center justify-center">
-                <div className="overflow-hidden rounded-2xl">
+              <div className="gallery-lightbox__media relative inline-flex max-h-[82vh] max-w-full items-center justify-center">
+                <div className="gallery-lightbox__frame overflow-hidden rounded-2xl">
                   <AnimatePresence initial={false} mode="wait" custom={slideDirection}>
                     <motion.img
                       key={selectedImage.src}
@@ -263,14 +264,14 @@ export default function Gallery() {
                       animate="center"
                       exit="exit"
                       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                      className="max-h-[78vh] w-full rounded-2xl object-contain"
+                      className="gallery-lightbox__image max-h-[78vh] w-full rounded-2xl object-contain"
                     />
                   </AnimatePresence>
                 </div>
                 <button
                   type="button"
                   onClick={() => setSelected(null)}
-                  className="absolute right-3 top-3 grid h-12 w-12 place-items-center rounded-lg border border-[#d6a15f]/35 bg-[#21170f]/75 font-bold leading-none text-[#f4eee4] shadow-[0_16px_40px_rgba(0,0,0,0.34)] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d] sm:-right-16 sm:top-0 sm:h-14 sm:w-14"
+                  className="gallery-lightbox__close absolute right-3 top-3 grid h-12 w-12 place-items-center rounded-lg border border-[#d6a15f]/35 bg-[#21170f]/75 font-bold leading-none text-[#f4eee4] shadow-[0_16px_40px_rgba(0,0,0,0.34)] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d] sm:-right-16 sm:top-0 sm:h-14 sm:w-14"
                   aria-label="Закрыть галерею"
                 >
                   <span className="block translate-y-[-1px] text-[36px] leading-none">×</span>
@@ -281,7 +282,7 @@ export default function Gallery() {
                     event.stopPropagation();
                     shift(-1);
                   }}
-                  className="absolute left-3 top-1/2 grid h-14 w-14 -translate-y-1/2 place-items-center rounded-xl border border-[#d6a15f]/35 bg-[#21170f]/75 text-5xl font-bold leading-none text-[#f4eee4] shadow-[0_18px_45px_rgba(0,0,0,0.36)] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d] sm:-left-20 sm:h-16 sm:w-16"
+                  className="gallery-lightbox__arrow gallery-lightbox__arrow--prev absolute left-3 top-1/2 grid h-14 w-14 -translate-y-1/2 place-items-center rounded-xl border border-[#d6a15f]/35 bg-[#21170f]/75 text-5xl font-bold leading-none text-[#f4eee4] shadow-[0_18px_45px_rgba(0,0,0,0.36)] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d] sm:-left-20 sm:h-16 sm:w-16"
                   aria-label="Предыдущее фото"
                 >
                   <ArrowIcon className="h-[60px] w-[60px] -translate-y-[2px]" direction="left" />
@@ -292,13 +293,13 @@ export default function Gallery() {
                     event.stopPropagation();
                     shift(1);
                   }}
-                  className="absolute right-3 top-1/2 grid h-14 w-14 -translate-y-1/2 place-items-center rounded-xl border border-[#d6a15f]/35 bg-[#21170f]/75 text-5xl font-bold leading-none text-[#f4eee4] shadow-[0_18px_45px_rgba(0,0,0,0.36)] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d] sm:-right-20 sm:h-16 sm:w-16"
+                  className="gallery-lightbox__arrow gallery-lightbox__arrow--next absolute right-3 top-1/2 grid h-14 w-14 -translate-y-1/2 place-items-center rounded-xl border border-[#d6a15f]/35 bg-[#21170f]/75 text-5xl font-bold leading-none text-[#f4eee4] shadow-[0_18px_45px_rgba(0,0,0,0.36)] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d] sm:-right-20 sm:h-16 sm:w-16"
                   aria-label="Следующее фото"
                 >
                   <ArrowIcon className="h-[60px] w-[60px] -translate-y-[2px]" />
                 </button>
               </div>
-              <figcaption className="mt-5 text-center font-sans text-[clamp(1.3rem,1.85vw,2.2rem)] font-extrabold leading-tight text-[#f4eee4]">{selectedImage.title}</figcaption>
+              <figcaption className="gallery-lightbox__caption mt-5 text-center font-sans text-[clamp(1.3rem,1.85vw,2.2rem)] font-extrabold leading-tight text-[#f4eee4]">{selectedImage.title}</figcaption>
             </motion.figure>
           </motion.div>
         )}

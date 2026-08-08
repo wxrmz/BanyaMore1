@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion, useScroll, useSpring } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type Theme = 'dark' | 'light';
 
@@ -15,10 +15,14 @@ const navLinks = [
   { name: 'Услуги', href: '/images/services-full.png', external: true },
 ];
 
+const getHeaderScrollThreshold = () => (window.innerWidth < 1024 ? 96 : 24);
+
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [theme, setTheme] = useState<Theme>('dark');
+  const menuScrollYRef = useRef(0);
+  const pendingMenuTargetRef = useRef<number | null>(null);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 110, damping: 24, restDelta: 0.001 });
 
@@ -29,15 +33,56 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 24);
-    onScroll();
+    let isInitialResetComplete = false;
+    const onScroll = () => {
+      if (isInitialResetComplete) {
+        setIsScrolled(window.scrollY > getHeaderScrollThreshold());
+      }
+    };
+    const initialSync = window.setTimeout(() => {
+      isInitialResetComplete = true;
+      onScroll();
+    }, 140);
+
     window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.clearTimeout(initialSync);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
   }, []);
 
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const scrollY = window.scrollY;
+    const bodyOverflow = document.body.style.overflow;
+    const htmlOverflow = document.documentElement.style.overflow;
+
+    menuScrollYRef.current = scrollY;
+    pendingMenuTargetRef.current = null;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.documentElement.style.overflow = htmlOverflow;
+      document.body.style.overflow = bodyOverflow;
+
+      const targetTop = pendingMenuTargetRef.current;
+      pendingMenuTargetRef.current = null;
+      const nextScrollY = targetTop ?? scrollY;
+
+      window.scrollTo({ top: nextScrollY, behavior: targetTop === null ? 'auto' : 'smooth' });
+      setIsScrolled(nextScrollY > getHeaderScrollThreshold());
+    };
+  }, [isOpen]);
+
   const goTo = (href: string, external?: boolean) => {
-    setIsOpen(false);
     if (external) {
+      setIsOpen(false);
       window.open(href, '_blank', 'noopener,noreferrer');
       return;
     }
@@ -48,8 +93,16 @@ export default function Navbar() {
     }
 
     const headerOffset = 76;
-    const extraDown = href === '#about' ? 24 : href === '#baths' ? 44 : href === '#schedule' ? 36 : href === '#gallery' ? 72 : 0;
-    const top = target.getBoundingClientRect().top + window.scrollY - headerOffset + extraDown;
+    const isMobileMenuNavigation = isOpen && window.innerWidth <= 639;
+    const extraDown = href === '#about' ? 24 : href === '#baths' ? (isMobileMenuNavigation ? 70 : 44) : href === '#schedule' ? 36 : href === '#gallery' ? 72 : 0;
+    const currentScrollY = isOpen ? menuScrollYRef.current : window.scrollY;
+    const top = target.getBoundingClientRect().top + currentScrollY - headerOffset + extraDown;
+
+    if (isOpen) {
+      pendingMenuTargetRef.current = top;
+      setIsOpen(false);
+      return;
+    }
 
     window.scrollTo({ top, behavior: 'smooth' });
   };
@@ -92,11 +145,12 @@ export default function Navbar() {
   return (
     <>
       <motion.header
-        initial={{ opacity: 0, filter: 'blur(10px)' }}
-        animate={{ opacity: 1, filter: 'blur(0px)' }}
-        transition={{ duration: 0.42, ease: 'easeOut' }}
         className={`site-header fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-          isScrolled ? 'site-header--scrolled bg-[#090806]/78 shadow-[0_20px_70px_rgba(0,0,0,0.32)] backdrop-blur-2xl' : 'bg-transparent'
+          isOpen
+            ? 'site-header--scrolled site-header--menu-open bg-[#090806]/78 shadow-[0_20px_70px_rgba(0,0,0,0.32)] backdrop-blur-2xl'
+            : isScrolled
+            ? 'site-header--scrolled bg-[#090806]/78 shadow-[0_20px_70px_rgba(0,0,0,0.32)] backdrop-blur-2xl'
+            : 'site-header--top bg-transparent shadow-none backdrop-blur-none'
         }`}
       >
         <motion.div className="absolute inset-x-0 top-0 h-px origin-left bg-[#d6a15f]" style={{ scaleX }} />
@@ -178,17 +232,17 @@ export default function Navbar() {
         {isOpen && (
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-[#090806]/78 backdrop-blur-md lg:hidden"
+            animate={{ opacity: 1, transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] } }}
+            exit={{ opacity: 0, transition: { delay: 0.2, duration: 0.14, ease: [0.22, 1, 0.36, 1] } }}
+            className="fixed inset-0 z-40 touch-none bg-[#090806]/78 lg:hidden"
             onClick={() => setIsOpen(false)}
           >
             <motion.nav
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: 'spring', stiffness: 220, damping: 28 }}
-              className="mobile-menu-panel ml-auto flex h-full w-[min(78vw,320px)] flex-col gap-2 rounded-l-2xl border-l border-[#d6a15f]/20 bg-[#11100d] p-5 pt-24 shadow-[-24px_0_80px_rgba(0,0,0,0.36)]"
+              transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+              className="mobile-menu-panel ml-auto flex h-full w-[min(78vw,320px)] touch-pan-y flex-col gap-2 overflow-y-auto overscroll-contain rounded-l-2xl border-l border-[#d6a15f]/20 bg-[#11100d] p-5 pt-24 shadow-[-24px_0_80px_rgba(0,0,0,0.36)] will-change-transform"
               onClick={(event) => event.stopPropagation()}
             >
               {navLinks.map((link) => (

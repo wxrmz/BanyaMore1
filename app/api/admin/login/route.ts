@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
 import {
-  clearFailedLogins,
   getClientRateLimitKey,
   isAdminAuthConfigured,
   isLoginRateLimited,
   isSameOriginRequest,
-  recordFailedLogin,
   setAdminSessionCookie,
   validateAdminCredentials,
 } from '@/lib/adminAuth';

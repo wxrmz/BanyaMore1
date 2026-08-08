@@ -11,6 +11,8 @@ yarn-error.log*
 pnpm-debug.log*
 dev-server*.log
 .next-dev*.log
+dev-mobile-check*.log
+.codex-dev*.log
 
 *.tsbuildinfo
 .vercel/

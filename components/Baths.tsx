@@ -1,8 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion, useInView } from 'framer-motion';
-import type { CSSProperties, PointerEvent } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ArrowIcon } from './ArrowIcon';
 import { PeopleIcon } from './BathIcons';
 
@@ -12,6 +11,14 @@ const iconPaths = {
   slippers: '/images/icons/tapochki.png?v=3',
   peoplePlus: '/images/icons/dop_chelovek.png?v=3',
   location: '/images/icons/metka.png?v=3',
+};
+
+const mobileIconPaths = {
+  towel: '/images/icons/mobile/polotenca.png?v=2',
+  hat: '/images/icons/mobile/shapka.png?v=2',
+  slippers: '/images/icons/mobile/tapochki.png?v=2',
+  peoplePlus: '/images/icons/mobile/dop_chelovek.png?v=2',
+  location: '/images/icons/mobile/metka.png?v=2',
 };
 
 type BathConfig = {
@@ -157,26 +164,14 @@ const baths: BathConfig[] = [
   },
 ];
 
-const wrapIndex = (value: number) => (value + baths.length) % baths.length;
-
 export default function Baths() {
   const ref = useRef(null);
-  const mobileBathTrackRef = useRef<HTMLDivElement | null>(null);
+  const mobileBathListRef = useRef<HTMLDivElement | null>(null);
+  const mobileBathRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const mobileBathScrollFrame = useRef<number | null>(null);
   const mobileSubBathRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const mobileSubBathListRef = useRef<HTMLDivElement | null>(null);
-  const mobileBathDrag = useRef({
-    deltaX: 0,
-    hasDragged: false,
-    isDragging: false,
-    startX: 0,
-  });
-  const mobileSubScrollTimer = useRef<number | null>(null);
-  const mobileSubDrag = useRef({
-    hasDragged: false,
-    isDragging: false,
-    startScrollLeft: 0,
-    startX: 0,
-  });
+  const mobileSubScrollFrame = useRef<number | null>(null);
   const isInView = useInView(ref, { once: true, margin: '-120px' });
   const [active, setActive] = useState(1);
   const [expanded, setExpanded] = useState<number | null>(null);
@@ -186,94 +181,79 @@ export default function Baths() {
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [prevGalleryIndex, setPrevGalleryIndex] = useState<number | null>(null);
   const [isGalleryFading, setIsGalleryFading] = useState(false);
+  const [bathViewerIndex, setBathViewerIndex] = useState<number | null>(null);
+  const [bathViewerDirection, setBathViewerDirection] = useState<-1 | 0 | 1>(0);
   const galleryFadeTimer = useRef<number | null>(null);
   const [isClosing, setIsClosing] = useState(false);
 
-  const shift = (direction: -1 | 1) => {
-    setActive((value) => wrapIndex(value + direction));
-  };
+  const centerMobileBath = (index: number, behavior: ScrollBehavior = 'smooth') => {
+    const list = mobileBathListRef.current;
+    const item = mobileBathRefs.current[index];
 
-  const selectMobileBath = (index: number) => {
-    setActive(Math.max(0, Math.min(baths.length - 1, index)));
-  };
-
-  const handleMobileBathClick = (index: number, isActive: boolean) => {
-    if (mobileBathDrag.current.hasDragged) {
-      window.setTimeout(() => {
-        mobileBathDrag.current.hasDragged = false;
-      }, 0);
+    if (!list || !item) {
       return;
     }
 
-    if (isActive) {
-      openBath(index);
-      return;
-    }
-
-    selectMobileBath(index);
-  };
-
-  const handleMobileBathPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (event.pointerType === 'mouse' && event.button !== 0) {
-      return;
-    }
-
-    mobileBathDrag.current = {
-      deltaX: 0,
-      hasDragged: false,
-      isDragging: true,
-      startX: event.clientX,
-    };
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-
-  const handleMobileBathPointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (!mobileBathDrag.current.isDragging) {
-      return;
-    }
-
-    const deltaX = event.clientX - mobileBathDrag.current.startX;
-    mobileBathDrag.current.deltaX = deltaX;
-
-    if (Math.abs(deltaX) <= 5) {
-      return;
-    }
-
-    mobileBathDrag.current.hasDragged = true;
-    event.currentTarget.classList.add('is-dragging');
-    mobileBathTrackRef.current?.style.setProperty('--bath-mobile-drag-offset', `${deltaX}px`);
-    event.preventDefault();
-  };
-
-  const finishMobileBathDrag = (event: PointerEvent<HTMLDivElement>, cancelled = false) => {
-    if (!mobileBathDrag.current.isDragging) {
-      return;
-    }
-
-    const list = event.currentTarget;
-    const { deltaX, hasDragged } = mobileBathDrag.current;
-    mobileBathDrag.current.isDragging = false;
-
-    if (list.hasPointerCapture(event.pointerId)) {
-      list.releasePointerCapture(event.pointerId);
-    }
-
-    if (!cancelled && hasDragged) {
-      const threshold = Math.min(72, list.clientWidth * 0.14);
-
-      if (Math.abs(deltaX) >= threshold) {
-        selectMobileBath(active + (deltaX < 0 ? 1 : -1));
-      }
-    }
-
-    window.requestAnimationFrame(() => {
-      mobileBathTrackRef.current?.style.removeProperty('--bath-mobile-drag-offset');
-      list.classList.remove('is-dragging');
+    list.scrollTo({
+      behavior,
+      left: item.offsetLeft - (list.clientWidth - item.clientWidth) / 2,
     });
   };
 
+  const selectMobileBath = (index: number) => {
+    const nextIndex = Math.max(0, Math.min(baths.length - 1, index));
+    setActive(nextIndex);
+    centerMobileBath(nextIndex);
+  };
+
+  const handleMobileBathScroll = () => {
+    const list = mobileBathListRef.current;
+
+    if (!list || mobileBathScrollFrame.current !== null) {
+      return;
+    }
+
+    mobileBathScrollFrame.current = window.requestAnimationFrame(() => {
+      mobileBathScrollFrame.current = null;
+      const listCenter = list.scrollLeft + list.clientWidth / 2;
+      let closestIndex = active;
+      let closestDistance = Number.POSITIVE_INFINITY;
+
+      mobileBathRefs.current.forEach((item, index) => {
+        if (!item) {
+          return;
+        }
+
+        const itemCenter = item.offsetLeft + item.clientWidth / 2;
+        const distance = Math.abs(itemCenter - listCenter);
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = index;
+        }
+      });
+
+      setActive((current) => (current === closestIndex ? current : closestIndex));
+    });
+  };
+
+  useLayoutEffect(() => {
+    if (
+      window.innerWidth > 1023
+      || subView
+      || expanded !== null
+      || subExpanded !== null
+    ) {
+      return;
+    }
+
+    centerMobileBath(active, 'auto');
+  }, [expanded, subExpanded, subView]);
+
   const selectMobileSubBath = (index: number) => {
-    setSubActive(Math.max(0, Math.min((baths[active].subBaths?.length ?? 1) - 1, index)));
+    const nextIndex = Math.max(0, Math.min((baths[active].subBaths?.length ?? 1) - 1, index));
+    setSubActive(nextIndex);
+    centerMobileSubBath(nextIndex);
   };
 
   const centerMobileSubBath = (index: number, behavior: ScrollBehavior = 'smooth') => {
@@ -302,99 +282,38 @@ export default function Baths() {
     }
   };
 
-  const selectNearestMobileSubBath = () => {
+  const handleMobileSubBathScroll = () => {
     const list = mobileSubBathListRef.current;
 
-    if (!list) {
+    if (!list || mobileSubScrollFrame.current !== null) {
       return;
     }
 
-    const listCenter = list.getBoundingClientRect().left + list.clientWidth / 2;
-    const nearest = mobileSubBathRefs.current.reduce(
-      (closest, node, index) => {
+    mobileSubScrollFrame.current = window.requestAnimationFrame(() => {
+      mobileSubScrollFrame.current = null;
+      const listCenter = list.scrollLeft + list.clientWidth / 2;
+      let closestIndex = subActive;
+      let closestDistance = Number.POSITIVE_INFINITY;
+
+      mobileSubBathRefs.current.forEach((node, index) => {
         if (!node) {
-          return closest;
+          return;
         }
 
-        const rect = node.getBoundingClientRect();
-        const distance = Math.abs(rect.left + rect.width / 2 - listCenter);
-        return distance < closest.distance ? { distance, index } : closest;
-      },
-      { distance: Number.POSITIVE_INFINITY, index: subActive },
-    );
+        const nodeCenter = node.offsetLeft + node.clientWidth / 2;
+        const distance = Math.abs(nodeCenter - listCenter);
 
-    setSubActive(nearest.index);
-  };
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = index;
+        }
+      });
 
-  const handleMobileSubBathScroll = () => {
-    if (mobileSubScrollTimer.current) {
-      window.clearTimeout(mobileSubScrollTimer.current);
-    }
-
-    mobileSubScrollTimer.current = window.setTimeout(selectNearestMobileSubBath, 90);
-  };
-
-  const handleMobileSubBathPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (event.pointerType === 'mouse' && event.button !== 0) {
-      return;
-    }
-
-    const list = mobileSubBathListRef.current;
-
-    if (!list) {
-      return;
-    }
-
-    mobileSubDrag.current = {
-      hasDragged: false,
-      isDragging: true,
-      startScrollLeft: list.scrollLeft,
-      startX: event.clientX,
-    };
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-
-  const handleMobileSubBathPointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    const list = mobileSubBathListRef.current;
-
-    if (!list || !mobileSubDrag.current.isDragging) {
-      return;
-    }
-
-    const deltaX = event.clientX - mobileSubDrag.current.startX;
-
-    if (Math.abs(deltaX) > 4) {
-      mobileSubDrag.current.hasDragged = true;
-    }
-
-    if (mobileSubDrag.current.hasDragged) {
-      list.scrollLeft = mobileSubDrag.current.startScrollLeft - deltaX;
-      event.preventDefault();
-    }
-  };
-
-  const finishMobileSubBathDrag = (event: PointerEvent<HTMLDivElement>) => {
-    if (!mobileSubDrag.current.isDragging) {
-      return;
-    }
-
-    mobileSubDrag.current.isDragging = false;
-
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-
-    window.setTimeout(selectNearestMobileSubBath, 0);
+      setSubActive((current) => (current === closestIndex ? current : closestIndex));
+    });
   };
 
   const handleMobileSubBathClick = (index: number, isActive: boolean) => {
-    if (mobileSubDrag.current.hasDragged) {
-      window.setTimeout(() => {
-        mobileSubDrag.current.hasDragged = false;
-      }, 0);
-      return;
-    }
-
     if (isActive) {
       openSubBath(index);
       return;
@@ -405,8 +324,11 @@ export default function Baths() {
 
   useEffect(() => {
     return () => {
-      if (mobileSubScrollTimer.current) {
-        window.clearTimeout(mobileSubScrollTimer.current);
+      if (mobileBathScrollFrame.current !== null) {
+        window.cancelAnimationFrame(mobileBathScrollFrame.current);
+      }
+      if (mobileSubScrollFrame.current !== null) {
+        window.cancelAnimationFrame(mobileSubScrollFrame.current);
       }
       if (galleryFadeTimer.current) {
         window.clearTimeout(galleryFadeTimer.current);
@@ -414,15 +336,17 @@ export default function Baths() {
     };
   }, []);
 
-  useEffect(() => {
-    if (window.innerWidth > 1023) {
+  useLayoutEffect(() => {
+    if (
+      window.innerWidth > 1023
+      || !subView
+      || subExpanded !== null
+    ) {
       return;
     }
 
-    if (subView && subExpanded === null) {
-      centerMobileSubBath(subActive);
-    }
-  }, [active, expanded, subActive, subExpanded, subView]);
+    centerMobileSubBath(subActive, 'auto');
+  }, [active, subExpanded, subView]);
 
   const openBath = (index: number) => {
     const hasSubBaths = baths[index].subBaths && baths[index].subBaths.length > 0;
@@ -515,6 +439,26 @@ export default function Baths() {
   const expandedSubBath = subExpanded === null ? null : (baths[active].subBaths?.[subExpanded] ?? null);
   const selectedBath = expandedSubBath ?? expandedBath ?? baths[active];
 
+  const openBathViewer = (index: number) => {
+    if (window.innerWidth > 639) {
+      return;
+    }
+
+    setBathViewerDirection(0);
+    setBathViewerIndex(index);
+  };
+
+  const shiftBathViewer = (direction: -1 | 1) => {
+    if (bathViewerIndex === null) {
+      return;
+    }
+
+    setBathViewerDirection(direction);
+    setBathViewerIndex(
+      (bathViewerIndex + direction + selectedBath.gallery.length) % selectedBath.gallery.length,
+    );
+  };
+
   const slider = (
     <div className={sliderClassName}>
       {baths.map((bath, index) => {
@@ -579,66 +523,53 @@ export default function Baths() {
     </div>
   );
 
-  const mobileBathOffsets = [
-    '0px',
-    'calc(0px - var(--bath-mobile-card-width) - var(--bath-mobile-gap))',
-    'calc(0px - var(--bath-mobile-card-width) - var(--bath-mobile-gap) - var(--bath-mobile-card-width) - var(--bath-mobile-gap))',
-  ];
-
   const mobileSlider = (
     <div
+      ref={mobileBathListRef}
       className="baths-showcase__mobileList scrollbar-none"
-      onPointerCancel={(event) => finishMobileBathDrag(event, true)}
-      onPointerDown={handleMobileBathPointerDown}
-      onPointerMove={handleMobileBathPointerMove}
-      onPointerUp={finishMobileBathDrag}
+      onScroll={handleMobileBathScroll}
       aria-label="Выбор бани"
     >
-      <div
-        ref={mobileBathTrackRef}
-        className="baths-showcase__mobileTrack"
-        style={{ '--bath-mobile-offset': mobileBathOffsets[active] } as CSSProperties}
-      >
-        {baths.map((bath, index) => {
-          const isActive = active === index;
+      {baths.map((bath, index) => {
+        const isActive = active === index;
 
-          return (
-            <button
-              key={bath.name}
-              type="button"
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => handleMobileBathClick(index, isActive)}
-              className={`baths-showcase__mobileCard ${isActive ? 'is-selected' : ''}`}
-              aria-pressed={isActive}
-            >
-              <img src={bath.image} alt={bath.name} />
-              <div className="baths-showcase__cardShade" />
-              <div className="baths-showcase__cardTop">
-                <strong>{bath.price}</strong>
+        return (
+          <button
+            key={bath.name}
+            ref={(node) => {
+              mobileBathRefs.current[index] = node;
+            }}
+            type="button"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => {
+              if (isActive) {
+                openBath(index);
+                return;
+              }
+
+              selectMobileBath(index);
+            }}
+            className={`baths-showcase__mobileCard ${isActive ? 'is-selected' : ''}`}
+            aria-pressed={isActive}
+          >
+            <img src={bath.image} alt={bath.name} />
+            <div className="baths-showcase__cardShade" />
+            <div className="baths-showcase__cardTop">
+              <strong>{bath.price}</strong>
+            </div>
+            <div className="baths-showcase__cardInfo">
+              <div>
+                <PeopleIcon className="baths-showcase__peopleIcon" />
+                {bath.capacity}
               </div>
-              <div className="baths-showcase__cardInfo">
-                <div>
-                  <PeopleIcon className="baths-showcase__peopleIcon" />
-                  {bath.capacity}
-                </div>
-                <h3>{bath.name}</h3>
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.span
-                    key={isActive ? 'open' : 'select'}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.1 }}
-                    className="baths-showcase__cardAction"
-                  >
-                    {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>
-                  </motion.span>
-                </AnimatePresence>
-              </div>
-            </button>
-          );
-        })}
-      </div>
+              <h3>{bath.name}</h3>
+              <span className="baths-showcase__cardAction">
+                {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>
+              </span>
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 
@@ -709,11 +640,6 @@ export default function Baths() {
       ref={mobileSubBathListRef}
       className="baths-showcase__mobileList baths-showcase__mobileList--sub scrollbar-none"
       onScroll={handleMobileSubBathScroll}
-      onPointerCancel={finishMobileSubBathDrag}
-      onPointerDown={handleMobileSubBathPointerDown}
-      onPointerLeave={finishMobileSubBathDrag}
-      onPointerMove={handleMobileSubBathPointerMove}
-      onPointerUp={finishMobileSubBathDrag}
       aria-label="Выбор большой бани"
     >
       {subBaths.map((bath, index) => {
@@ -741,18 +667,9 @@ export default function Baths() {
                 {bath.capacity}
               </div>
               <h3>{bath.name}</h3>
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.span
-                  key={isActive ? 'open' : 'select'}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.1 }}
-                  className="baths-showcase__cardAction"
-                >
-                  {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>
-                </motion.span>
-              </AnimatePresence>
+              <span className="baths-showcase__cardAction">
+                {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>
+              </span>
             </div>
           </button>
         );
@@ -761,7 +678,8 @@ export default function Baths() {
   );
 
   return (
-    <section id="baths" className="baths-showcase layer-card" ref={ref}>
+    <>
+      <section id="baths" className="baths-showcase layer-card" ref={ref}>
       <div className="baths-showcase__glow" />
 
       <div className="baths-showcase__head container-custom">
@@ -781,6 +699,19 @@ export default function Baths() {
         transition={{ duration: 0.7, delay: 0.08, ease: 'easeOut' }}
         className="baths-showcase__stage"
       >
+        {subView && subExpanded === null && (
+          <button
+            type="button"
+            onClick={closeSubView}
+            className="baths-showcase__mobileClose"
+            aria-label="Вернуться к выбору разделов"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 5l14 14M19 5L5 19" />
+            </svg>
+          </button>
+        )}
+
         <AnimatePresence>
           {!subView && !isExpandedView && (
             <motion.div
@@ -805,16 +736,6 @@ export default function Baths() {
               transition={{ duration: 0.25, ease: 'easeInOut' }}
               className="baths-showcase__viewWrap"
             >
-              <button
-                type="button"
-                onClick={closeSubView}
-                className="baths-showcase__mobileClose"
-                aria-label="Вернуться к выбору разделов"
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M5 5l14 14M19 5L5 19" />
-                </svg>
-              </button>
               {subSlider}
               {mobileSubSlider}
             </motion.div>
@@ -822,7 +743,19 @@ export default function Baths() {
         </AnimatePresence>
 
         {isExpandedView && selectedBath && (
-          <div className={`baths-showcase__expanded ${isClosing ? 'is-closing' : 'is-opening'}`}>
+          <>
+            <button
+              type="button"
+              onClick={closeBath}
+              className="baths-showcase__expandedMobileClose"
+              aria-label="Вернуться к выбору бань"
+              disabled={isClosing}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 5l14 14M19 5L5 19" />
+              </svg>
+            </button>
+            <div className={`baths-showcase__expanded ${isClosing ? 'is-closing' : 'is-opening'}`}>
             <div className="baths-showcase__morphPreview" aria-hidden="true">
                 <img src={selectedBath.image} alt={selectedBath.name} />
                 <div className="baths-showcase__cardShade" />
@@ -857,6 +790,12 @@ export default function Baths() {
                     className={`baths-showcase__expandedImage ${isGalleryFading ? 'is-fading-in' : ''}`}
                   />
                   <div className="baths-showcase__expandedShade" />
+                  <button
+                    type="button"
+                    onClick={() => openBathViewer(galleryIndex)}
+                    className="baths-showcase__photoOpen"
+                    aria-label={`Открыть фотографию ${galleryIndex + 1}`}
+                  />
                   <button
                     type="button"
                     onClick={() => switchGallery((galleryIndex - 1 + selectedBath.gallery.length) % selectedBath.gallery.length)}
@@ -894,7 +833,14 @@ export default function Baths() {
                       <button
                         key={image}
                         type="button"
-                        onClick={() => switchGallery(index)}
+                        onClick={() => {
+                          if (galleryIndex === index && window.innerWidth <= 639) {
+                            openBathViewer(index);
+                            return;
+                          }
+
+                          switchGallery(index);
+                        }}
                         className={galleryIndex === index ? 'is-active' : ''}
                         aria-label={`Показать фото ${index + 1}`}
                       >
@@ -922,8 +868,15 @@ export default function Baths() {
                     <div className="baths-showcase__includedList">
                       {selectedBath.included.map((item) => {
                         const src = iconPaths[item.icon];
+                        const mobileSrc = mobileIconPaths[item.icon];
                         return (
                           <div key={item.icon} className="baths-showcase__includedItem">
+                            <img
+                              src={mobileSrc}
+                              alt=""
+                              aria-hidden="true"
+                              className="baths-showcase__includedImage"
+                            />
                             <span
                               aria-hidden="true"
                               className="baths-showcase__includedIcon"
@@ -938,6 +891,12 @@ export default function Baths() {
 
                   <div className="baths-showcase__meta">
                     <div className="baths-showcase__metaItem">
+                      <img
+                        src={mobileIconPaths.location}
+                        alt=""
+                        aria-hidden="true"
+                        className="baths-showcase__metaImage"
+                      />
                       <span
                         aria-hidden="true"
                         className="baths-showcase__metaIcon"
@@ -949,6 +908,12 @@ export default function Baths() {
                       <span>{selectedBath.distance}</span>
                     </div>
                     <div className="baths-showcase__metaItem">
+                      <img
+                        src={mobileIconPaths.peoplePlus}
+                        alt=""
+                        aria-hidden="true"
+                        className="baths-showcase__metaImage baths-showcase__metaImage--people"
+                      />
                       <span
                         aria-hidden="true"
                         className="baths-showcase__metaIcon baths-showcase__metaIcon--people"
@@ -979,9 +944,75 @@ export default function Baths() {
                   </div>
                 </div>
             </div>
-          </div>
+            </div>
+          </>
         )}
       </motion.div>
-    </section>
+      </section>
+
+      <AnimatePresence>
+        {bathViewerIndex !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="gallery-lightbox fixed inset-0 z-[90] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md"
+            onClick={() => setBathViewerIndex(null)}
+          >
+            <motion.figure
+              initial={{ y: 30, scale: 0.96, opacity: 0 }}
+              animate={{ y: 0, scale: 1, opacity: 1 }}
+              exit={{ y: 30, scale: 0.96, opacity: 0 }}
+              className="gallery-lightbox__figure relative flex max-h-[92vh] w-full max-w-6xl flex-col items-center"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="gallery-lightbox__media relative inline-flex max-h-[82vh] max-w-full items-center justify-center">
+                <div className="gallery-lightbox__frame overflow-hidden rounded-2xl">
+                  <AnimatePresence initial={false} mode="wait">
+                    <motion.img
+                      key={selectedBath.gallery[bathViewerIndex]}
+                      src={selectedBath.gallery[bathViewerIndex]}
+                      alt={`${selectedBath.name}, фото ${bathViewerIndex + 1}`}
+                      initial={{ opacity: 0, x: bathViewerDirection * 36 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: bathViewerDirection * -36 }}
+                      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                      className="gallery-lightbox__image max-h-[78vh] w-full rounded-2xl object-contain"
+                    />
+                  </AnimatePresence>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setBathViewerIndex(null)}
+                  className="gallery-lightbox__close absolute right-3 top-3 grid h-12 w-12 place-items-center rounded-lg border border-[#d6a15f]/35 bg-[#21170f]/75 font-bold leading-none text-[#f4eee4] shadow-[0_16px_40px_rgba(0,0,0,0.34)] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d] sm:-right-16 sm:top-0 sm:h-14 sm:w-14"
+                  aria-label="Закрыть фотографию бани"
+                >
+                  <span className="block translate-y-[-1px] text-[36px] leading-none">×</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => shiftBathViewer(-1)}
+                  className="gallery-lightbox__arrow gallery-lightbox__arrow--prev absolute left-3 top-1/2 grid h-14 w-14 -translate-y-1/2 place-items-center rounded-xl border border-[#d6a15f]/35 bg-[#21170f]/75 text-5xl font-bold leading-none text-[#f4eee4] shadow-[0_18px_45px_rgba(0,0,0,0.36)] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d] sm:-left-20 sm:h-16 sm:w-16"
+                  aria-label="Предыдущее фото"
+                >
+                  <ArrowIcon className="h-[60px] w-[60px] -translate-y-[2px]" direction="left" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => shiftBathViewer(1)}
+                  className="gallery-lightbox__arrow gallery-lightbox__arrow--next absolute right-3 top-1/2 grid h-14 w-14 -translate-y-1/2 place-items-center rounded-xl border border-[#d6a15f]/35 bg-[#21170f]/75 text-5xl font-bold leading-none text-[#f4eee4] shadow-[0_18px_45px_rgba(0,0,0,0.36)] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d] sm:-right-20 sm:h-16 sm:w-16"
+                  aria-label="Следующее фото"
+                >
+                  <ArrowIcon className="h-[60px] w-[60px] -translate-y-[2px]" />
+                </button>
+              </div>
+              <figcaption className="gallery-lightbox__caption mt-5 text-center font-sans text-[clamp(1.3rem,1.85vw,2.2rem)] font-extrabold leading-tight text-[#f4eee4]">
+                {selectedBath.name}
+              </figcaption>
+            </motion.figure>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

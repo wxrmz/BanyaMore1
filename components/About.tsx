@@ -45,6 +45,7 @@ export default function About() {
   const ref = useRef(null);
   const carouselRef = useRef<HTMLDivElement | null>(null);
   const storyRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const scrollFrameRef = useRef<number | null>(null);
   const isInView = useInView(ref, { once: true, margin: '-120px' });
   const [active, setActive] = useState(0);
   const [viewer, setViewer] = useState<number | null>(null);
@@ -54,9 +55,32 @@ export default function About() {
     setAutoplayResumeAt(Date.now() + 10000);
   };
 
-  const shift = (direction: -1 | 1) => {
+  const scrollToStory = (index: number) => {
+    const carousel = carouselRef.current;
+    const story = storyRefs.current[index];
+
+    if (window.innerWidth >= 768 || !carousel || !story) {
+      return;
+    }
+
+    carousel.scrollTo({
+      left: story.offsetLeft - (carousel.clientWidth - story.clientWidth) / 2,
+      behavior: 'smooth',
+    });
+  };
+
+  const selectStory = (index: number) => {
     pauseAutoplay();
-    setActive((value) => (value + direction + stories.length) % stories.length);
+    setActive(index);
+    scrollToStory(index);
+  };
+
+  const beginManualCarouselScroll = () => {
+    if (window.innerWidth >= 768) {
+      return;
+    }
+
+    pauseAutoplay();
   };
 
   useEffect(() => {
@@ -66,7 +90,9 @@ export default function About() {
 
     const delay = autoplayResumeAt > Date.now() ? autoplayResumeAt - Date.now() : 4200;
     const timer = window.setTimeout(() => {
-      setActive((value) => (value + 1) % stories.length);
+      const nextIndex = (active + 1) % stories.length;
+      setActive(nextIndex);
+      scrollToStory(nextIndex);
     }, delay);
 
     return () => window.clearTimeout(timer);
@@ -74,17 +100,49 @@ export default function About() {
 
   useEffect(() => {
     const carousel = carouselRef.current;
-    const activeStory = storyRefs.current[active];
 
-    if (window.innerWidth >= 768 || !carousel || !activeStory) {
+    if (!carousel) {
       return;
     }
 
-    carousel.scrollTo({
-      left: activeStory.offsetLeft - (carousel.clientWidth - activeStory.clientWidth) / 2,
-      behavior: 'smooth',
-    });
-  }, [active]);
+    const handleScroll = () => {
+      if (window.innerWidth >= 768 || scrollFrameRef.current !== null) {
+        return;
+      }
+
+      scrollFrameRef.current = window.requestAnimationFrame(() => {
+        scrollFrameRef.current = null;
+        const carouselCenter = carousel.scrollLeft + carousel.clientWidth / 2;
+        let closestIndex = 0;
+        let closestDistance = Number.POSITIVE_INFINITY;
+
+        storyRefs.current.forEach((story, index) => {
+          if (!story) {
+            return;
+          }
+
+          const storyCenter = story.offsetLeft + story.clientWidth / 2;
+          const distance = Math.abs(storyCenter - carouselCenter);
+
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestIndex = index;
+          }
+        });
+
+        setActive((current) => (current === closestIndex ? current : closestIndex));
+      });
+    };
+
+    carousel.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      carousel.removeEventListener('scroll', handleScroll);
+      if (scrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(scrollFrameRef.current);
+      }
+    };
+  }, []);
 
   return (
     <>
@@ -123,7 +181,11 @@ export default function About() {
             </div>
 
             <div className="min-w-0">
-              <div ref={carouselRef} className="about-carousel scrollbar-none flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto pb-2 md:overflow-visible md:pb-0">
+              <div
+                ref={carouselRef}
+                onPointerDown={beginManualCarouselScroll}
+                className="about-carousel scrollbar-none flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto pb-2 md:overflow-visible md:pb-0"
+              >
                 {stories.map((story, index) => {
                   const isActive = active === index;
 
@@ -139,8 +201,7 @@ export default function About() {
                           setViewer(index);
                           return;
                         }
-                        pauseAutoplay();
-                        setActive(index);
+                        selectStory(index);
                       }}
                       className={`about-carousel-card group relative min-h-[400px] snap-center overflow-hidden rounded-lg border text-left sm:min-h-[470px] md:min-h-[545px] xl:min-h-[590px] ${
                         isActive
@@ -191,16 +252,14 @@ export default function About() {
               <div className="about-carousel-controls mt-8 flex w-full items-center justify-center sm:mt-10">
                 <div className="flex min-w-0 flex-1 items-center gap-5 sm:flex-none sm:gap-6">
                   <span className="shrink-0 text-2xl font-extrabold leading-none text-[#d6a15f] sm:text-3xl">{stories[active].number}</span>
-                  <div className="flex min-w-0 flex-1 items-center justify-center gap-3 sm:w-[30rem] sm:flex-none sm:gap-4">
+                  <div className="about-carousel-progress flex min-w-0 flex-1 items-center justify-center gap-3 sm:w-[30rem] sm:flex-none sm:gap-4">
                     {stories.map((story, index) => (
                       <button
                         key={story.number}
                         type="button"
-                        onClick={() => {
-                          pauseAutoplay();
-                          setActive(index);
-                        }}
-                        className={`h-[5px] shrink-0 rounded-full transition-[background,width] duration-[220ms] ${
+                        onClick={() => selectStory(index)}
+                        aria-current={active === index ? 'step' : undefined}
+                        className={`about-carousel-progress__item h-[5px] shrink-0 rounded-full transition-[background,width] duration-[220ms] ${
                           active === index
                             ? 'w-20 bg-[#d6a15f] sm:w-28'
                             : 'w-12 bg-[#3a3026] hover:bg-[#d6a15f]/45 sm:w-20'
@@ -222,28 +281,28 @@ export default function About() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md"
+            className="about-lightbox fixed inset-0 z-[80] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md"
             onClick={() => setViewer(null)}
           >
             <motion.figure
               initial={{ y: 28, scale: 0.96, opacity: 0 }}
               animate={{ y: 0, scale: 1, opacity: 1 }}
               exit={{ y: 28, scale: 0.96, opacity: 0 }}
-              className="relative flex max-h-[92vh] w-full max-w-6xl flex-col items-center"
+              className="about-lightbox__figure relative flex max-h-[92vh] w-full max-w-6xl flex-col items-center"
               onClick={(event) => event.stopPropagation()}
             >
-              <div className="relative inline-flex max-h-[82vh] max-w-full items-center justify-center">
-                <img src={stories[viewer].image} alt={stories[viewer].title} className="max-h-[78vh] w-full rounded-lg object-contain" />
+              <div className="about-lightbox__media relative inline-flex max-h-[82vh] max-w-full items-center justify-center">
+                <img src={stories[viewer].image} alt={stories[viewer].title} className="about-lightbox__image max-h-[78vh] w-full rounded-lg object-contain" />
                 <button
                   type="button"
                   onClick={() => setViewer(null)}
-                  className="absolute right-3 top-3 grid h-12 w-12 place-items-center rounded-lg border border-[#d6a15f]/35 bg-[#21170f]/75 font-bold leading-none text-[#f4eee4] shadow-[0_16px_40px_rgba(0,0,0,0.34)] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d] sm:-right-16 sm:top-0 sm:h-14 sm:w-14"
+                  className="about-lightbox__close absolute right-3 top-3 grid h-12 w-12 place-items-center rounded-lg border border-[#d6a15f]/35 bg-[#21170f]/75 font-bold leading-none text-[#f4eee4] shadow-[0_16px_40px_rgba(0,0,0,0.34)] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d] sm:-right-16 sm:top-0 sm:h-14 sm:w-14"
                   aria-label="Закрыть изображение"
                 >
                   <span className="block translate-y-[-1px] text-[36px] leading-none">×</span>
                 </button>
               </div>
-              <figcaption className="mt-5 text-center font-sans text-[clamp(1.3rem,1.85vw,2.2rem)] font-extrabold leading-tight text-[#f4eee4]">{stories[viewer].title}</figcaption>
+              <figcaption className="about-lightbox__caption mt-5 text-center font-sans text-[clamp(1.3rem,1.85vw,2.2rem)] font-extrabold leading-tight text-[#f4eee4]">{stories[viewer].title}</figcaption>
             </motion.figure>
           </motion.div>
         )}
