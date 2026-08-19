@@ -579,6 +579,36 @@ html[data-theme='light'] .mobile-menu-link:hover {
   color: #9b6532;
 }
 
+.mobile-menu-overlay {
+  contain: layout paint style;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  will-change: opacity;
+  transition:
+    opacity 180ms ease-out,
+    visibility 0s linear 420ms;
+}
+
+.mobile-menu-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.mobile-menu-panel {
+  backface-visibility: hidden;
+  contain: layout paint style;
+  transform: translate3d(100%, 0, 0);
+  will-change: transform;
+  transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mobile-menu-overlay.is-open .mobile-menu-panel {
+  transform: translate3d(0, 0, 0);
+}
+
 html[data-theme='light'] main > section:not(:first-of-type),
 html[data-theme='light'] main > footer {
   background: #f7efe3 !important;
@@ -1727,6 +1757,30 @@ html[data-theme='light'] main > .schedule-section::before {
   object-position: center;
   pointer-events: none;
   top: -78px !important;
+}
+
+.baths-showcase__repairPhoto {
+  filter: brightness(0.46) saturate(0.82) !important;
+}
+
+.baths-showcase__card.is-disabled,
+.baths-showcase__mobileCard.is-disabled {
+  cursor: not-allowed;
+}
+
+.baths-showcase__card.is-disabled .baths-showcase__cardAction,
+.baths-showcase__mobileCard.is-disabled .baths-showcase__cardAction {
+  color: #bca98f;
+}
+
+.baths-showcase__dots button:disabled,
+.baths-showcase__mobileDots button:disabled {
+  cursor: not-allowed;
+  opacity: 0.28;
+}
+
+.baths-showcase__card--sub.is-disabled:hover {
+  transform: none;
 }
 
 .baths-showcase__cardShade {
@@ -3329,6 +3383,14 @@ html[data-theme='light'] .baths-showcase__price span {
 
   .baths-showcase__mobileControls--sub .baths-showcase__mobileIndicator {
     animation: bath-sub-control-in 440ms cubic-bezier(0.16, 1, 0.3, 1) 270ms backwards;
+  }
+
+  .baths-showcase__mobileControls--sub {
+    transform: translate(-50%, 24px);
+  }
+
+  .baths-showcase__mobileControls--sub .baths-showcase__mobileIndicator > span {
+    transform: translateX(12px);
   }
 
   .baths-showcase__mobileControls .baths-showcase__subBack {

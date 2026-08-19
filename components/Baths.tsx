@@ -328,6 +328,8 @@ export default function Baths() {
 
   const selectMobileSubBath = (index: number) => {
     const nextIndex = Math.max(0, Math.min((baths[active].subBaths?.length ?? 1) - 1, index));
+    if (baths[active].subBaths?.[nextIndex]?.underRepair) return;
+
     setSubActive(nextIndex);
     centerMobileSubBath(nextIndex);
   };
@@ -372,7 +374,7 @@ export default function Baths() {
       let closestDistance = Number.POSITIVE_INFINITY;
 
       mobileSubBathRefs.current.forEach((node, index) => {
-        if (!node) {
+        if (!node || baths[active].subBaths?.[index]?.underRepair) {
           return;
         }
 
@@ -425,6 +427,8 @@ export default function Baths() {
   }, [active, subExpanded, subView]);
 
   const openBath = (index: number) => {
+    if (baths[index].underRepair) return;
+
     const hasSubBaths = baths[index].subBaths && baths[index].subBaths.length > 0;
 
     if (hasSubBaths) {
@@ -444,6 +448,8 @@ export default function Baths() {
   };
 
   const openSubBath = (index: number) => {
+    if (baths[active].subBaths?.[index]?.underRepair) return;
+
     setGalleryIndex(0);
     setIsClosing(false);
     setSubActive(index);
@@ -553,7 +559,7 @@ export default function Baths() {
                   />
                 </AnimatePresence>
               ) : (
-                <img src={bath.image} alt={bath.name} />
+                <img src={bath.image} alt={bath.name} className={bath.underRepair ? 'baths-showcase__repairPhoto' : undefined} />
               )}
               {bath.underRepair && <img src="/images/medium-bath-repair.png" alt="" aria-hidden="true" className="baths-showcase__repairOverlay" />}
               <div className="baths-showcase__cardShade" />
@@ -565,14 +571,15 @@ export default function Baths() {
                 <h3>{bath.name}</h3>
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.span
-                    key={isActive ? 'open' : 'select'}
+                    key={bath.underRepair ? 'repair' : isActive ? 'open' : 'select'}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.1 }}
                     className="baths-showcase__cardAction"
                   >
-                    {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>
+                    {bath.underRepair ? (isActive ? 'На ремонте' : 'Выбрать') : isActive ? 'Открыть раздел' : 'Выбрать'}
+                    {(!bath.underRepair || !isActive) && <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>}
                   </motion.span>
                 </AnimatePresence>
               </div>
@@ -640,7 +647,7 @@ export default function Baths() {
                 />
               </AnimatePresence>
             ) : (
-              <img src={bath.image} alt={bath.name} />
+              <img src={bath.image} alt={bath.name} className={bath.underRepair ? 'baths-showcase__repairPhoto' : undefined} />
             )}
             {bath.underRepair && <img src="/images/medium-bath-repair.png" alt="" aria-hidden="true" className="baths-showcase__repairOverlay" />}
             <div className="baths-showcase__cardShade" />
@@ -654,7 +661,8 @@ export default function Baths() {
               </div>
               <h3>{bath.name}</h3>
               <span className="baths-showcase__cardAction">
-                {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>
+                {bath.underRepair ? (isActive ? 'На ремонте' : 'Выбрать') : isActive ? 'Открыть раздел' : 'Выбрать'}
+                {(!bath.underRepair || !isActive) && <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>}
               </span>
             </div>
           </button>
@@ -700,11 +708,12 @@ export default function Baths() {
         <button
           key={bath.name}
           type="button"
+          disabled={bath.underRepair}
           onClick={() => openSubBath(index)}
-          className="baths-showcase__card baths-showcase__card--sub"
+          className={`baths-showcase__card baths-showcase__card--sub ${bath.underRepair ? 'is-disabled' : ''}`}
         >
           <div className="baths-showcase__cardShell">
-            <img src={bath.image} alt={bath.name} />
+            <img src={bath.image} alt={bath.name} className={bath.underRepair ? 'baths-showcase__repairPhoto' : undefined} />
             {bath.underRepair && <img src="/images/medium-bath-repair.png" alt="" aria-hidden="true" className="baths-showcase__repairOverlay" />}
             <div className="baths-showcase__cardShade" />
             <div className="baths-showcase__cardInfo">
@@ -714,7 +723,8 @@ export default function Baths() {
               </div>
               <h3>{bath.name}</h3>
               <span className="baths-showcase__cardAction">
-                Открыть раздел <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>
+                {bath.underRepair ? 'На ремонте' : 'Открыть раздел'}
+                {!bath.underRepair && <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>}
               </span>
             </div>
           </div>
@@ -743,11 +753,12 @@ export default function Baths() {
               mobileSubBathRefs.current[index] = node;
             }}
             type="button"
+            disabled={bath.underRepair}
             onClick={() => handleMobileSubBathClick(index, isActive)}
-            className={`baths-showcase__mobileCard ${isActive ? 'is-selected' : ''}`}
+            className={`baths-showcase__mobileCard ${isActive ? 'is-selected' : ''} ${bath.underRepair ? 'is-disabled' : ''}`}
             aria-pressed={isActive}
           >
-            <img src={bath.image} alt={bath.name} />
+            <img src={bath.image} alt={bath.name} className={bath.underRepair ? 'baths-showcase__repairPhoto' : undefined} />
             {bath.underRepair && <img src="/images/medium-bath-repair.png" alt="" aria-hidden="true" className="baths-showcase__repairOverlay" />}
             <div className="baths-showcase__cardShade" />
             <div className="baths-showcase__cardTop">
@@ -760,12 +771,33 @@ export default function Baths() {
               </div>
               <h3>{bath.name}</h3>
               <span className="baths-showcase__cardAction">
-                {isActive ? 'Открыть раздел' : 'Выбрать'} <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>
+                {bath.underRepair ? 'На ремонте' : isActive ? 'Открыть раздел' : 'Выбрать'}
+                {!bath.underRepair && <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>}
               </span>
             </div>
           </button>
         );
       })}
+    </div>
+  );
+
+  const mobileSubControls = (
+    <div className="baths-showcase__mobileControls baths-showcase__mobileControls--sub" aria-label="Навигация по большим баням">
+      <div className="baths-showcase__mobileIndicator">
+        <span>{String(subActive + 1).padStart(2, '0')}</span>
+        <div className="baths-showcase__mobileDots" aria-label="Выбор большой бани">
+          {subBaths.map((bath, index) => (
+            <button
+              key={bath.name}
+              type="button"
+              disabled={bath.underRepair}
+              onClick={() => selectMobileSubBath(index)}
+              className={subActive === index ? 'is-active' : ''}
+              aria-label={`Показать ${bath.name}`}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 
@@ -830,6 +862,7 @@ export default function Baths() {
             >
               {subSlider}
               {mobileSubSlider}
+              {subBaths.length > 1 && mobileSubControls}
             </motion.div>
           )}
         </AnimatePresence>
@@ -849,7 +882,7 @@ export default function Baths() {
             </button>
             <div className={`baths-showcase__expanded ${isClosing ? 'is-closing' : 'is-opening'}`}>
             <div className="baths-showcase__morphPreview" aria-hidden="true">
-                <img src={selectedBath.image} alt={selectedBath.name} />
+                <img src={selectedBath.image} alt={selectedBath.name} className={selectedBath.underRepair ? 'baths-showcase__repairPhoto' : undefined} />
                 {selectedBath.underRepair && <img src="/images/medium-bath-repair.png" alt="" className="baths-showcase__repairOverlay" />}
                 <div className="baths-showcase__cardShade" />
                 <div className="baths-showcase__cardInfo">

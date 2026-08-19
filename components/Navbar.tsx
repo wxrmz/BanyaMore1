@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion, useScroll, useSpring } from 'framer-motion';
+import { motion, useScroll, useSpring } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 
 type Theme = 'dark' | 'light';
@@ -59,24 +59,18 @@ export default function Navbar() {
     }
 
     const scrollY = window.scrollY;
-    const bodyOverflow = document.body.style.overflow;
-    const htmlOverflow = document.documentElement.style.overflow;
 
     menuScrollYRef.current = scrollY;
     pendingMenuTargetRef.current = null;
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
 
     return () => {
-      document.documentElement.style.overflow = htmlOverflow;
-      document.body.style.overflow = bodyOverflow;
-
       const targetTop = pendingMenuTargetRef.current;
       pendingMenuTargetRef.current = null;
-      const nextScrollY = targetTop ?? scrollY;
 
-      window.scrollTo({ top: nextScrollY, behavior: targetTop === null ? 'auto' : 'smooth' });
-      setIsScrolled(nextScrollY > getHeaderScrollThreshold());
+      if (targetTop !== null) {
+        window.scrollTo({ top: targetTop, behavior: 'smooth' });
+        setIsScrolled(targetTop > getHeaderScrollThreshold());
+      }
     };
   }, [isOpen]);
 
@@ -228,43 +222,33 @@ export default function Navbar() {
         </div>
       </motion.header>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1, transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] } }}
-            exit={{ opacity: 0, transition: { delay: 0.2, duration: 0.14, ease: [0.22, 1, 0.36, 1] } }}
-            className="fixed inset-0 z-40 touch-none bg-[#090806]/78 lg:hidden"
-            onClick={() => setIsOpen(false)}
-          >
-            <motion.nav
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
-              className="mobile-menu-panel ml-auto flex h-full w-[min(78vw,320px)] touch-pan-y flex-col gap-2 overflow-y-auto overscroll-contain rounded-l-2xl border-l border-[#d6a15f]/20 bg-[#11100d] p-5 pt-24 shadow-[-24px_0_80px_rgba(0,0,0,0.36)] will-change-transform"
-              onClick={(event) => event.stopPropagation()}
+      <div
+        className={`mobile-menu-overlay fixed inset-0 z-40 touch-none bg-[#090806]/78 lg:hidden ${isOpen ? 'is-open' : ''}`}
+        aria-hidden={!isOpen}
+        onClick={() => setIsOpen(false)}
+      >
+        <nav
+          className="mobile-menu-panel ml-auto flex h-full w-[min(78vw,320px)] touch-pan-y flex-col gap-2 overflow-y-auto overscroll-contain rounded-l-2xl border-l border-[#d6a15f]/20 bg-[#11100d] p-5 pt-24 shadow-[-24px_0_80px_rgba(0,0,0,0.36)]"
+          onClick={(event) => event.stopPropagation()}
+        >
+          {navLinks.map((link) => (
+            <a
+              key={link.name}
+              href={link.href}
+              onClick={(event) => {
+                event.preventDefault();
+                goTo(link.href, link.external);
+              }}
+              className="mobile-menu-link rounded-lg border border-[#d6a15f]/15 bg-[#21170f]/45 px-4 py-4 text-lg font-semibold text-[#f4eee4] transition hover:bg-[#d6a15f]/15"
             >
-              {navLinks.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    goTo(link.href, link.external);
-                  }}
-                  className="mobile-menu-link rounded-lg border border-[#d6a15f]/15 bg-[#21170f]/45 px-4 py-4 text-lg font-semibold text-[#f4eee4] transition hover:bg-[#d6a15f]/15"
-                >
-                  {link.name}
-                </a>
-              ))}
-              <a href="tel:+79084402055" className="btn-primary mt-3 w-full">
-                +7 908 440 20 55
-              </a>
-            </motion.nav>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              {link.name}
+            </a>
+          ))}
+          <a href="tel:+79084402055" className="btn-primary mt-3 w-full">
+            +7 908 440 20 55
+          </a>
+        </nav>
+      </div>
     </>
   );
 }

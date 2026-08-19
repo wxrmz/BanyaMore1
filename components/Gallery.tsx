@@ -20,7 +20,7 @@ const gallery = [
   { src: '/images/photo-1.jpg', title: 'Комната отдыха', categories: ['interior'], height: 'h-[280px]' },
   { src: '/images/big-bath-2-01.jpg', title: 'Морской вид', categories: ['sea'], height: 'h-[350px]' },
   { src: '/images/gallery/bath-ice-night-01.jpg', title: 'Ледяная ночь', categories: ['outside'], height: 'h-[410px]' },
-  { src: '/images/20211117_183306.jpg', title: 'Парная', categories: ['steam'], height: 'h-[360px]' },
+  { src: '/images/small-bath-06.jpg', title: 'Парная', categories: ['steam'], height: 'h-[430px]' },
   { src: '/images/big-bath-1-03.jpg', title: 'Резные окна', categories: ['interior'], height: 'h-[300px]' },
   { src: '/images/gallery/sea-winter-sunset.jpg', title: 'Зимний закат', categories: ['sea'], height: 'h-[400px]' },
   { src: '/images/big-bath-2-main.jpg', title: 'Большая баня', categories: ['outside'], height: 'h-[340px]' },
@@ -35,7 +35,7 @@ const gallery = [
   { src: '/images/big-bath-1-01.jpg', title: 'Баня у моря', categories: ['sea'], height: 'h-[340px]' },
   { src: '/images/small-bath-01.png', title: 'Море рядом', categories: ['sea'], height: 'h-[320px]' },
   { src: '/images/gallery/winter-sea-sunset.jpg', title: 'Зимнее солнце', categories: ['sea'], height: 'h-[390px]' },
-  { src: '/images/photo-22.jpg', title: 'Тепло дерева', categories: ['interior'], height: 'h-[310px]' },
+  { src: '/images/photo-22.jpg', title: 'Средняя баня', categories: ['outside'], height: 'h-[310px]' },
   { src: '/images/big-bath-2-05.jpg', title: 'Второй этаж', categories: ['interior'], height: 'h-[330px]' },
   { src: '/images/big-bath-2-08.jpg', title: 'Парная', categories: ['steam', 'interior'], height: 'h-[430px]' },
   { src: '/images/gallery/complex-sea-panorama.jpg', title: 'У моря', categories: ['sea'], height: 'h-[380px]' },
@@ -91,6 +91,7 @@ export default function Gallery() {
   const [categoryPill, setCategoryPill] = useState<{ height: number; left: number; top: number; width: number } | null>(null);
   const [visibleCount, setVisibleCount] = useState(9);
   const [columnCount, setColumnCount] = useState(3);
+  const pageSize = columnCount === 1 ? 3 : 9;
   const visible = useMemo(
     () => gallery.filter((item) => filter === 'all' || item.categories.includes(filter)),
     [filter]
@@ -117,8 +118,8 @@ export default function Gallery() {
   };
 
   useLayoutEffect(() => {
-    setVisibleCount(9);
-  }, [filter]);
+    setVisibleCount(pageSize);
+  }, [filter, pageSize]);
 
   useLayoutEffect(() => {
     const updateColumnCount = () => {
@@ -173,7 +174,7 @@ export default function Gallery() {
               transition={{ duration: 0.62 }}
             >
               <div className="eyebrow text-[22px] sm:text-[24px] lg:text-[26px]">Галерея</div>
-              <h2 className="section-title mt-5 max-w-4xl">Фотографии без ровной сетки — как живой альбом места</h2>
+              <h2 className="section-title mt-5 max-w-4xl">Фотографии без ровной сетки - как живой альбом места</h2>
             </motion.div>
 
             <motion.div
@@ -252,7 +253,7 @@ export default function Gallery() {
                           src={image.src}
                           alt={image.title}
                           fill
-                          loading={index < 9 ? 'lazy' : 'eager'}
+                          loading={index < pageSize ? 'lazy' : 'eager'}
                           sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
                           quality={75}
                           className="object-cover transition duration-700 group-hover:scale-105"
@@ -287,7 +288,7 @@ export default function Gallery() {
                   type="button"
                   onClick={() => {
                     pendingScrollYRef.current = window.scrollY;
-                    setVisibleCount((count) => count + 9);
+                    setVisibleCount((count) => count + pageSize);
                   }}
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.96 }}
