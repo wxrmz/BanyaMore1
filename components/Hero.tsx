@@ -63,7 +63,9 @@ export default function Hero() {
               на берегу моря
             </h1>
             <p className="hero-copy mt-7 max-w-3xl text-xl leading-9 text-[#e0d7ca] sm:text-[1.65rem] sm:leading-[1.55]">
-              Пар на дровах, морской воздух и приватный отдых во Владивостоке.
+              Русские бани на дровах, горячий пар
+              <br />
+              и приватный отдых во Владивостоке
             </p>
             <div className="hero-actions mt-10 flex -translate-y-1.5 flex-col gap-4 sm:flex-row">
               <a

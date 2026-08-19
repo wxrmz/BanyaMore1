@@ -21,6 +21,20 @@ const mobileIconPaths = {
   location: '/images/icons/mobile/metka.png?v=2',
 };
 
+const containedGalleryImages = new Set([
+  '/images/small-bath-02.jpg',
+  '/images/small-bath-05.jpg',
+  '/images/small-bath-06.jpg',
+  '/images/big-bath-1-06.jpg',
+  '/images/big-bath-2-04.jpg',
+  '/images/big-bath-2-08.jpg',
+]);
+
+const bigBathCoverImages = [
+  '/images/big-bath-1-main.jpg',
+  '/images/big-bath-2-main.jpg',
+];
+
 type BathConfig = {
   name: string;
   capacity: string;
@@ -33,6 +47,7 @@ type BathConfig = {
   distance: string;
   extraPerson: string;
   included: { icon: 'towel' | 'hat' | 'slippers'; count: number }[];
+  underRepair?: boolean;
   subBaths?: BathConfig[];
 };
 
@@ -41,8 +56,16 @@ const baths: BathConfig[] = [
     name: 'Малые бани',
     capacity: '1-4 человека',
     price: '2 500 ₽/ч',
-    image: '/images/photo-5.jpg',
-    gallery: ['/images/photo-5.jpg', '/images/photo-1.jpg', '/images/20240502_210421.jpg'],
+    image: '/images/small-bath-main.jpg',
+    gallery: [
+      '/images/small-bath-main.jpg',
+      '/images/small-bath-01.png',
+      '/images/small-bath-02.jpg',
+      '/images/small-bath-03.jpg',
+      '/images/small-bath-04.jpg',
+      '/images/small-bath-05.jpg',
+      '/images/small-bath-06.jpg',
+    ],
     lead: 'Камерные бани для пары или небольшой компании.',
     text: 'Уютная парная, отдельная зона отдыха и спокойный вечер у моря без лишней суеты.',
     details: ['Дровяная печь', 'Отдельная терраса', 'Чайная зона', 'Тихий отдых'],
@@ -58,8 +81,16 @@ const baths: BathConfig[] = [
         name: 'Малая 1',
         capacity: '1-4 человека',
         price: '2 500 ₽/ч',
-        image: '/images/photo-5.jpg',
-        gallery: ['/images/photo-5.jpg', '/images/photo-1.jpg', '/images/20240502_210421.jpg'],
+        image: '/images/small-bath-main.jpg',
+        gallery: [
+          '/images/small-bath-main.jpg',
+          '/images/small-bath-01.png',
+          '/images/small-bath-02.jpg',
+          '/images/small-bath-03.jpg',
+          '/images/small-bath-04.jpg',
+          '/images/small-bath-05.jpg',
+          '/images/small-bath-06.jpg',
+        ],
         lead: 'Камерная баня для пары или небольшой компании.',
         text: 'Уютная парная, отдельная зона отдыха и спокойный вечер у моря без лишней суеты.',
         details: ['Дровяная печь', 'Отдельная терраса', 'Чайная зона', 'Тихий отдых'],
@@ -78,7 +109,8 @@ const baths: BathConfig[] = [
     capacity: '1-6 человек',
     price: '2 800 ₽/ч',
     image: '/images/photo-22.jpg',
-    gallery: ['/images/photo-22.jpg', '/images/20211117_183306.jpg', '/images/20210509_200041.jpg'],
+    underRepair: true,
+    gallery: ['/images/photo-22.jpg'],
     lead: 'Удобные бани для компании у моря.',
     text: 'Два уровня для отдыха, просторная парная и отдельные зоны, чтобы удобно провести вечер семьей или компанией друзей.',
     details: ['Два этажа', 'Просторная парная', 'Вид на море', 'Для компании'],
@@ -95,7 +127,8 @@ const baths: BathConfig[] = [
         capacity: '1-6 человек',
         price: '2 800 ₽/ч',
         image: '/images/photo-22.jpg',
-        gallery: ['/images/photo-22.jpg', '/images/20211117_183306.jpg', '/images/20210509_200041.jpg'],
+        underRepair: true,
+        gallery: ['/images/photo-22.jpg'],
         lead: 'Удобная баня для компании у моря.',
         text: 'Два уровня для отдыха, просторная парная и отдельные зоны, чтобы удобно провести вечер семьей или компанией друзей.',
         details: ['Два этажа', 'Просторная парная', 'Вид на море', 'Для компании'],
@@ -113,8 +146,18 @@ const baths: BathConfig[] = [
     name: 'Большие бани',
     capacity: '1-8 человек',
     price: '3 000 ₽/ч',
-    image: '/images/photo-10.jpg',
-    gallery: ['/images/photo-10.jpg', '/images/20250721_204935.jpg', '/images/20201018182427_IMG_8862.JPG'],
+    image: '/images/big-bath-1-main.jpg',
+    gallery: [
+      '/images/big-bath-1-main.jpg',
+      '/images/big-bath-1-01.jpg',
+      '/images/big-bath-1-02.jpg',
+      '/images/big-bath-1-03.jpg',
+      '/images/big-bath-1-04.jpg',
+      '/images/big-bath-1-05.jpg',
+      '/images/big-bath-1-06.jpg',
+      '/images/big-bath-1-07.jpg',
+      '/images/big-bath-1-08.jpg',
+    ],
     lead: 'Просторные бани для свободного отдыха.',
     text: 'Много воздуха, широкая зона отдыха и комфортный общий стол для длинного вечера после парной.',
     details: ['Очень просторно', 'Большая терраса', 'Мини-кухня', 'Для компании'],
@@ -130,8 +173,18 @@ const baths: BathConfig[] = [
         name: 'Большая 1',
         capacity: '1-8 человек',
         price: '3 000 ₽/ч',
-        image: '/images/photo-10.jpg',
-        gallery: ['/images/photo-10.jpg', '/images/20250721_204935.jpg', '/images/20201018182427_IMG_8862.JPG'],
+        image: '/images/big-bath-1-main.jpg',
+        gallery: [
+          '/images/big-bath-1-main.jpg',
+          '/images/big-bath-1-01.jpg',
+          '/images/big-bath-1-02.jpg',
+          '/images/big-bath-1-03.jpg',
+          '/images/big-bath-1-04.jpg',
+          '/images/big-bath-1-05.jpg',
+          '/images/big-bath-1-06.jpg',
+          '/images/big-bath-1-07.jpg',
+          '/images/big-bath-1-08.jpg',
+        ],
         lead: 'Просторная баня с большой террасой.',
         text: 'Много воздуха, широкая зона отдыха и комфортный общий стол для длинного вечера после парной.',
         details: ['Очень просторно', 'Большая терраса', 'Мини-кухня', 'Для компании'],
@@ -147,8 +200,18 @@ const baths: BathConfig[] = [
         name: 'Большая 2',
         capacity: '1-8 человек',
         price: '3 000 ₽/ч',
-        image: '/images/20250721_204935.jpg',
-        gallery: ['/images/20250721_204935.jpg', '/images/photo-10.jpg', '/images/20201018182427_IMG_8862.JPG'],
+        image: '/images/big-bath-2-main.jpg',
+        gallery: [
+          '/images/big-bath-2-main.jpg',
+          '/images/big-bath-2-01.jpg',
+          '/images/big-bath-2-02.jpg',
+          '/images/big-bath-2-03.jpg',
+          '/images/big-bath-2-04.jpg',
+          '/images/big-bath-2-08.jpg',
+          '/images/big-bath-2-05.jpg',
+          '/images/big-bath-2-06.jpg',
+          '/images/big-bath-2-07.jpg',
+        ],
         lead: 'Уютная большая баня с панорамным видом.',
         text: 'Просторная парная, отдельная зона отдыха и всё необходимое для большой компании у моря.',
         details: ['Панорамный вид', 'Просторная парная', 'Большой стол', 'Для компании'],
@@ -174,6 +237,7 @@ export default function Baths() {
   const mobileSubScrollFrame = useRef<number | null>(null);
   const isInView = useInView(ref, { once: true, margin: '-120px' });
   const [active, setActive] = useState(1);
+  const [bigBathCoverIndex, setBigBathCoverIndex] = useState(0);
   const [expanded, setExpanded] = useState<number | null>(null);
   const [subView, setSubView] = useState(false);
   const [subActive, setSubActive] = useState(0);
@@ -182,9 +246,21 @@ export default function Baths() {
   const [prevGalleryIndex, setPrevGalleryIndex] = useState<number | null>(null);
   const [isGalleryFading, setIsGalleryFading] = useState(false);
   const [bathViewerIndex, setBathViewerIndex] = useState<number | null>(null);
-  const [bathViewerDirection, setBathViewerDirection] = useState<-1 | 0 | 1>(0);
   const galleryFadeTimer = useRef<number | null>(null);
   const [isClosing, setIsClosing] = useState(false);
+
+  useEffect(() => {
+    bigBathCoverImages.forEach((src) => {
+      const image = new window.Image();
+      image.src = src;
+    });
+
+    const timer = window.setInterval(() => {
+      setBigBathCoverIndex((current) => (current + 1) % bigBathCoverImages.length);
+    }, 5000);
+
+    return () => window.clearInterval(timer);
+  }, []);
 
   const centerMobileBath = (index: number, behavior: ScrollBehavior = 'smooth') => {
     const list = mobileBathListRef.current;
@@ -440,23 +516,7 @@ export default function Baths() {
   const selectedBath = expandedSubBath ?? expandedBath ?? baths[active];
 
   const openBathViewer = (index: number) => {
-    if (window.innerWidth > 639) {
-      return;
-    }
-
-    setBathViewerDirection(0);
     setBathViewerIndex(index);
-  };
-
-  const shiftBathViewer = (direction: -1 | 1) => {
-    if (bathViewerIndex === null) {
-      return;
-    }
-
-    setBathViewerDirection(direction);
-    setBathViewerIndex(
-      (bathViewerIndex + direction + selectedBath.gallery.length) % selectedBath.gallery.length,
-    );
   };
 
   const slider = (
@@ -480,7 +540,22 @@ export default function Baths() {
             aria-pressed={isActive}
           >
             <div className="baths-showcase__cardShell">
-              <img src={bath.image} alt={bath.name} />
+              {index === 2 ? (
+                <AnimatePresence initial={false}>
+                  <motion.img
+                    key={bigBathCoverImages[bigBathCoverIndex]}
+                    src={bigBathCoverImages[bigBathCoverIndex]}
+                    alt={bath.name}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1.2, ease: 'easeInOut' }}
+                  />
+                </AnimatePresence>
+              ) : (
+                <img src={bath.image} alt={bath.name} />
+              )}
+              {bath.underRepair && <img src="/images/medium-bath-repair.png" alt="" aria-hidden="true" className="baths-showcase__repairOverlay" />}
               <div className="baths-showcase__cardShade" />
               <div className="baths-showcase__cardInfo">
                 <div>
@@ -552,7 +627,22 @@ export default function Baths() {
             className={`baths-showcase__mobileCard ${isActive ? 'is-selected' : ''}`}
             aria-pressed={isActive}
           >
-            <img src={bath.image} alt={bath.name} />
+            {index === 2 ? (
+              <AnimatePresence initial={false}>
+                <motion.img
+                  key={bigBathCoverImages[bigBathCoverIndex]}
+                  src={bigBathCoverImages[bigBathCoverIndex]}
+                  alt={bath.name}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 1.2, ease: 'easeInOut' }}
+                />
+              </AnimatePresence>
+            ) : (
+              <img src={bath.image} alt={bath.name} />
+            )}
+            {bath.underRepair && <img src="/images/medium-bath-repair.png" alt="" aria-hidden="true" className="baths-showcase__repairOverlay" />}
             <div className="baths-showcase__cardShade" />
             <div className="baths-showcase__cardTop">
               <strong>{bath.price}</strong>
@@ -615,6 +705,7 @@ export default function Baths() {
         >
           <div className="baths-showcase__cardShell">
             <img src={bath.image} alt={bath.name} />
+            {bath.underRepair && <img src="/images/medium-bath-repair.png" alt="" aria-hidden="true" className="baths-showcase__repairOverlay" />}
             <div className="baths-showcase__cardShade" />
             <div className="baths-showcase__cardInfo">
               <div>
@@ -657,6 +748,7 @@ export default function Baths() {
             aria-pressed={isActive}
           >
             <img src={bath.image} alt={bath.name} />
+            {bath.underRepair && <img src="/images/medium-bath-repair.png" alt="" aria-hidden="true" className="baths-showcase__repairOverlay" />}
             <div className="baths-showcase__cardShade" />
             <div className="baths-showcase__cardTop">
               <strong>{bath.price}</strong>
@@ -758,6 +850,7 @@ export default function Baths() {
             <div className={`baths-showcase__expanded ${isClosing ? 'is-closing' : 'is-opening'}`}>
             <div className="baths-showcase__morphPreview" aria-hidden="true">
                 <img src={selectedBath.image} alt={selectedBath.name} />
+                {selectedBath.underRepair && <img src="/images/medium-bath-repair.png" alt="" className="baths-showcase__repairOverlay" />}
                 <div className="baths-showcase__cardShade" />
                 <div className="baths-showcase__cardInfo">
                   <div>
@@ -776,18 +869,44 @@ export default function Baths() {
             <div className="baths-showcase__expandedContent">
                 <div className="baths-showcase__expandedMedia">
                   {isGalleryFading && prevGalleryIndex !== null && (
+                    <>
+                      {containedGalleryImages.has(selectedBath.gallery[prevGalleryIndex]) && (
+                        <img
+                          key={`${selectedBath.gallery[prevGalleryIndex]}-backdrop`}
+                          src={selectedBath.gallery[prevGalleryIndex]}
+                          alt=""
+                          aria-hidden="true"
+                          className="baths-showcase__expandedImage baths-showcase__expandedBackdrop is-fading-out"
+                        />
+                      )}
+                      <img
+                        key={selectedBath.gallery[prevGalleryIndex]}
+                        src={selectedBath.gallery[prevGalleryIndex]}
+                        alt={selectedBath.name}
+                        className={`baths-showcase__expandedImage is-fading-out ${
+                          containedGalleryImages.has(selectedBath.gallery[prevGalleryIndex]) ? 'is-contained' : ''
+                        }`}
+                      />
+                    </>
+                  )}
+                  {containedGalleryImages.has(selectedBath.gallery[galleryIndex]) && (
                     <img
-                      key={selectedBath.gallery[prevGalleryIndex]}
-                      src={selectedBath.gallery[prevGalleryIndex]}
-                      alt={selectedBath.name}
-                      className="baths-showcase__expandedImage is-fading-out"
+                      key={`${selectedBath.gallery[galleryIndex]}-backdrop`}
+                      src={selectedBath.gallery[galleryIndex]}
+                      alt=""
+                      aria-hidden="true"
+                      className={`baths-showcase__expandedImage baths-showcase__expandedBackdrop ${
+                        isGalleryFading ? 'is-fading-in' : ''
+                      }`}
                     />
                   )}
                   <img
                     key={selectedBath.gallery[galleryIndex]}
                     src={selectedBath.gallery[galleryIndex]}
                     alt={selectedBath.name}
-                    className={`baths-showcase__expandedImage ${isGalleryFading ? 'is-fading-in' : ''}`}
+                    className={`baths-showcase__expandedImage ${
+                      containedGalleryImages.has(selectedBath.gallery[galleryIndex]) ? 'is-contained' : ''
+                    } ${isGalleryFading ? 'is-fading-in' : ''}`}
                   />
                   <div className="baths-showcase__expandedShade" />
                   <button
@@ -796,58 +915,62 @@ export default function Baths() {
                     className="baths-showcase__photoOpen"
                     aria-label={`Открыть фотографию ${galleryIndex + 1}`}
                   />
-                  <button
-                    type="button"
-                    onClick={() => switchGallery((galleryIndex - 1 + selectedBath.gallery.length) % selectedBath.gallery.length)}
-                    className="baths-showcase__expandedSide baths-showcase__expandedSide--left"
-                    aria-label="Предыдущее фото"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => switchGallery((galleryIndex + 1) % selectedBath.gallery.length)}
-                    className="baths-showcase__expandedSide baths-showcase__expandedSide--right"
-                    aria-label="Следующее фото"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => switchGallery((galleryIndex - 1 + selectedBath.gallery.length) % selectedBath.gallery.length)}
-                    className="baths-showcase__expandedArrow baths-showcase__expandedArrow--left"
-                    aria-label="Предыдущее фото"
-                  >
-                    <svg viewBox="0 0 32 32" aria-hidden="true">
-                      <path d="M27 16H7M14 9l-7 7 7 7" />
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => switchGallery((galleryIndex + 1) % selectedBath.gallery.length)}
-                    className="baths-showcase__expandedArrow baths-showcase__expandedArrow--right"
-                    aria-label="Следующее фото"
-                  >
-                    <svg viewBox="0 0 32 32" aria-hidden="true">
-                      <path d="M5 16h20M18 9l7 7-7 7" />
-                    </svg>
-                  </button>
-                  <div className="baths-showcase__thumbs" aria-label="Фотографии бани">
-                    {selectedBath.gallery.map((image, index) => (
+                  {selectedBath.gallery.length > 1 && (
+                    <>
                       <button
-                        key={image}
                         type="button"
-                        onClick={() => {
-                          if (galleryIndex === index && window.innerWidth <= 639) {
-                            openBathViewer(index);
-                            return;
-                          }
-
-                          switchGallery(index);
-                        }}
-                        className={galleryIndex === index ? 'is-active' : ''}
-                        aria-label={`Показать фото ${index + 1}`}
+                        onClick={() => switchGallery((galleryIndex - 1 + selectedBath.gallery.length) % selectedBath.gallery.length)}
+                        className="baths-showcase__expandedSide baths-showcase__expandedSide--left"
+                        aria-label="Предыдущее фото"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => switchGallery((galleryIndex + 1) % selectedBath.gallery.length)}
+                        className="baths-showcase__expandedSide baths-showcase__expandedSide--right"
+                        aria-label="Следующее фото"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => switchGallery((galleryIndex - 1 + selectedBath.gallery.length) % selectedBath.gallery.length)}
+                        className="baths-showcase__expandedArrow baths-showcase__expandedArrow--left"
+                        aria-label="Предыдущее фото"
                       >
-                        <img src={image} alt="" />
+                        <svg viewBox="0 0 32 32" aria-hidden="true">
+                          <path d="M27 16H7M14 9l-7 7 7 7" />
+                        </svg>
                       </button>
-                    ))}
-                  </div>
+                      <button
+                        type="button"
+                        onClick={() => switchGallery((galleryIndex + 1) % selectedBath.gallery.length)}
+                        className="baths-showcase__expandedArrow baths-showcase__expandedArrow--right"
+                        aria-label="Следующее фото"
+                      >
+                        <svg viewBox="0 0 32 32" aria-hidden="true">
+                          <path d="M5 16h20M18 9l7 7-7 7" />
+                        </svg>
+                      </button>
+                      <div className="baths-showcase__thumbs" aria-label="Фотографии бани">
+                        {selectedBath.gallery.map((image, index) => (
+                          <button
+                            key={image}
+                            type="button"
+                            onClick={() => {
+                              if (galleryIndex === index && window.innerWidth <= 639) {
+                                openBathViewer(index);
+                                return;
+                              }
+
+                              switchGallery(index);
+                            }}
+                            className={galleryIndex === index ? 'is-active' : ''}
+                            aria-label={`Показать фото ${index + 1}`}
+                          >
+                            <img src={image} alt="" />
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="baths-showcase__expandedInfo">
@@ -964,18 +1087,20 @@ export default function Baths() {
               animate={{ y: 0, scale: 1, opacity: 1 }}
               exit={{ y: 30, scale: 0.96, opacity: 0 }}
               className="gallery-lightbox__figure relative flex max-h-[92vh] w-full max-w-6xl flex-col items-center"
-              onClick={(event) => event.stopPropagation()}
             >
-              <div className="gallery-lightbox__media relative inline-flex max-h-[82vh] max-w-full items-center justify-center">
+              <div
+                className="gallery-lightbox__media relative inline-flex max-h-[82vh] max-w-full items-center justify-center"
+                onClick={(event) => event.stopPropagation()}
+              >
                 <div className="gallery-lightbox__frame overflow-hidden rounded-2xl">
                   <AnimatePresence initial={false} mode="wait">
                     <motion.img
                       key={selectedBath.gallery[bathViewerIndex]}
                       src={selectedBath.gallery[bathViewerIndex]}
                       alt={`${selectedBath.name}, фото ${bathViewerIndex + 1}`}
-                      initial={{ opacity: 0, x: bathViewerDirection * 36 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: bathViewerDirection * -36 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
                       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                       className="gallery-lightbox__image max-h-[78vh] w-full rounded-2xl object-contain"
                     />
@@ -988,22 +1113,6 @@ export default function Baths() {
                   aria-label="Закрыть фотографию бани"
                 >
                   <span className="block translate-y-[-1px] text-[36px] leading-none">×</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => shiftBathViewer(-1)}
-                  className="gallery-lightbox__arrow gallery-lightbox__arrow--prev absolute left-3 top-1/2 grid h-14 w-14 -translate-y-1/2 place-items-center rounded-xl border border-[#d6a15f]/35 bg-[#21170f]/75 text-5xl font-bold leading-none text-[#f4eee4] shadow-[0_18px_45px_rgba(0,0,0,0.36)] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d] sm:-left-20 sm:h-16 sm:w-16"
-                  aria-label="Предыдущее фото"
-                >
-                  <ArrowIcon className="h-[60px] w-[60px] -translate-y-[2px]" direction="left" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => shiftBathViewer(1)}
-                  className="gallery-lightbox__arrow gallery-lightbox__arrow--next absolute right-3 top-1/2 grid h-14 w-14 -translate-y-1/2 place-items-center rounded-xl border border-[#d6a15f]/35 bg-[#21170f]/75 text-5xl font-bold leading-none text-[#f4eee4] shadow-[0_18px_45px_rgba(0,0,0,0.36)] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d] sm:-right-20 sm:h-16 sm:w-16"
-                  aria-label="Следующее фото"
-                >
-                  <ArrowIcon className="h-[60px] w-[60px] -translate-y-[2px]" />
                 </button>
               </div>
               <figcaption className="gallery-lightbox__caption mt-5 text-center font-sans text-[clamp(1.3rem,1.85vw,2.2rem)] font-extrabold leading-tight text-[#f4eee4]">

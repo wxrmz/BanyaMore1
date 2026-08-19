@@ -1,6 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion, useInView } from 'framer-motion';
+import Image from 'next/image';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ArrowIcon } from './ArrowIcon';
 
@@ -14,14 +15,50 @@ const categories = [
 ];
 
 const gallery = [
-  { src: '/images/20250721_204935.jpg', title: 'Домики у заката', category: 'outside', height: 'h-[520px]' },
-  { src: '/images/photo-1.jpg', title: 'Комната отдыха', category: 'interior', height: 'h-[280px]' },
-  { src: '/images/20211117_183306.jpg', title: 'Парная на дровах', category: 'steam', height: 'h-[360px]' },
-  { src: '/images/20210509_200041.jpg', title: 'Воздух у воды', category: 'sea', height: 'h-[430px]' },
-  { src: '/images/20201018182427_IMG_8862.JPG', title: 'Вечерний берег', category: 'sea', height: 'h-[300px]' },
-  { src: '/images/20240502_210421.jpg', title: 'Терраса', category: 'cafe', height: 'h-[390px]' },
-  { src: '/images/photo-22.jpg', title: 'Дерево и тепло', category: 'interior', height: 'h-[310px]' },
-  { src: '/images/photo-10.jpg', title: 'Большая баня', category: 'outside', height: 'h-[460px]' },
+  { src: '/images/gallery/sea-sunset-swings.jpg', title: 'Золотой закат', categories: ['sea', 'outside'], height: 'h-[390px]' },
+  { src: '/images/small-bath-main.jpg', title: 'Малая баня', categories: ['outside'], height: 'h-[330px]' },
+  { src: '/images/photo-1.jpg', title: 'Комната отдыха', categories: ['interior'], height: 'h-[280px]' },
+  { src: '/images/big-bath-2-01.jpg', title: 'Морской вид', categories: ['sea', 'outside'], height: 'h-[350px]' },
+  { src: '/images/gallery/bath-ice-night-01.jpg', title: 'Ледяная ночь', categories: ['outside'], height: 'h-[410px]' },
+  { src: '/images/20211117_183306.jpg', title: 'Парная', categories: ['steam'], height: 'h-[360px]' },
+  { src: '/images/big-bath-1-03.jpg', title: 'Резные окна', categories: ['interior'], height: 'h-[300px]' },
+  { src: '/images/gallery/sea-winter-sunset.jpg', title: 'Зимний закат', categories: ['sea'], height: 'h-[400px]' },
+  { src: '/images/big-bath-2-main.jpg', title: 'Большая баня', categories: ['outside'], height: 'h-[340px]' },
+  { src: '/images/gallery/complex-from-cliff.jpg', title: 'Вид сверху', categories: ['sea', 'outside'], height: 'h-[360px]' },
+  { src: '/images/small-bath-03.jpg', title: 'Комната отдыха', categories: ['interior'], height: 'h-[310px]' },
+  { src: '/images/20210509_200041.jpg', title: 'Морской воздух', categories: ['sea'], height: 'h-[430px]' },
+  { src: '/images/big-bath-1-main.jpg', title: 'Большая баня', categories: ['outside'], height: 'h-[350px]' },
+  { src: '/images/gallery/sea-swing-ships.jpg', title: 'Качели', categories: ['sea', 'outside'], height: 'h-[330px]' },
+  { src: '/images/big-bath-2-02.jpg', title: 'Раздевалка', categories: ['interior'], height: 'h-[300px]' },
+  { src: '/images/20240502_210421.jpg', title: 'Терраса', categories: ['cafe'], height: 'h-[390px]' },
+  { src: '/images/gallery/winter-bath-complex.jpg', title: 'Зимние бани', categories: ['outside'], height: 'h-[410px]' },
+  { src: '/images/big-bath-1-01.jpg', title: 'Баня у моря', categories: ['sea', 'outside'], height: 'h-[340px]' },
+  { src: '/images/small-bath-01.png', title: 'Море рядом', categories: ['sea', 'outside'], height: 'h-[320px]' },
+  { src: '/images/gallery/winter-sea-sunset.jpg', title: 'Зимнее солнце', categories: ['sea'], height: 'h-[390px]' },
+  { src: '/images/photo-22.jpg', title: 'Тепло дерева', categories: ['interior'], height: 'h-[310px]' },
+  { src: '/images/big-bath-2-05.jpg', title: 'Второй этаж', categories: ['interior'], height: 'h-[330px]' },
+  { src: '/images/big-bath-2-08.jpg', title: 'Парная', categories: ['steam', 'interior'], height: 'h-[430px]' },
+  { src: '/images/gallery/complex-sea-panorama.jpg', title: 'У моря', categories: ['sea', 'outside'], height: 'h-[380px]' },
+  { src: '/images/big-bath-1-07.jpg', title: 'Зона отдыха', categories: ['interior'], height: 'h-[310px]' },
+  { src: '/images/20250721_204935.jpg', title: 'Домики на закате', categories: ['outside'], height: 'h-[420px]' },
+  { src: '/images/gallery/sea-ice-shore.jpg', title: 'Ледяной берег', categories: ['sea', 'outside'], height: 'h-[400px]' },
+  { src: '/images/big-bath-2-03.jpg', title: 'Комната отдыха', categories: ['interior'], height: 'h-[310px]' },
+  { src: '/images/small-bath-04.jpg', title: 'Тёплый интерьер', categories: ['interior'], height: 'h-[320px]' },
+  { src: '/images/gallery/sea-sunset-swing.jpg', title: 'Закат', categories: ['sea', 'outside'], height: 'h-[370px]' },
+  { src: '/images/big-bath-1-02.jpg', title: 'Вид на море', categories: ['sea', 'outside'], height: 'h-[350px]' },
+  { src: '/images/20201018182427_IMG_8862.JPG', title: 'Вечерний берег', categories: ['sea'], height: 'h-[300px]' },
+  { src: '/images/big-bath-2-07.jpg', title: 'Морской балкон', categories: ['sea', 'outside'], height: 'h-[340px]' },
+  { src: '/images/gallery/bath-ice-night-02.jpg', title: 'Зимняя ночь', categories: ['outside'], height: 'h-[400px]' },
+  { src: '/images/big-bath-1-04.jpg', title: 'Комната отдыха', categories: ['interior'], height: 'h-[310px]' },
+  { src: '/images/gallery/sea-haze-swing.jpg', title: 'Тихий берег', categories: ['sea', 'outside'], height: 'h-[350px]' },
+  { src: '/images/photo-10.jpg', title: 'Большая баня', categories: ['outside'], height: 'h-[420px]' },
+  { src: '/images/big-bath-2-06.jpg', title: 'Гостиная', categories: ['interior'], height: 'h-[320px]' },
+  { src: '/images/gallery/sunset-roofs.jpg', title: 'Огненное небо', categories: ['sea', 'outside'], height: 'h-[370px]' },
+  { src: '/images/big-bath-1-05.jpg', title: 'Светлая гостиная', categories: ['interior'], height: 'h-[320px]' },
+  { src: '/images/gallery/sea-bath-view.jpg', title: 'Баня у моря', categories: ['sea', 'outside'], height: 'h-[350px]' },
+  { src: '/images/big-bath-1-08.jpg', title: 'Интерьер', categories: ['interior'], height: 'h-[310px]' },
+  { src: '/images/gallery/sea-twilight-swing.jpg', title: 'Морские сумерки', categories: ['sea', 'outside'], height: 'h-[380px]' },
+  { src: '/images/gallery/winter-sea-path.jpg', title: 'Зимняя тропа', categories: ['sea', 'outside'], height: 'h-[410px]' },
 ];
 
 const imageSlideVariants = {
@@ -46,14 +83,28 @@ export default function Gallery() {
   const ref = useRef(null);
   const categoryBarRef = useRef<HTMLDivElement | null>(null);
   const categoryRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const pendingScrollYRef = useRef<number | null>(null);
   const isInView = useInView(ref, { once: true, margin: '-120px' });
   const [filter, setFilter] = useState('all');
   const [selected, setSelected] = useState<number | null>(null);
   const [slideDirection, setSlideDirection] = useState<0 | -1 | 1>(0);
   const [categoryPill, setCategoryPill] = useState<{ height: number; left: number; top: number; width: number } | null>(null);
-  const [visibleCount, setVisibleCount] = useState(6);
-  const visible = useMemo(() => gallery.filter((item) => filter === 'all' || item.category === filter), [filter]);
+  const [visibleCount, setVisibleCount] = useState(9);
+  const [columnCount, setColumnCount] = useState(3);
+  const visible = useMemo(
+    () => gallery.filter((item) => filter === 'all' || item.categories.includes(filter)),
+    [filter]
+  );
   const displayed = useMemo(() => visible.slice(0, visibleCount), [visible, visibleCount]);
+  const displayedColumns = useMemo(() => {
+    const columns = Array.from({ length: columnCount }, () => [] as Array<{ image: (typeof gallery)[number]; index: number }>);
+
+    displayed.forEach((image, index) => {
+      columns[index % columnCount].push({ image, index });
+    });
+
+    return columns;
+  }, [columnCount, displayed]);
   const canShowMore = visibleCount < visible.length;
   const selectedImage = selected === null ? null : visible[selected];
 
@@ -66,8 +117,25 @@ export default function Gallery() {
   };
 
   useLayoutEffect(() => {
-    setVisibleCount(6);
+    setVisibleCount(9);
   }, [filter]);
+
+  useLayoutEffect(() => {
+    const updateColumnCount = () => {
+      setColumnCount(window.innerWidth >= 1280 ? 3 : window.innerWidth >= 768 ? 2 : 1);
+    };
+
+    updateColumnCount();
+    window.addEventListener('resize', updateColumnCount);
+    return () => window.removeEventListener('resize', updateColumnCount);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (pendingScrollYRef.current === null) return;
+
+    window.scrollTo({ top: pendingScrollYRef.current, behavior: 'instant' });
+    pendingScrollYRef.current = null;
+  }, [visibleCount]);
 
   useLayoutEffect(() => {
     const updatePill = () => {
@@ -159,39 +227,50 @@ export default function Gallery() {
               animate={isInView ? { opacity: 1 } : { opacity: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.34, ease: 'easeOut' }}
-              className="columns-1 gap-4 md:columns-2 xl:columns-3"
+              className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
             >
-              {displayed.map((image, index) => (
-                <motion.button
-                  key={image.src}
-                  type="button"
-                  initial={{ y: 22, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{
-                    duration: 0.5,
-                    delay: index * 0.05,
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
-                  onClick={() => {
-                    setSlideDirection(0);
-                    setSelected(index);
-                  }}
-                  className={`group mb-4 block w-full break-inside-avoid rounded-2xl bg-[#15110d] text-left shadow-[0_20px_70px_rgba(0,0,0,0.24)] ${image.height}`}
-                >
-                  <span className="relative block h-full w-full overflow-hidden rounded-2xl">
-                    <img src={image.src} alt={image.title} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-                    <span className="absolute inset-x-0 bottom-0 h-[40%] bg-[linear-gradient(180deg,transparent_0%,rgba(9,8,6,0.32)_42%,rgba(9,8,6,0.9)_100%)]" />
-                    <span className="absolute bottom-5 left-5 right-5">
-                      <span className="block font-sans text-[27px] font-extrabold leading-tight text-[#f4eee4] sm:text-[30px]">{image.title}</span>
-                      <span className="gallery-photo-cta mt-3 inline-flex h-7 items-center text-[16px] font-extrabold uppercase tracking-[0.15em] sm:text-[18px]">
-                        Смотреть фото
-                        <span className="relative ml-0.5 inline-block h-5 w-9 shrink-0 overflow-visible">
-                          <ArrowIcon className="absolute left-0 top-[calc(50%-2px)] h-10 w-10 -translate-y-1/2" />
+              {displayedColumns.map((column, columnIndex) => (
+                <div key={`${filter}-${columnCount}-${columnIndex}`} className="flex min-w-0 flex-col gap-4">
+                  {column.map(({ image, index }) => (
+                    <motion.button
+                      key={image.src}
+                      type="button"
+                      initial={{ y: 22, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{
+                        duration: 0.5,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                      onClick={() => {
+                        setSlideDirection(0);
+                        setSelected(index);
+                      }}
+                      className={`group block w-full rounded-2xl bg-[#15110d] text-left shadow-[0_20px_70px_rgba(0,0,0,0.24)] ${image.height}`}
+                    >
+                      <span className="relative block h-full w-full overflow-hidden rounded-2xl">
+                        <Image
+                          src={image.src}
+                          alt={image.title}
+                          fill
+                          loading={index < 9 ? 'lazy' : 'eager'}
+                          sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
+                          quality={75}
+                          className="object-cover transition duration-700 group-hover:scale-105"
+                        />
+                        <span className="absolute inset-x-0 bottom-0 h-[40%] bg-[linear-gradient(180deg,transparent_0%,rgba(9,8,6,0.32)_42%,rgba(9,8,6,0.9)_100%)]" />
+                        <span className="absolute bottom-5 left-5 right-5">
+                          <span className="block font-sans text-[27px] font-extrabold leading-tight text-[#f4eee4] sm:text-[30px]">{image.title}</span>
+                          <span className="gallery-photo-cta mt-3 inline-flex h-7 items-center text-[16px] font-extrabold uppercase tracking-[0.15em] sm:text-[18px]">
+                            Смотреть фото
+                            <span className="relative ml-0.5 inline-block h-5 w-9 shrink-0 overflow-visible">
+                              <ArrowIcon className="absolute left-0 top-[calc(50%-2px)] h-10 w-10 -translate-y-1/2" />
+                            </span>
+                          </span>
                         </span>
                       </span>
-                    </span>
-                  </span>
-                </motion.button>
+                    </motion.button>
+                  ))}
+                </div>
               ))}
             </motion.div>
           </AnimatePresence>
@@ -207,7 +286,10 @@ export default function Gallery() {
               >
                 <motion.button
                   type="button"
-                  onClick={() => setVisibleCount((count) => count + 6)}
+                  onClick={() => {
+                    pendingScrollYRef.current = window.scrollY;
+                    setVisibleCount((count) => count + 9);
+                  }}
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.96 }}
                   transition={{ type: 'spring', stiffness: 420, damping: 24 }}

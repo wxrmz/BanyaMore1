@@ -23,13 +23,13 @@ const stories = [
   {
     number: '03',
     title: 'Кафе',
-    text: 'Закажите чай, кофе, закуски, чтобы продолжить отдых у моря',
+    text: 'Меню разных кухонь можно заказать прямо в баню — вкусно и без лишних пауз в отдыхе',
     image: '/images/20240502_210421.jpg',
   },
   {
     number: '04',
     title: 'Море',
-    text: 'Ощущайте ветер и вид на горизонт рядом с парной',
+    text: 'Свежий воздух, шум волн и горизонт в двух шагах от парной',
     image: '/images/20210509_200041.jpg',
   },
   {
@@ -169,8 +169,8 @@ export default function About() {
                 <br />
                 места
               </h2>
-              <p className="mt-7 max-w-[380px] text-[1.28rem] font-semibold leading-10 text-[#b9aea0]">
-                Баня Море - это про простые вещи, которые возвращают силы: теплое дерево, пар на дровах и море в двух шагах.
+              <p className="about-description mt-7 max-w-[380px] text-[1.28rem] font-semibold leading-10 text-[#b9aea0]">
+                Баня Море — место, где русская баня на дровах встречается с морем. Здесь приезжают прогреться, выдохнуть и провести время без спешки — с семьёй, друзьями или вдвоём
               </p>
               <a
                 href="#baths"
@@ -229,7 +229,7 @@ export default function About() {
                       <div className="relative flex h-full min-h-[400px] flex-col justify-between p-5 sm:min-h-[470px] md:min-h-[545px] xl:min-h-[590px]">
                         <div className="h-8" aria-hidden="true" />
                         <div
-                          className={`w-[172px] overflow-hidden transition-[opacity,transform] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] xl:w-[196px] ${
+                          className={`w-[172px] -translate-x-[6px] overflow-hidden transition-[opacity,transform] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] xl:w-[196px] ${
                             isActive ? 'translate-y-0 opacity-100' : 'translate-y-1 opacity-90 group-hover:opacity-100'
                           }`}
                         >

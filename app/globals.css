@@ -690,7 +690,6 @@ html[data-theme='light'] .about-section::after {
 
 html[data-theme='light'] .about-section .eyebrow,
 html[data-theme='light'] .about-section h2,
-html[data-theme='light'] .about-section > .relative.mx-auto > .grid > div:first-child p,
 html[data-theme='light'] .about-section > .relative.mx-auto > .grid > div:first-child a {
   text-shadow:
     0 1px 10px rgba(255, 249, 239, 1),
@@ -699,7 +698,6 @@ html[data-theme='light'] .about-section > .relative.mx-auto > .grid > div:first-
     0 0 68px rgba(247, 239, 227, 0.76);
 }
 
-html[data-theme='light'] .about-section > .relative.mx-auto > .grid > div:first-child,
 html[data-theme='light'] .about-section .about-carousel-controls {
   filter:
     drop-shadow(0 2px 14px rgba(255, 249, 239, 0.98))
@@ -707,8 +705,16 @@ html[data-theme='light'] .about-section .about-carousel-controls {
     drop-shadow(0 0 46px rgba(255, 249, 239, 0.68));
 }
 
+html[data-theme='light'] .about-intro .eyebrow,
+html[data-theme='light'] .about-intro h2,
+html[data-theme='light'] .about-intro > a {
+  filter:
+    drop-shadow(0 2px 14px rgba(255, 249, 239, 0.98))
+    drop-shadow(0 0 26px rgba(247, 239, 227, 0.88))
+    drop-shadow(0 0 46px rgba(255, 249, 239, 0.68));
+}
+
 html[data-theme='dark'] .about-section .eyebrow,
-html[data-theme='dark'] .about-section > .relative.mx-auto > .grid > div:first-child p,
 html[data-theme='dark'] .about-section > .relative.mx-auto > .grid > div:first-child a {
   text-shadow:
     0 1px 5px rgba(5, 4, 3, 0.82),
@@ -722,10 +728,17 @@ html[data-theme='dark'] .about-section h2 {
     0 0 8px rgba(109, 79, 45, 0.2);
 }
 
-html[data-theme='dark'] .about-section > .relative.mx-auto > .grid > div:first-child {
+html[data-theme='dark'] .about-intro .eyebrow,
+html[data-theme='dark'] .about-intro h2,
+html[data-theme='dark'] .about-intro > a {
   filter:
     drop-shadow(0 1px 3px rgba(5, 4, 3, 0.6))
     drop-shadow(0 0 6px rgba(109, 79, 45, 0.16));
+}
+
+.about-section .about-description {
+  filter: none !important;
+  text-shadow: none !important;
 }
 
 .about-carousel-controls {
@@ -1709,6 +1722,13 @@ html[data-theme='light'] main > .schedule-section::before {
   transform: scale(1.035);
 }
 
+.baths-showcase__repairOverlay {
+  object-fit: cover !important;
+  object-position: center;
+  pointer-events: none;
+  top: -78px !important;
+}
+
 .baths-showcase__cardShade {
   background:
     linear-gradient(180deg, transparent 0%, rgba(5, 4, 3, 0.08) 38%, rgba(5, 4, 3, 0.72) 78%, rgba(5, 4, 3, 0.96) 100%);
@@ -2302,6 +2322,18 @@ html[data-theme='light'] .baths-showcase__mobileList--sub .baths-showcase__mobil
   will-change: opacity, transform;
 }
 
+.baths-showcase__expandedImage.is-contained {
+  object-fit: contain;
+  z-index: 1;
+}
+
+.baths-showcase__expandedBackdrop {
+  filter: blur(28px) brightness(0.46) saturate(0.9);
+  object-fit: cover;
+  transform: scale(1.12);
+  z-index: 0;
+}
+
 .baths-showcase__expanded.is-opening .baths-showcase__expandedImage.is-fading-in {
   animation: gallery-fade-in 360ms ease both;
 }
@@ -2430,6 +2462,23 @@ html[data-theme='light'] .baths-showcase__mobileList--sub .baths-showcase__mobil
   opacity: 1;
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .baths-showcase__expanded.is-opening .baths-showcase__thumbs {
+    animation: none;
+  }
+
+  .baths-showcase__thumbs {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 260ms ease;
+  }
+
+  .baths-showcase__expandedMedia:hover .baths-showcase__thumbs {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 .baths-showcase__expandedContent {
   backface-visibility: hidden;
   display: grid;
@@ -2451,7 +2500,15 @@ html[data-theme='light'] .baths-showcase__mobileList--sub .baths-showcase__mobil
 }
 
 .baths-showcase__photoOpen {
-  display: none;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  cursor: zoom-in;
+  display: block;
+  inset: 0;
+  padding: 0;
+  position: absolute;
+  z-index: 2;
 }
 
 .baths-showcase__thumbs {
@@ -3677,8 +3734,8 @@ html[data-theme='light'] .baths-showcase__price span {
 }
 
 @media (min-width: 768px) {
-  .about-carousel-card {
-    flex-basis: 16.5%;
+  .about-carousel-card:not(.is-active) {
+    flex-basis: calc(16.5% + 6px);
   }
 
   .about-carousel-card.is-active {
@@ -4058,18 +4115,6 @@ html[data-theme='light'] .baths-showcase__price span {
 
   .baths-showcase__expandedMedia {
     min-height: 0;
-  }
-
-  .baths-showcase__photoOpen {
-    appearance: none;
-    background: transparent;
-    border: 0;
-    cursor: zoom-in;
-    display: block;
-    inset: 0;
-    padding: 0;
-    position: absolute;
-    z-index: 2;
   }
 
   .baths-showcase__expandedInfo {
