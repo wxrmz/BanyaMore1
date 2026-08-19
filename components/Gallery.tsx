@@ -259,8 +259,7 @@ export default function Gallery() {
                         />
                         <span className="absolute inset-x-0 bottom-0 h-[40%] bg-[linear-gradient(180deg,transparent_0%,rgba(9,8,6,0.32)_42%,rgba(9,8,6,0.9)_100%)]" />
                         <span className="absolute bottom-5 left-5 right-5">
-                          <span className="block font-sans text-[27px] font-extrabold leading-tight text-[#f4eee4] sm:text-[30px]">{image.title}</span>
-                          <span className="gallery-photo-cta mt-3 inline-flex h-7 items-center text-[16px] font-extrabold uppercase tracking-[0.15em] sm:text-[18px]">
+                          <span className="gallery-photo-cta inline-flex h-7 items-center text-[16px] font-extrabold uppercase tracking-[0.15em] sm:text-[18px]">
                             Смотреть фото
                             <span className="relative ml-0.5 inline-block h-5 w-9 shrink-0 overflow-visible">
                               <ArrowIcon className="absolute left-0 top-[calc(50%-2px)] h-10 w-10 -translate-y-1/2" />
@@ -381,7 +380,6 @@ export default function Gallery() {
                   <ArrowIcon className="h-[60px] w-[60px] -translate-y-[2px]" />
                 </button>
               </div>
-              <figcaption className="gallery-lightbox__caption mt-5 text-center font-sans text-[clamp(1.3rem,1.85vw,2.2rem)] font-extrabold leading-tight text-[#f4eee4]">{selectedImage.title}</figcaption>
             </motion.figure>
           </motion.div>
         )}
