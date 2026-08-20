@@ -17,7 +17,6 @@ const categories = [
 const gallery = [
   { src: '/images/gallery/sea-sunset-swings.jpg', title: 'Золотой закат', categories: ['sea'], height: 'h-[390px]' },
   { src: '/images/small-bath-main.jpg', title: 'Малая баня', categories: ['outside'], height: 'h-[330px]' },
-  { src: '/images/photo-1.jpg', title: 'Комната отдыха', categories: ['interior'], height: 'h-[280px]' },
   { src: '/images/big-bath-2-01.jpg', title: 'Морской вид', categories: ['sea'], height: 'h-[350px]' },
   { src: '/images/gallery/bath-ice-night-01.jpg', title: 'Ледяная ночь', categories: ['outside'], height: 'h-[410px]' },
   { src: '/images/small-bath-06.jpg', title: 'Парная', categories: ['steam'], height: 'h-[430px]' },
@@ -30,7 +29,6 @@ const gallery = [
   { src: '/images/big-bath-1-main.jpg', title: 'Большая баня', categories: ['outside'], height: 'h-[350px]' },
   { src: '/images/gallery/sea-swing-ships.jpg', title: 'Качели', categories: ['sea'], height: 'h-[330px]' },
   { src: '/images/big-bath-2-02.jpg', title: 'Раздевалка', categories: ['interior'], height: 'h-[300px]' },
-  { src: '/images/20240502_210421.jpg', title: 'Терраса', categories: ['cafe'], height: 'h-[390px]' },
   { src: '/images/gallery/winter-bath-complex.jpg', title: 'Зимние бани', categories: ['outside'], height: 'h-[410px]' },
   { src: '/images/big-bath-1-01.jpg', title: 'Баня у моря', categories: ['sea'], height: 'h-[340px]' },
   { src: '/images/small-bath-01.png', title: 'Море рядом', categories: ['sea'], height: 'h-[320px]' },

@@ -3859,6 +3859,10 @@ html[data-theme='light'] .baths-showcase__price span {
     min-height: calc(100svh + 72px);
   }
 
+  .hero-image-motion {
+    object-position: 55% center;
+  }
+
   .hero-inner {
     min-height: calc(100svh - 76px);
     padding-bottom: max(20px, env(safe-area-inset-bottom));
@@ -4076,6 +4080,10 @@ html[data-theme='light'] .baths-showcase__price span {
     transform: none;
     transition: none;
     z-index: 0;
+  }
+
+  .baths-showcase__mobileList:not(.baths-showcase__mobileList--sub) .baths-showcase__mobileCard > .baths-showcase__repairOverlay {
+    top: -58px !important;
   }
 
   .baths-showcase__mobileList:not(.baths-showcase__mobileList--sub) .baths-showcase__cardShade {

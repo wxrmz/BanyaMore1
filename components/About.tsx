@@ -18,13 +18,13 @@ const stories = [
     number: '02',
     title: 'Пар',
     text: 'Честный жар и аромат дерева наполняют тело легкостью',
-    image: '/images/small-bath-06.jpg',
+    image: '/images/about-steam.jpg',
   },
   {
     number: '03',
     title: 'Кафе',
     text: 'Меню разных кухонь можно заказать прямо в баню - вкусно и без лишних пауз в отдыхе',
-    image: '/images/20240502_210421.jpg',
+    image: '/images/about-cafe.jpg',
   },
   {
     number: '04',
