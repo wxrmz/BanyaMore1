@@ -518,7 +518,13 @@ async function buildBathAvailability(bath: BathConfig, dates: string[]): Promise
   const staff = { id: bath.staffId, name: bath.title };
   const lookaheadDate = formatDate(addDays(new Date(`${dates[dates.length - 1]}T00:00:00+10:00`), 1));
   const datesWithLookahead = [...dates, lookaheadDate];
-  const freeSlotsByDay = await Promise.all(datesWithLookahead.map((date) => fetchFreeSlots(date, [service], [staff])));
+  const freeSlotsByDay = new Array<Map<string, PublicSlot>>(datesWithLookahead.length);
+  await runPool(
+    datesWithLookahead.map((date, index) => async () => {
+      freeSlotsByDay[index] = await fetchFreeSlots(date, [service], [staff]);
+    }),
+    4,
+  );
   const slotDays = buildActualAvailabilitySlotDays(freeSlotsByDay, bath.durationMinutes);
   const days = dates.map((date, index) => {
     const slots = slotDays[index] ?? [];
@@ -592,7 +598,7 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const from = searchParams.get('from') ?? formatDate(new Date());
-  const days = Math.min(Math.max(Number(searchParams.get('days') ?? 7), 1), 14);
+  const days = Math.min(Math.max(Number(searchParams.get('days') ?? 7), 1), 32);
   const start = new Date(`${from}T00:00:00+10:00`);
 
   try {

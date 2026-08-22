@@ -66,13 +66,12 @@ const currentDateTime = () => {
 
 const todayDate = () => currentDateTime().date;
 
-const addDaysToDate = (date: string, amount: number) => {
-  const next = new Date(`${date}T00:00:00+10:00`);
-  next.setDate(next.getDate() + amount);
-  const year = next.getFullYear();
-  const month = `${next.getMonth() + 1}`.padStart(2, '0');
-  const day = `${next.getDate()}`.padStart(2, '0');
-  return `${year}-${month}-${day}`;
+const moveToMonth = (date: string, amount: number) => {
+  const [year, month] = date.split('-').map(Number);
+  const next = new Date(year, month - 1 + amount, 1);
+  const nextYear = next.getFullYear();
+  const nextMonth = `${next.getMonth() + 1}`.padStart(2, '0');
+  return `${nextYear}-${nextMonth}-01`;
 };
 
 const SLOT_GROUPS = [
@@ -94,6 +93,12 @@ const VISIBLE_DAYS = 7;
 const REQUEST_DAYS = VISIBLE_DAYS + 1;
 const CLEANING_MINUTES = 30;
 const SLOT_INTERVAL_MINUTES = 30;
+
+const daysThroughMonthEnd = (date: string) => {
+  const [year, month, day] = date.split('-').map(Number);
+  const lastDay = new Date(year, month, 0).getDate();
+  return Math.max(lastDay - day + 1, 1);
+};
 
 const normalizeSlots = (slots: CalendarSlot[] = []) => {
   const byTime = new Map(slots.map((slot) => [slot.time, slot]));
@@ -155,6 +160,9 @@ export default function BookingCalendar() {
   const [message, setMessage] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
   const [calendarNote, setCalendarNote] = useState('');
+  const [isMonthExpanded, setIsMonthExpanded] = useState(false);
+  const monthDayCount = useMemo(() => daysThroughMonthEnd(weekStart), [weekStart]);
+  const requestDays = isMonthExpanded ? monthDayCount + 1 : REQUEST_DAYS;
 
   useEffect(() => {
     let timer: number;
@@ -185,7 +193,7 @@ export default function BookingCalendar() {
       setStatus('loading');
 
       try {
-        const response = await fetch(`/api/yclients/availability?from=${weekStart}&days=${REQUEST_DAYS}`, {
+        const response = await fetch(`/api/yclients/availability?from=${weekStart}&days=${requestDays}`, {
           cache: 'no-store',
         });
         const payload = (await response.json()) as AvailabilityResponse;
@@ -219,8 +227,14 @@ export default function BookingCalendar() {
         }
 
         setBaths(nextBaths);
-        setSelectedBathId(nextBaths[0]?.id ?? '');
-        setSelectedDate(nextBaths[0]?.days[0]?.date ?? '');
+        setSelectedBathId((currentBathId) =>
+          nextBaths.some((bath) => bath.id === currentBathId) ? currentBathId : nextBaths[0]?.id ?? '',
+        );
+        setSelectedDate((currentSelectedDate) =>
+          nextBaths.some((bath) => bath.days.some((day) => day.date === currentSelectedDate))
+            ? currentSelectedDate
+            : nextBaths[0]?.days[0]?.date ?? '',
+        );
         setMessage('');
         setStatus('ready');
       } catch {
@@ -237,7 +251,7 @@ export default function BookingCalendar() {
     return () => {
       ignore = true;
     };
-  }, [weekStart, reloadKey]);
+  }, [weekStart, requestDays, reloadKey]);
 
   useEffect(() => {
     let ignore = false;
@@ -266,7 +280,9 @@ export default function BookingCalendar() {
 
   const selectedBath = useMemo(() => baths.find((bath) => bath.id === selectedBathId) ?? baths[0], [baths, selectedBathId]);
   const days = selectedBath?.days ?? [];
-  const visibleDays = useMemo(() => days.slice(0, VISIBLE_DAYS), [days]);
+  const displayedDayCount = isMonthExpanded ? monthDayCount : VISIBLE_DAYS;
+  const visibleDays = useMemo(() => days.slice(0, displayedDayCount), [days, displayedDayCount]);
+  const hasHiddenMonthDays = monthDayCount > VISIBLE_DAYS;
   const selectedDay = useMemo(() => visibleDays.find((day) => day.date === selectedDate) ?? visibleDays[0] ?? days[0], [days, visibleDays, selectedDate]);
   const selectedDayIndex = useMemo(() => days.findIndex((day) => day.date === selectedDay?.date), [days, selectedDay?.date]);
   const selectedSlots = useMemo(() => normalizeSlots(selectedDay?.slots), [selectedDay]);
@@ -534,7 +550,9 @@ export default function BookingCalendar() {
                         onClick={() => {
                           setSelectedBathId(bath.id);
                           setSelectedDate((currentDate) =>
-                            bath.days.slice(0, VISIBLE_DAYS).some((day) => day.date === currentDate) ? currentDate : bath.days[0]?.date ?? '',
+                            bath.days.slice(0, displayedDayCount).some((day) => day.date === currentDate)
+                              ? currentDate
+                              : bath.days[0]?.date ?? '',
                           );
                         }}
                         className={`flex h-[68px] items-center justify-center rounded-xl border px-5 text-center transition duration-300 ease-out ${
@@ -549,29 +567,35 @@ export default function BookingCalendar() {
                   })}
                 </div>
 
-                <div className="mt-6 grid min-w-0 grid-cols-[34px_minmax(0,1fr)_34px] gap-1.5 sm:grid-cols-[58px_1fr_58px] sm:gap-3">
+                <div className="mt-6 grid min-w-0 grid-cols-[34px_minmax(0,1fr)_34px_48px] items-start gap-1.5 sm:grid-cols-[58px_minmax(0,1fr)_58px_66px] sm:gap-3">
                   <button
                     type="button"
-                    aria-label="Предыдущая неделя"
+                    aria-label="Предыдущий месяц"
                     onClick={() => {
                       if (canGoBack) {
                         setWeekStart((current) => {
-                          const previous = addDaysToDate(current, -7);
+                          const previous = moveToMonth(current, -1);
                           return previous < currentDate ? currentDate : previous;
                         });
                       }
                     }}
                     disabled={!canGoBack}
                     aria-disabled={!canGoBack}
-                    className={`flex min-h-[58px] items-center justify-center rounded-lg border text-2xl font-extrabold leading-none transition sm:min-h-0 ${
+                    className={`flex h-[66px] min-h-[66px] items-center justify-center rounded-lg border text-2xl font-extrabold leading-none transition sm:h-[74px] sm:min-h-[74px] ${
                       canGoBack
                         ? 'border-[#d6a15f]/55 bg-[#21170f]/45 text-[#d6a15f] hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d]'
                         : 'pointer-events-none border-[#d6a15f]/18 bg-[#17110c]/35 text-[#5f5448]'
                     }`}
                   >
-                    <ArrowIcon className="h-6 w-6" direction="left" />
+                    <ArrowIcon className="h-10 w-10" direction="left" />
                   </button>
-                  <div className="schedule-date-strip scrollbar-none flex min-w-0 snap-x gap-1.5 overflow-x-auto py-1 sm:grid sm:grid-cols-2 sm:gap-2 sm:overflow-visible sm:py-0 md:grid-cols-4 lg:grid-cols-7">
+                  <div
+                    className={`schedule-date-strip scrollbar-none min-w-0 ${
+                      isMonthExpanded
+                        ? 'grid grid-cols-2 gap-1.5 overflow-visible py-1 sm:grid-cols-3 sm:gap-2 sm:py-0 md:grid-cols-4 lg:grid-cols-7'
+                        : 'flex snap-x gap-1.5 overflow-x-auto py-1 sm:grid sm:grid-cols-2 sm:gap-2 sm:overflow-visible sm:py-0 md:grid-cols-4 lg:grid-cols-7'
+                    }`}
+                  >
                     {visibleDays.map((day) => {
                       const isActive = day.date === selectedDay.date;
                       const [dayNumber, ...dayMonthParts] = day.label.split(' ');
@@ -581,7 +605,9 @@ export default function BookingCalendar() {
                           key={day.date}
                           type="button"
                           onClick={() => setSelectedDate(day.date)}
-                          className={`schedule-date-button${isActive ? ' schedule-date-button--active' : ''} min-w-[92px] snap-start rounded-lg border px-3 py-3 text-left transition duration-300 ease-out sm:min-w-0 sm:px-4 sm:py-3.5 ${
+                          className={`schedule-date-button${isActive ? ' schedule-date-button--active' : ''} snap-start rounded-lg border px-3 py-3 text-left transition duration-300 ease-out sm:px-4 sm:py-3.5 ${
+                            isMonthExpanded ? 'min-w-0' : 'min-w-[92px] sm:min-w-0'
+                          } ${
                             isActive
                               ? '-translate-y-0.5 border-[#d6a15f]/80 bg-[#d6a15f] text-[#15110d] shadow-[0_14px_34px_rgba(214,161,95,0.22)]'
                               : 'border-[#d6a15f]/55 bg-[#21170f]/45 text-[#f4eee4] hover:-translate-y-0.5 hover:border-[#d6a15f]/80'
@@ -598,21 +624,43 @@ export default function BookingCalendar() {
                   </div>
                   <button
                     type="button"
-                    aria-label="Следующая неделя"
+                    aria-label="Следующий месяц"
                     onClick={() => {
                       if (canGoForward) {
-                        setWeekStart((current) => addDaysToDate(current, 7));
+                        setWeekStart((current) => moveToMonth(current, 1));
                       }
                     }}
                     disabled={!canGoForward}
                     aria-disabled={!canGoForward}
-                    className={`flex min-h-[58px] items-center justify-center rounded-lg border text-2xl font-extrabold leading-none transition sm:min-h-0 ${
+                    className={`flex h-[66px] min-h-[66px] items-center justify-center rounded-lg border text-2xl font-extrabold leading-none transition sm:h-[74px] sm:min-h-[74px] ${
                       canGoForward
                         ? 'border-[#d6a15f]/55 bg-[#21170f]/45 text-[#d6a15f] hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d]'
                         : 'pointer-events-none border-[#d6a15f]/18 bg-[#17110c]/35 text-[#5f5448]'
                     }`}
                   >
-                    <ArrowIcon className="h-6 w-6" />
+                    <ArrowIcon className="h-10 w-10" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={isMonthExpanded ? 'Свернуть календарь месяца' : 'Показать весь месяц'}
+                    aria-expanded={isMonthExpanded}
+                    disabled={isLoadingSchedule || (!hasHiddenMonthDays && !isMonthExpanded)}
+                    onClick={() => {
+                      if (isMonthExpanded && !days.slice(0, VISIBLE_DAYS).some((day) => day.date === selectedDate)) {
+                        setSelectedDate(days[0]?.date ?? '');
+                      }
+                      setIsMonthExpanded((value) => !value);
+                    }}
+                    className={`flex h-[66px] min-h-[66px] items-center justify-center rounded-lg border p-0 font-bold leading-none shadow-[0_16px_40px_rgba(0,0,0,0.34)] transition sm:h-[74px] sm:min-h-[74px] ${
+                      isMonthExpanded
+                        ? 'border-[#d6a15f] bg-[#d6a15f] text-[#15110d]'
+                        : 'border-[#d6a15f]/35 bg-[#21170f]/75 text-[#f4eee4] hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d]'
+                    } disabled:pointer-events-none disabled:opacity-35`}
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true" className="block h-10 w-10 shrink-0 fill-none stroke-current sm:h-11 sm:w-11">
+                      <path d="M7 3v3M17 3v3M4.5 9h15M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01" strokeWidth="2.4" strokeLinecap="round" />
+                    </svg>
                   </button>
                 </div>
 
@@ -639,7 +687,7 @@ export default function BookingCalendar() {
                         <div className="mt-2 text-lg font-bold text-[#b9aea0] sm:text-xl">{selectedBath?.title}</div>
                       </div>
 
-                      <div className="flex min-w-0 flex-1 flex-wrap justify-start gap-3 sm:pl-3 lg:pl-6">
+                      <div className="grid min-w-0 flex-1 grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-start sm:gap-3 sm:pl-3 lg:pl-6">
                         {durationOptions.map((service) => {
                           const isActive = service.durationMinutes === selectedService?.durationMinutes;
 
@@ -648,13 +696,13 @@ export default function BookingCalendar() {
                               key={service.serviceId}
                               type="button"
                               onClick={() => setSelectedDurationMinutes(service.durationMinutes)}
-                              className={`shrink-0 rounded-lg border px-4 py-2.5 text-[13px] font-extrabold uppercase tracking-[0.1em] transition sm:px-5 sm:text-[14px] ${
+                              className={`min-w-0 rounded-lg border px-1.5 py-2 text-[11px] font-extrabold uppercase tracking-[0.04em] transition sm:w-auto sm:shrink-0 sm:px-5 sm:py-2.5 sm:text-[14px] sm:tracking-[0.1em] ${
                                 isActive
                                   ? 'border-[#d6a15f] bg-[#d6a15f] text-[#15110d]'
                                   : 'border-[#d6a15f]/45 bg-[#15110d]/70 text-[#f4eee4] hover:border-[#d6a15f]/80'
                               }`}
                             >
-                              <span className="inline-block scale-[1.1]">{service.label}</span>
+                              <span className="inline-block whitespace-nowrap sm:scale-[1.1]">{service.label}</span>
                             </button>
                           );
                         })}
