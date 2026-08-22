@@ -4462,6 +4462,19 @@ html[data-theme='light'] .baths-showcase__price span {
     filter: none;
   }
 
+  .schedule-date-strip--expanded .schedule-date-button {
+    min-width: 0;
+    padding: 6px 2px;
+  }
+
+  .schedule-date-strip--expanded .schedule-date-button > span:first-child {
+    font-size: 10px;
+  }
+
+  .schedule-date-strip--expanded .schedule-date-button > span:last-child {
+    font-size: 16px;
+  }
+
   .schedule-calendar-panel .schedule-slot-status {
     align-items: center;
     align-self: stretch;

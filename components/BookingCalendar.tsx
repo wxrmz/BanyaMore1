@@ -567,7 +567,7 @@ export default function BookingCalendar() {
                   })}
                 </div>
 
-                <div className="mt-6 grid min-w-0 grid-cols-[34px_minmax(0,1fr)_34px_48px] items-start gap-1.5 sm:grid-cols-[58px_minmax(0,1fr)_58px_66px] sm:gap-3">
+                <div className="mt-6 grid min-w-0 grid-cols-[34px_minmax(0,1fr)_34px] items-start gap-x-1.5 gap-y-2.5 sm:grid-cols-[58px_minmax(0,1fr)_58px_66px] sm:gap-3">
                   <button
                     type="button"
                     aria-label="Предыдущий месяц"
@@ -581,7 +581,7 @@ export default function BookingCalendar() {
                     }}
                     disabled={!canGoBack}
                     aria-disabled={!canGoBack}
-                    className={`flex h-[66px] min-h-[66px] items-center justify-center rounded-lg border text-2xl font-extrabold leading-none transition sm:h-[74px] sm:min-h-[74px] ${
+                    className={`row-start-2 my-1 flex h-[80px] min-h-[80px] items-center justify-center rounded-lg border text-2xl font-extrabold leading-none transition sm:row-auto sm:my-0 sm:h-[74px] sm:min-h-[74px] ${
                       canGoBack
                         ? 'border-[#d6a15f]/55 bg-[#21170f]/45 text-[#d6a15f] hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d]'
                         : 'pointer-events-none border-[#d6a15f]/18 bg-[#17110c]/35 text-[#5f5448]'
@@ -590,9 +590,9 @@ export default function BookingCalendar() {
                     <ArrowIcon className="h-10 w-10" direction="left" />
                   </button>
                   <div
-                    className={`schedule-date-strip scrollbar-none min-w-0 ${
+                    className={`schedule-date-strip scrollbar-none row-start-2 min-w-0 sm:row-auto ${
                       isMonthExpanded
-                        ? 'grid grid-cols-2 gap-1.5 overflow-visible py-1 sm:grid-cols-3 sm:gap-2 sm:py-0 md:grid-cols-4 lg:grid-cols-7'
+                        ? 'schedule-date-strip--expanded grid grid-cols-3 gap-1.5 overflow-visible py-1 sm:grid-cols-3 sm:gap-2 sm:py-0 md:grid-cols-4 lg:grid-cols-7'
                         : 'flex snap-x gap-1.5 overflow-x-auto py-1 sm:grid sm:grid-cols-2 sm:gap-2 sm:overflow-visible sm:py-0 md:grid-cols-4 lg:grid-cols-7'
                     }`}
                   >
@@ -632,7 +632,7 @@ export default function BookingCalendar() {
                     }}
                     disabled={!canGoForward}
                     aria-disabled={!canGoForward}
-                    className={`flex h-[66px] min-h-[66px] items-center justify-center rounded-lg border text-2xl font-extrabold leading-none transition sm:h-[74px] sm:min-h-[74px] ${
+                    className={`row-start-2 my-1 flex h-[80px] min-h-[80px] items-center justify-center rounded-lg border text-2xl font-extrabold leading-none transition sm:row-auto sm:my-0 sm:h-[74px] sm:min-h-[74px] ${
                       canGoForward
                         ? 'border-[#d6a15f]/55 bg-[#21170f]/45 text-[#d6a15f] hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d]'
                         : 'pointer-events-none border-[#d6a15f]/18 bg-[#17110c]/35 text-[#5f5448]'
@@ -651,7 +651,7 @@ export default function BookingCalendar() {
                       }
                       setIsMonthExpanded((value) => !value);
                     }}
-                    className={`flex h-[66px] min-h-[66px] items-center justify-center rounded-lg border p-0 font-bold leading-none shadow-[0_16px_40px_rgba(0,0,0,0.34)] transition sm:h-[74px] sm:min-h-[74px] ${
+                    className={`col-span-3 row-start-1 flex h-[66px] min-h-[66px] w-full items-center justify-center rounded-lg border p-0 font-bold leading-none shadow-[0_16px_40px_rgba(0,0,0,0.34)] transition sm:col-span-1 sm:row-auto sm:h-[74px] sm:min-h-[74px] ${
                       isMonthExpanded
                         ? 'border-[#d6a15f] bg-[#d6a15f] text-[#15110d]'
                         : 'border-[#d6a15f]/35 bg-[#21170f]/75 text-[#f4eee4] hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d]'
@@ -661,6 +661,9 @@ export default function BookingCalendar() {
                       <path d="M7 3v3M17 3v3M4.5 9h15M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                       <path d="M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01" strokeWidth="2.4" strokeLinecap="round" />
                     </svg>
+                    <span className="ml-3 text-[13px] font-extrabold uppercase tracking-[0.1em] sm:hidden">
+                      {isMonthExpanded ? 'Свернуть календарь' : 'Показать весь месяц'}
+                    </span>
                   </button>
                 </div>
 
