@@ -734,7 +734,7 @@ export default function BookingCalendar() {
                               </span>
                               {!isPastSlot && (
                                 <span
-                                  className={`schedule-slot-status${isBookable && !isSelected ? ' schedule-slot-status--free' : ''} mt-2 block w-full text-center text-[13px] font-extrabold uppercase tracking-[0.04em] sm:text-[12px] sm:tracking-[0.06em]`}
+                                  className={`schedule-slot-status${isBookable && !isSelected ? ' schedule-slot-status--free' : ''}${isShortFree ? ' schedule-slot-status--unavailable' : ''} mt-2 block w-full text-center text-[13px] font-extrabold uppercase tracking-[0.04em] sm:text-[12px] sm:tracking-[0.06em]`}
                                 >
                                   {isSelected ? 'выбрано' : isBookable ? 'свободно' : isShortFree ? 'недоступно' : slot.status === 'cleaning' ? 'уборка' : 'занято'}
                                 </span>

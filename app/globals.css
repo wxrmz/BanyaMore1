@@ -4686,3 +4686,9 @@ html[data-theme='light'] .baths-showcase__price span {
     translate: 0 0;
   }
 }
+
+@media (min-width: 641px) {
+  .schedule-calendar-panel .schedule-slot-status--unavailable {
+    transform: translateX(-11px);
+  }
+}
