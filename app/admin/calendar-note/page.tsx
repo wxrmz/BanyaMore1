@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import AdminAvailabilityCalendar from '@/components/AdminAvailabilityCalendar';
 
 type CalendarNoteResponse = {
   ok: boolean;
@@ -146,11 +147,11 @@ export default function CalendarNoteAdminPage() {
 
   return (
     <main className="min-h-screen bg-[#080706] px-4 py-8 text-[#f4eee4] sm:px-6 lg:px-10">
-      <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-3xl items-center">
+      <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center">
         {!isAuthenticated ? (
           <form
             onSubmit={handleLogin}
-            className="w-full rounded-lg border border-[#d6a15f]/35 bg-[#15110d] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.32)] sm:p-7"
+            className="mx-auto w-full max-w-3xl rounded-lg border border-[#d6a15f]/35 bg-[#15110d] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.32)] sm:p-7"
           >
             <p className="text-[13px] font-extrabold uppercase tracking-[0.18em] text-[#d6a15f]">Админ</p>
             <h1 className="mt-2 font-sans text-2xl font-extrabold text-[#f4eee4] sm:text-3xl">
@@ -190,6 +191,8 @@ export default function CalendarNoteAdminPage() {
             </div>
           </form>
         ) : (
+          <div className="w-full space-y-6">
+            <AdminAvailabilityCalendar />
           <form
             onSubmit={handleSubmit}
             className="w-full rounded-lg border border-[#d6a15f]/35 bg-[#15110d] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.32)] sm:p-7"
@@ -250,6 +253,7 @@ export default function CalendarNoteAdminPage() {
               </div>
             </div>
           </form>
+          </div>
         )}
       </div>
     </main>
