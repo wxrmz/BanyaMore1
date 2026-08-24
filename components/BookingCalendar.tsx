@@ -815,14 +815,14 @@ export default function BookingCalendar() {
                                 isSelected
                                   ? '-translate-y-0.5 border-[#d6a15f] bg-[#d6a15f] text-[#15110d] shadow-[0_14px_34px_rgba(214,161,95,0.18)]'
                                   : isPastSlot
-                                  ? 'pointer-events-none border-[#d6a15f]/12 bg-[#16110d]/24 text-[#50483f] opacity-55'
+                                  ? 'pointer-events-none border-[#d6a15f]/12 bg-[#0c0a08]/55 text-[#5f574f] opacity-55'
                                   : isBookable
-                                  ? 'border-[#d6a15f]/75 bg-[#d6a15f]/13 text-[#f4eee4] hover:-translate-y-0.5 hover:bg-[#d6a15f] hover:text-[#15110d]'
+                                  ? 'border-[#78a978]/55 bg-[#17301d]/45 text-[#b9d9b9] hover:-translate-y-0.5 hover:border-[#9bc29b] hover:bg-[#234029]/65'
                                   : isShortFree
-                                  ? 'pointer-events-none border-[#d6a15f]/55 bg-[#2c241c]/78 text-[#b9a58a]'
+                                  ? 'pointer-events-none border-[#d6a15f]/20 bg-[#17110c]/60 text-[#756b61]'
                                   : slot.status === 'cleaning'
-                                  ? 'pointer-events-none border-[#d6a15f]/35 bg-[#6b4523]/28 text-[#9f8d78]'
-                                  : 'pointer-events-none border-[#d6a15f]/24 bg-[#17110c]/48 text-[#6f655b]'
+                                  ? 'pointer-events-none border-[#d98a4a]/45 bg-[#4a2c16]/35 text-[#e9a66e]'
+                                  : 'pointer-events-none border-[#d6a15f]/20 bg-[#17110c]/60 text-[#756b61]'
                               }`}
                             >
                               <span className="block text-[18px] font-extrabold leading-none sm:text-[20px]">

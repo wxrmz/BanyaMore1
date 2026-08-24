@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import AdminAvailabilityCalendar from '@/components/AdminAvailabilityCalendar';
+import AdminOperationsPanel from '@/components/AdminOperationsPanel';
 
 type CalendarNoteResponse = {
   ok: boolean;
@@ -146,7 +147,7 @@ export default function CalendarNoteAdminPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#080706] px-4 py-8 text-[#f4eee4] sm:px-6 lg:px-10">
+    <main className="admin-page min-h-screen bg-[#080706] px-4 py-8 text-[#f4eee4] sm:px-6 lg:px-10">
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center">
         {!isAuthenticated ? (
           <form
@@ -192,11 +193,12 @@ export default function CalendarNoteAdminPage() {
           </form>
         ) : (
           <div className="w-full space-y-6">
+            <AdminOperationsPanel />
             <AdminAvailabilityCalendar />
-          <form
-            onSubmit={handleSubmit}
-            className="w-full rounded-lg border border-[#d6a15f]/35 bg-[#15110d] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.32)] sm:p-7"
-          >
+            <form
+              onSubmit={handleSubmit}
+              className="w-full rounded-lg border border-[#d6a15f]/35 bg-[#15110d] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.32)] sm:p-7"
+            >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-[13px] font-extrabold uppercase tracking-[0.18em] text-[#d6a15f]">Админ</p>
@@ -252,7 +254,7 @@ export default function CalendarNoteAdminPage() {
                 </button>
               </div>
             </div>
-          </form>
+            </form>
           </div>
         )}
       </div>

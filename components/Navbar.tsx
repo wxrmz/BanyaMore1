@@ -11,8 +11,8 @@ const navLinks = [
   { name: 'Запись', href: '#schedule' },
   { name: 'Галерея', href: '#gallery' },
   { name: 'Контакты', href: '#contacts' },
-  { name: 'Меню', href: '/images/menu-full.png', external: true },
-  { name: 'Услуги', href: '/images/services-full.png', external: true },
+  { name: 'Меню', href: '/documents/banya-more-menu.pdf', external: true },
+  { name: 'Услуги', href: '/documents/banya-more-services.pdf', external: true },
 ];
 
 const getHeaderScrollThreshold = () => (window.innerWidth < 1024 ? 96 : 24);

@@ -13,6 +13,7 @@ dev-server*.log
 .next-dev*.log
 dev-mobile-check*.log
 .codex-dev*.log
+.codex-launch*.log
 
 *.tsbuildinfo
 .vercel/
