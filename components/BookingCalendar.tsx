@@ -100,6 +100,11 @@ const daysThroughMonthEnd = (date: string) => {
   return Math.max(lastDay - day + 1, 1);
 };
 
+const daysFromMonday = (date: string) => {
+  const [year, month, day] = date.split('-').map(Number);
+  return (new Date(year, month - 1, day).getDay() + 6) % 7;
+};
+
 const normalizeSlots = (slots: CalendarSlot[] = []) => {
   const byTime = new Map(slots.map((slot) => [slot.time, slot]));
   return FULL_DAY_TIMES.map((time) => byTime.get(time) ?? { time, available: false });
@@ -161,6 +166,7 @@ export default function BookingCalendar() {
   const [reloadKey, setReloadKey] = useState(0);
   const [calendarNote, setCalendarNote] = useState('');
   const [isMonthExpanded, setIsMonthExpanded] = useState(false);
+  const [requestedBathId, setRequestedBathId] = useState('');
   const monthDayCount = useMemo(() => daysThroughMonthEnd(weekStart), [weekStart]);
   const requestDays = isMonthExpanded ? monthDayCount + 1 : REQUEST_DAYS;
 
@@ -180,6 +186,19 @@ export default function BookingCalendar() {
     syncCurrentTime();
 
     return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const handleBathSelection = (event: Event) => {
+      const bathId = (event as CustomEvent<{ bathId?: string }>).detail?.bathId;
+
+      if (bathId) {
+        setRequestedBathId(bathId);
+      }
+    };
+
+    window.addEventListener('banyamore:select-calendar-bath', handleBathSelection);
+    return () => window.removeEventListener('banyamore:select-calendar-bath', handleBathSelection);
   }, []);
 
   useEffect(() => {
@@ -282,6 +301,7 @@ export default function BookingCalendar() {
   const days = selectedBath?.days ?? [];
   const displayedDayCount = isMonthExpanded ? monthDayCount : VISIBLE_DAYS;
   const visibleDays = useMemo(() => days.slice(0, displayedDayCount), [days, displayedDayCount]);
+  const expandedLeadingDays = isMonthExpanded && visibleDays[0] ? daysFromMonday(visibleDays[0].date) : 0;
   const hasHiddenMonthDays = monthDayCount > VISIBLE_DAYS;
   const selectedDay = useMemo(() => visibleDays.find((day) => day.date === selectedDate) ?? visibleDays[0] ?? days[0], [days, visibleDays, selectedDate]);
   const selectedDayIndex = useMemo(() => days.findIndex((day) => day.date === selectedDay?.date), [days, selectedDay?.date]);
@@ -351,6 +371,28 @@ export default function BookingCalendar() {
   const isLoadingSchedule = status === 'loading';
   const canGoBack = weekStart > currentDate && !isLoadingSchedule;
   const canGoForward = !isLoadingSchedule;
+
+  useEffect(() => {
+    if (!requestedBathId) {
+      return;
+    }
+
+    const requestedBath = baths.find((bath) => bath.id === requestedBathId);
+
+    if (!requestedBath) {
+      return;
+    }
+
+    setSelectedBathId(requestedBath.id);
+    setSelectedDate((currentDate) =>
+      requestedBath.days.slice(0, displayedDayCount).some((day) => day.date === currentDate)
+        ? currentDate
+        : requestedBath.days[0]?.date ?? '',
+    );
+    setSelectedStartTime('');
+    setSelectedDurationMinutes(null);
+    setRequestedBathId('');
+  }, [baths, displayedDayCount, requestedBathId]);
 
   useEffect(() => {
     setSelectedStartTime('');
@@ -596,6 +638,9 @@ export default function BookingCalendar() {
                         : 'flex snap-x gap-1.5 overflow-x-auto py-1 sm:grid sm:grid-cols-2 sm:gap-2 sm:overflow-visible sm:py-0 md:grid-cols-4 lg:grid-cols-7'
                     }`}
                   >
+                    {Array.from({ length: expandedLeadingDays }, (_, index) => (
+                      <div key={`leading-day-${index}`} aria-hidden="true" />
+                    ))}
                     {visibleDays.map((day) => {
                       const isActive = day.date === selectedDay.date;
                       const [dayNumber, ...dayMonthParts] = day.label.split(' ');

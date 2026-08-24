@@ -1,5 +1,6 @@
 'use client';
 
+import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowIcon } from './ArrowIcon';
 
@@ -35,7 +36,26 @@ type DayLoad = {
   occupancy: number;
 };
 
+type ReadOnlySlot = {
+  time: string;
+  status: 'free' | 'busy' | 'cleaning' | 'past';
+  freeBathNames: string[];
+};
+
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+const SLOT_GROUPS = [
+  { id: 'night', title: 'Ночь', from: '00:00', to: '05:30' },
+  { id: 'morning', title: 'Утро', from: '06:00', to: '11:30' },
+  { id: 'day', title: 'День', from: '12:00', to: '17:30' },
+  { id: 'evening', title: 'Вечер', from: '18:00', to: '23:30' },
+];
+const FULL_DAY_TIMES = Array.from({ length: 48 }, (_, index) => {
+  const minutes = index * 30;
+  return `${`${Math.floor(minutes / 60)}`.padStart(2, '0')}:${`${minutes % 60}`.padStart(2, '0')}`;
+});
+const HOURS_FORMATTER = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 });
+
+const formatHours = (halfHourSlots: number) => HOURS_FORMATTER.format(halfHourSlots / 2);
 
 const localDate = () => {
   const now = new Date();
@@ -77,6 +97,17 @@ const shortDate = (date: string) => {
   return new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short' }).format(new Date(year, month - 1, day));
 };
 
+const longDate = (date: string) => {
+  const [year, month, day] = date.split('-').map(Number);
+  const value = new Intl.DateTimeFormat('ru-RU', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(year, month - 1, day));
+  return value.charAt(0).toUpperCase() + value.slice(1);
+};
+
 const timeToMinutes = (time: string) => {
   const [hours, minutes] = time.split(':').map(Number);
   return hours * 60 + minutes;
@@ -108,6 +139,7 @@ export default function AdminAvailabilityCalendar() {
   const [message, setMessage] = useState('');
   const [generatedAt, setGeneratedAt] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
+  const [selectedDate, setSelectedDate] = useState('');
 
   const dates = useMemo(() => makeMonthDates(selectedMonth), [selectedMonth]);
   const leadingDays = useMemo(() => {
@@ -159,10 +191,39 @@ export default function AdminAvailabilityCalendar() {
     };
   }, [currentMonth, reloadKey, selectedMonth, today]);
 
+  useEffect(() => {
+    setSelectedDate('');
+  }, [selectedMonth]);
+
   const selectedBaths = useMemo(
     () => (selectedBathId === 'all' ? baths : baths.filter((bath) => bath.id === selectedBathId)),
     [baths, selectedBathId],
   );
+
+  const selectedDaySlots = useMemo<ReadOnlySlot[]>(() => {
+    if (!selectedDate || !selectedBaths.length) {
+      return [];
+    }
+
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    return FULL_DAY_TIMES.map((time) => {
+      const bathSlots = selectedBaths.map((bath) => ({
+        bath,
+        slot: bath.days.find((day) => day.date === selectedDate)?.slots.find((slot) => slot.time === time),
+      }));
+      const freeBaths = bathSlots.filter(({ slot }) => slot?.available || slot?.status === 'free');
+      const cleaningBaths = bathSlots.filter(({ slot }) => slot?.status === 'cleaning');
+      const isPast = selectedDate === today && timeToMinutes(time) < currentMinutes;
+
+      return {
+        time,
+        status: isPast ? 'past' : freeBaths.length > 0 ? 'free' : cleaningBaths.length > 0 ? 'cleaning' : 'busy',
+        freeBathNames: freeBaths.map(({ bath }) => bath.title),
+      };
+    });
+  }, [selectedBaths, selectedDate, today]);
 
   const dayLoads = useMemo(() => {
     const now = new Date();
@@ -229,7 +290,7 @@ export default function AdminAvailabilityCalendar() {
           <p className="text-[15px] font-extrabold uppercase tracking-[0.18em] text-[#d6a15f] sm:text-[17px]">Загрузка календаря</p>
           <h2 className="mt-3 font-sans text-[34px] font-extrabold text-[#f4eee4] sm:text-[44px]">{monthTitle(selectedMonth)}</h2>
           <p className="mt-4 max-w-3xl text-[16px] font-semibold leading-7 text-[#8f857a] sm:text-[18px] sm:leading-8">
-            Занятость рассчитана по получасовым интервалам онлайн-записи. Уборка не входит в процент загрузки.
+            Занятость рассчитана по получасовым интервалам онлайн-записи, значения показаны в часах. Уборка не входит в процент загрузки.
           </p>
         </div>
 
@@ -301,8 +362,8 @@ export default function AdminAvailabilityCalendar() {
           </div>
         </div>
         <div className="rounded-lg border border-[#d6a15f]/25 bg-[#0f0c09] p-4">
-          <div className="text-[13px] font-extrabold uppercase tracking-[0.11em] text-[#8f857a]">Свободных интервалов</div>
-          <div className="mt-2 text-3xl font-extrabold text-[#f4eee4]">{status === 'ready' ? totalFree : '—'}</div>
+          <div className="text-[13px] font-extrabold uppercase tracking-[0.11em] text-[#8f857a]">Свободных часов</div>
+          <div className="mt-2 text-3xl font-extrabold text-[#f4eee4]">{status === 'ready' ? `${formatHours(totalFree)} ч` : '—'}</div>
         </div>
       </div>
 
@@ -353,15 +414,19 @@ export default function AdminAvailabilityCalendar() {
                 const tone = load ? loadTone(load.occupancy) : null;
 
                 return (
-                  <article
+                  <button
                     key={date}
-                    className={`min-h-[154px] rounded-lg border p-3 transition ${
+                    type="button"
+                    disabled={isPast || !load || status !== 'ready'}
+                    aria-pressed={selectedDate === date}
+                    onClick={() => setSelectedDate((current) => (current === date ? '' : date))}
+                    className={`min-h-[154px] w-full rounded-lg border p-3 text-left transition ${
                       isPast
                         ? 'border-[#d6a15f]/12 bg-[#0c0a08]/55 text-[#5f574f]'
                         : tone
-                          ? `${tone.border} bg-[#0f0c09]`
+                          ? `${tone.border} bg-[#0f0c09] hover:-translate-y-0.5 hover:border-[#d6a15f]/80`
                           : 'border-[#d6a15f]/20 bg-[#0f0c09]'
-                    }`}
+                    } ${selectedDate === date ? 'ring-2 ring-[#d6a15f] ring-offset-2 ring-offset-[#15110d]' : ''} disabled:pointer-events-none`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <span className={`text-[28px] font-extrabold leading-none ${isPast ? 'text-[#5f574f]' : 'text-[#f4eee4]'}`}>{index + 1}</span>
@@ -382,20 +447,99 @@ export default function AdminAvailabilityCalendar() {
                         </div>
                         <div className={`mt-3 text-[11px] font-extrabold uppercase tracking-[0.06em] ${tone.text}`}>{tone.label}</div>
                         <div className="mt-2 text-[14px] font-semibold leading-6 text-[#8f857a]">
-                          Свободно: {load.free}<br />Занято: {load.busy}
-                          {load.cleaning > 0 && <><br />Уборка: {load.cleaning}</>}
+                          Свободно: {formatHours(load.free)} ч<br />Занято: {formatHours(load.busy)} ч
+                          {load.cleaning > 0 && <><br />Уборка: {formatHours(load.cleaning)} ч</>}
                         </div>
                       </>
                     ) : (
                       <div className="mt-8 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8f857a]">Нет данных</div>
                     )}
-                  </article>
+                  </button>
                 );
               })}
             </div>
           </div>
         </div>
       )}
+
+      <AnimatePresence initial={false}>
+        {selectedDate && selectedDaySlots.length > 0 && (
+          <motion.div
+            key={selectedDate}
+            initial={{ height: 0, opacity: 0, y: 24, marginTop: 0 }}
+            animate={{ height: 'auto', opacity: 1, y: 0, marginTop: 24 }}
+            exit={{ height: 0, opacity: 0, y: 18, marginTop: 0 }}
+            transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="rounded-xl border border-[#d6a15f]/45 bg-[#0f0c09] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.28)] sm:p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-[13px] font-extrabold uppercase tracking-[0.14em] text-[#d6a15f]">Окна выбранного дня</p>
+                  <h3 className="mt-2 text-2xl font-extrabold text-[#f4eee4] sm:text-3xl">{longDate(selectedDate)}</h3>
+                  <p className="mt-2 text-sm font-semibold text-[#8f857a]">
+                    {selectedBathId === 'all' ? 'Все бани' : selectedBaths[0]?.title} · только просмотр
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDate('')}
+                  aria-label="Закрыть расписание дня"
+                  className="grid h-12 w-12 shrink-0 place-items-center self-end rounded-lg border border-[#d6a15f]/35 text-[30px] font-bold leading-none text-[#f4eee4] transition hover:border-[#d6a15f] hover:bg-[#d6a15f] hover:text-[#15110d] sm:self-start"
+                >
+                  <span className="-translate-y-0.5">×</span>
+                </button>
+              </div>
+
+              <div className="mt-6 grid gap-7 xl:grid-cols-4">
+                {SLOT_GROUPS.map((group) => {
+                  const groupSlots = selectedDaySlots.filter((slot) => slot.time >= group.from && slot.time <= group.to);
+
+                  return (
+                    <div key={group.id}>
+                      <div className="mb-3 flex items-center justify-between gap-3">
+                        <h4 className="text-xl font-extrabold text-[#f4eee4]">{group.title}</h4>
+                        <span className="text-[13px] font-extrabold tracking-[0.06em] text-[#bfa06d]">{group.from}–{group.to}</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 xl:grid-cols-2 2xl:grid-cols-3">
+                        {groupSlots.map((slot) => {
+                          const statusLabel =
+                            slot.status === 'past'
+                              ? 'прошло'
+                              : slot.status === 'free'
+                                ? 'свободно'
+                                : slot.status === 'cleaning'
+                                  ? 'уборка'
+                                  : 'занято';
+                          const toneClass =
+                            slot.status === 'free'
+                              ? 'border-[#78a978]/55 bg-[#17301d]/45 text-[#b9d9b9]'
+                              : slot.status === 'cleaning'
+                                ? 'border-[#d98a4a]/45 bg-[#4a2c16]/35 text-[#e9a66e]'
+                                : slot.status === 'past'
+                                  ? 'border-[#d6a15f]/12 bg-[#0c0a08]/55 text-[#5f574f]'
+                                  : 'border-[#d6a15f]/20 bg-[#17110c]/60 text-[#756b61]';
+
+                          return (
+                            <div
+                              key={slot.time}
+                              title={slot.freeBathNames.length ? `Свободны: ${slot.freeBathNames.join(', ')}` : undefined}
+                              className={`flex min-h-[66px] flex-col items-center justify-center rounded-lg border px-2 py-2 text-center ${toneClass}`}
+                            >
+                              <span className="text-[18px] font-extrabold leading-none">{slot.time}</span>
+                              <span className="mt-2 text-[10px] font-extrabold uppercase leading-tight tracking-[0.04em]">{statusLabel}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="mt-3 text-right text-[11px] font-semibold text-[#6f655b]">
         {generatedAt && status === 'ready'

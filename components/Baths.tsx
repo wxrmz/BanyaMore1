@@ -37,6 +37,7 @@ const bigBathCoverImages = [
 
 type BathConfig = {
   name: string;
+  calendarBathId?: 'small' | 'big-1' | 'big-2';
   capacity: string;
   price: string;
   image: string;
@@ -79,6 +80,7 @@ const baths: BathConfig[] = [
     subBaths: [
       {
         name: 'Малая 1',
+        calendarBathId: 'small',
         capacity: '1-4 человека',
         price: '2 500 ₽/ч',
         image: '/images/small-bath-main.jpg',
@@ -171,6 +173,7 @@ const baths: BathConfig[] = [
     subBaths: [
       {
         name: 'Большая 1',
+        calendarBathId: 'big-1',
         capacity: '1-8 человек',
         price: '3 000 ₽/ч',
         image: '/images/big-bath-1-main.jpg',
@@ -198,6 +201,7 @@ const baths: BathConfig[] = [
       },
       {
         name: 'Большая 2',
+        calendarBathId: 'big-2',
         capacity: '1-8 человек',
         price: '3 000 ₽/ч',
         image: '/images/big-bath-2-main.jpg',
@@ -497,7 +501,15 @@ export default function Baths() {
     }, 360);
   };
 
-  const scrollToSchedule = () => {
+  const scrollToSchedule = (calendarBathId?: BathConfig['calendarBathId']) => {
+    if (calendarBathId) {
+      window.dispatchEvent(
+        new CustomEvent('banyamore:select-calendar-bath', {
+          detail: { bathId: calendarBathId },
+        }),
+      );
+    }
+
     const target = document.querySelector('#schedule');
     if (!target) {
       return;
@@ -1091,7 +1103,7 @@ export default function Baths() {
                       href="#schedule"
                       onClick={(event) => {
                         event.preventDefault();
-                        scrollToSchedule();
+                         scrollToSchedule(selectedBath.calendarBathId);
                       }}
                       className="btn-primary baths-showcase__bookButton"
                     >
