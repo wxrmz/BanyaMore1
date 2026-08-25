@@ -493,7 +493,7 @@ function buildActualAvailabilitySlotDays(freeStartSlotsByDay: Map<string, Public
       };
     }
 
-    const canStartBooking = Array.from({ length: requiredStartSlots }, (_, offset) => index + offset).every(
+    const canStartBooking = time !== BUSINESS_END && Array.from({ length: requiredStartSlots }, (_, offset) => index + offset).every(
       (slotIndex) => slotIndex < actualAvailability.length && actualAvailability[slotIndex] && !cleaningSlots[slotIndex],
     );
 

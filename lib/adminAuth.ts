@@ -6,6 +6,7 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET;
 const COOKIE_NAME = 'banyamore-admin-session';
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
+const REMEMBERED_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_MAX_ATTEMPTS = 5;
 
@@ -106,12 +107,12 @@ export const getClientRateLimitKey = (request: Request) => {
   return `${forwardedFor || realIp || 'local'}:${userAgent}`;
 };
 
-const createSessionValue = () => {
+const createSessionValue = (maxAgeSeconds: number) => {
   const { login } = requireAdminConfig();
   const payload = Buffer.from(
     JSON.stringify({
       login,
-      expiresAt: Date.now() + SESSION_MAX_AGE_SECONDS * 1000,
+      expiresAt: Date.now() + maxAgeSeconds * 1000,
     }),
   ).toString('base64url');
 
@@ -148,17 +149,18 @@ export async function hasAdminSession() {
   return isValidAdminSession(cookieStore.get(COOKIE_NAME)?.value);
 }
 
-export async function setAdminSessionCookie() {
+export async function setAdminSessionCookie(remember = false) {
   const cookieStore = await cookies();
+  const maxAge = remember ? REMEMBERED_SESSION_MAX_AGE_SECONDS : SESSION_MAX_AGE_SECONDS;
 
   cookieStore.set({
     name: COOKIE_NAME,
-    value: createSessionValue(),
+    value: createSessionValue(maxAge),
     httpOnly: true,
     sameSite: 'strict',
     secure: process.env.NODE_ENV === 'production',
     path: '/',
-    maxAge: SESSION_MAX_AGE_SECONDS,
+    ...(remember ? { maxAge } : {}),
     priority: 'high',
   });
 }

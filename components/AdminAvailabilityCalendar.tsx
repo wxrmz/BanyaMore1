@@ -170,7 +170,7 @@ const loadTone = (occupancy: number) => {
   return { label: 'Много свободного', bar: '#78a978', text: 'text-[#9bc29b]', border: 'border-[#78a978]/45' };
 };
 
-export default function AdminAvailabilityCalendar() {
+export default function AdminAvailabilityCalendar({ onUpdatedAt }: { onUpdatedAt?: (value: string) => void }) {
   const today = useMemo(localDate, []);
   const currentMonth = useMemo(() => monthStartFor(today), [today]);
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
@@ -178,7 +178,6 @@ export default function AdminAvailabilityCalendar() {
   const [selectedBathId, setSelectedBathId] = useState('');
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [message, setMessage] = useState('');
-  const [generatedAt, setGeneratedAt] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
   const [selectedDate, setSelectedDate] = useState('');
   const [bookingUrl, setBookingUrl] = useState('https://n1437834.yclients.com/');
@@ -220,7 +219,8 @@ export default function AdminAvailabilityCalendar() {
         setBaths(payload.baths);
         setBookingUrl(payload.bookingUrl || 'https://n1437834.yclients.com/');
         setCompanyId(payload.companyId || '1300176');
-        setGeneratedAt(payload.generatedAt || new Date().toISOString());
+        const nextGeneratedAt = payload.generatedAt || new Date().toISOString();
+        onUpdatedAt?.(nextGeneratedAt);
         setSelectedBathId((current) =>
           payload.baths?.some((bath) => bath.id === current) ? current : payload.baths?.[0]?.id ?? '',
         );
@@ -239,7 +239,7 @@ export default function AdminAvailabilityCalendar() {
     return () => {
       ignore = true;
     };
-  }, [currentMonth, reloadKey, selectedMonth, today]);
+  }, [currentMonth, onUpdatedAt, reloadKey, selectedMonth, today]);
 
   useEffect(() => {
     setSelectedDate('');
@@ -772,11 +772,6 @@ export default function AdminAvailabilityCalendar() {
         )}
       </AnimatePresence>
 
-      <div className="mt-3 text-right text-[11px] font-semibold text-[#6f655b]">
-        {generatedAt && status === 'ready'
-          ? `Обновлено ${new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(new Date(generatedAt))}`
-          : 'Данные обновляются'}
-      </div>
     </section>
   );
 }

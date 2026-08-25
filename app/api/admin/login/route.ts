@@ -36,12 +36,13 @@ export async function POST(request: Request) {
 
   const login = typeof body === 'object' && body !== null && 'login' in body ? body.login : null;
   const password = typeof body === 'object' && body !== null && 'password' in body ? body.password : null;
+  const remember = typeof body === 'object' && body !== null && 'remember' in body && body.remember === true;
 
   if (typeof login !== 'string' || typeof password !== 'string' || !validateAdminCredentials(login, password)) {
     return NextResponse.json({ ok: false, message: 'Неверный логин или пароль.' }, { status: 401 });
   }
 
-  await setAdminSessionCookie();
+  await setAdminSessionCookie(remember);
 
   return NextResponse.json({ ok: true });
 }
