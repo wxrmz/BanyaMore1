@@ -1,20 +1,18 @@
 import { NextResponse } from 'next/server';
-import { hasAdminSession } from '@/lib/adminAuth';
+import { getAdminSession } from '@/lib/adminAuth';
+import {
+  dateInVladivostok,
+  getAdminDailyReportAccess,
+  isAdminReportRangeWithinLimit,
+  MAX_ADMIN_REPORT_RANGE_DAYS,
+  isValidIsoDate,
+  reportRangeDays,
+} from '@/lib/adminDateRange';
+import { getAdminAccess } from '@/lib/adminRoles';
+import { stripClosedAdminReport } from '@/lib/adminDashboardAccess';
 import { getAdminDashboard, YclientsReportsError } from '@/lib/yclientsReports';
 
 export const dynamic = 'force-dynamic';
-
-const todayInVladivostok = () =>
-  new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Vladivostok',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date());
-
-const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(`${value}T00:00:00+10:00`));
-const rangeDays = (from: string, to: string) =>
-  Math.floor((Date.parse(`${to}T00:00:00+10:00`) - Date.parse(`${from}T00:00:00+10:00`)) / 86_400_000) + 1;
 
 const errorResponse = (error: unknown) => {
   if (error instanceof YclientsReportsError) {
@@ -30,28 +28,66 @@ const errorResponse = (error: unknown) => {
 };
 
 export async function GET(request: Request) {
-  if (!(await hasAdminSession())) {
+  const session = await getAdminSession();
+
+  if (!session) {
     return NextResponse.json({ ok: false, message: 'Требуется вход в админ-панель.' }, { status: 401 });
   }
 
   const search = new URL(request.url).searchParams;
-  const date = search.get('date') || todayInVladivostok();
+  const access = getAdminAccess(session.role);
+  const requestTime = new Date();
+  const date = search.get('date') || dateInVladivostok(requestTime);
   const from = search.get('from') || date;
   const to = search.get('to') || from;
 
-  if (![date, from, to].every(validDate)) {
+  if (![date, from, to].every(isValidIsoDate)) {
     return NextResponse.json({ ok: false, message: 'Некорректная дата.' }, { status: 400 });
   }
-  const days = rangeDays(from, to);
+  const days = reportRangeDays(from, to);
   if (days < 1) {
     return NextResponse.json({ ok: false, message: 'Дата начала периода должна быть не позже даты окончания.' }, { status: 400 });
   }
-  if (days > 366) {
-    return NextResponse.json({ ok: false, message: 'Период отчёта не может превышать 366 дней.' }, { status: 400 });
+  if (!access.periodReports && !isAdminReportRangeWithinLimit(from, to)) {
+    return NextResponse.json(
+      { ok: false, message: `Период отчёта не может превышать ${MAX_ADMIN_REPORT_RANGE_DAYS} дней.` },
+      { status: 400 },
+    );
   }
-
+  if (date < from || date > to) {
+    return NextResponse.json({ ok: false, message: 'Дата расписания должна входить в выбранный период.' }, { status: 400 });
+  }
+  if (!access.periodReports && (from !== to || date !== from)) {
+    return NextResponse.json(
+      { ok: false, message: 'Отчёты за период доступны владельцу и директору.' },
+      { status: 403 },
+    );
+  }
   try {
-    return NextResponse.json(await getAdminDashboard(date, from, to));
+    const dailyAccess = session.role === 'admin'
+      ? getAdminDailyReportAccess(date, requestTime)
+      : { allowed: true, reason: 'today' as const, closesAt: null, today: dateInVladivostok(requestTime), yesterday: '' };
+    const dashboard = await getAdminDashboard(date, from, to, {
+      includeReports: access.fullReports || dailyAccess.allowed,
+    });
+    const responseTime = new Date();
+    const finalDailyAccess = session.role === 'admin'
+      ? getAdminDailyReportAccess(date, responseTime)
+      : dailyAccess;
+    const reportAllowed = access.fullReports || finalDailyAccess.allowed;
+    const safeDashboard = reportAllowed
+      ? dashboard
+      : stripClosedAdminReport(dashboard);
+
+    return NextResponse.json({
+      ...safeDashboard,
+      reportAccess: {
+        allowed: reportAllowed,
+        reason: access.fullReports ? 'full_access' : finalDailyAccess.reason,
+        closesAt: access.fullReports ? null : finalDailyAccess.closesAt,
+        serverNow: responseTime.toISOString(),
+      },
+    });
   } catch (error) {
     return errorResponse(error);
   }

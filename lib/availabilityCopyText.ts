@@ -38,7 +38,10 @@ export function buildFreeWindowsFromAvailability(baths: AvailabilityBath[], date
     });
     if (current.length) runs.push(current);
 
-    const bookableRuns = runs.filter((run) => run.some((slot) => slot.time !== '23:30' && slot.canStartBooking !== false));
+    const bookableRuns = runs.flatMap((run) => {
+      const firstBookable = run.findIndex((slot) => slot.time !== '23:30' && slot.canStartBooking !== false);
+      return firstBookable < 0 ? [] : [run.slice(firstBookable)];
+    });
     if (!bookableRuns.length) return `${bath.title}\nСвободных окон нет`;
 
     const lines = bookableRuns.map((run) => {

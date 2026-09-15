@@ -1456,6 +1456,50 @@ html[data-theme='light'] main > .schedule-section::before {
   display: none;
 }
 
+.admin-stock-scrollbar {
+  overscroll-behavior: contain;
+  scrollbar-color: rgba(214, 161, 95, 0.82) #0b0907;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.admin-stock-scrollbar::-webkit-scrollbar {
+  height: 12px;
+  width: 12px;
+}
+
+.admin-stock-scrollbar::-webkit-scrollbar-track {
+  background:
+    linear-gradient(90deg, rgba(214, 161, 95, 0.04), transparent 45%),
+    #0b0907;
+  border-left: 1px solid rgba(214, 161, 95, 0.16);
+}
+
+.admin-stock-scrollbar::-webkit-scrollbar-thumb {
+  background:
+    linear-gradient(180deg, #e8bb7d 0%, #c78c48 50%, #9c662f 100%);
+  background-clip: padding-box;
+  border: 3px solid #0b0907;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(255, 235, 201, 0.18);
+}
+
+.admin-stock-scrollbar::-webkit-scrollbar-thumb:hover {
+  background:
+    linear-gradient(180deg, #f0c98f 0%, #d6a15f 52%, #ae7437 100%);
+  background-clip: padding-box;
+}
+
+.admin-stock-scrollbar::-webkit-scrollbar-corner {
+  background: #0b0907;
+}
+
+.admin-stock-scrollbar::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
+}
+
 .ambient-aurora {
   filter: blur(44px);
   animation: aurora-drift 18s ease-in-out infinite alternate;
@@ -1883,7 +1927,7 @@ html[data-theme='light'] main > .schedule-section::before {
   transition: font-size 1050ms cubic-bezier(0.16, 1, 0.3, 1) 90ms, line-height 1050ms cubic-bezier(0.16, 1, 0.3, 1) 90ms, transform 1050ms cubic-bezier(0.16, 1, 0.3, 1) 90ms;
 }
 
-/* Slightly raise the "Средние бани" title without shifting siblings */
+/* Slightly raise the selected bath title without shifting siblings */
 .baths-showcase__card.is-center.is-selected .baths-showcase__cardInfo h3 {
   transform: translateY(-8px);
 }
@@ -2579,14 +2623,30 @@ html[data-theme='light'] .baths-showcase__mobileList--sub .baths-showcase__mobil
   align-items: center;
   backface-visibility: hidden;
   bottom: 24px;
+  cursor: grab;
   display: flex;
   gap: 10px;
   left: 24px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  padding: 4px 2px;
   position: absolute;
   right: 24px;
+  scrollbar-width: none;
+  touch-action: pan-x pinch-zoom;
   transform: translateZ(0);
+  user-select: none;
   will-change: opacity, transform;
   z-index: 3;
+}
+
+.baths-showcase__thumbs::-webkit-scrollbar {
+  display: none;
+}
+
+.baths-showcase__thumbs.is-dragging {
+  cursor: grabbing;
 }
 
 .baths-showcase__thumbs button {
@@ -2594,6 +2654,7 @@ html[data-theme='light'] .baths-showcase__mobileList--sub .baths-showcase__mobil
   border: 1px solid rgba(244, 238, 228, 0.24);
   border-radius: 8px;
   cursor: pointer;
+  flex: 0 0 118px;
   height: 74px;
   overflow: hidden;
   padding: 0;
@@ -2611,6 +2672,8 @@ html[data-theme='light'] .baths-showcase__mobileList--sub .baths-showcase__mobil
 .baths-showcase__thumbs img {
   height: 100%;
   object-fit: cover;
+  pointer-events: none;
+  user-select: none;
   width: 100%;
 }
 
@@ -3800,6 +3863,7 @@ html[data-theme='light'] .baths-showcase__price span {
   }
 
   .baths-showcase__thumbs button {
+    flex-basis: 100px;
     height: 68px;
     width: 100px;
   }

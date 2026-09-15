@@ -71,11 +71,23 @@ const HOURS_FORMATTER = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 
 const formatHours = (halfHourSlots: number) => HOURS_FORMATTER.format(halfHourSlots / 2);
 
 const localDate = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = `${now.getMonth() + 1}`.padStart(2, '0');
-  const day = `${now.getDate()}`.padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Vladivostok',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+};
+
+const currentVladivostokMinutes = () => {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Vladivostok',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date());
+  return Number(parts.find((part) => part.type === 'hour')?.value ?? 0) * 60
+    + Number(parts.find((part) => part.type === 'minute')?.value ?? 0);
 };
 
 const monthStartFor = (date: string) => `${date.slice(0, 7)}-01`;
@@ -260,8 +272,7 @@ export default function AdminAvailabilityCalendar({ onUpdatedAt }: { onUpdatedAt
       return [];
     }
 
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const currentMinutes = currentVladivostokMinutes();
 
     return FULL_DAY_TIMES.map((time) => {
       const bathSlots = selectedBaths.map((bath) => ({
@@ -354,8 +365,7 @@ export default function AdminAvailabilityCalendar({ onUpdatedAt }: { onUpdatedAt
       : bookingUrl;
 
   const dayLoads = useMemo(() => {
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const currentMinutes = currentVladivostokMinutes();
 
     return dates.map<DayLoad | null>((date) => {
       if (date < today || !selectedBaths.length) {
@@ -436,6 +446,13 @@ export default function AdminAvailabilityCalendar({ onUpdatedAt }: { onUpdatedAt
     setSelectedDurationMinutes(null);
   };
 
+  const openBusyRecord = (slot: ReadOnlySlot) => {
+    if (slot.status !== 'busy' || !selectedDate || !selectedBathId) return;
+    window.dispatchEvent(new CustomEvent('admin:open-record', {
+      detail: { date: selectedDate, bathId: selectedBathId, time: slot.time },
+    }));
+  };
+
   return (
     <section className="rounded-xl border border-[#d6a15f]/35 bg-[#15110d] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.3)] sm:p-6 lg:p-7">
       <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
@@ -448,6 +465,17 @@ export default function AdminAvailabilityCalendar({ onUpdatedAt }: { onUpdatedAt
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            disabled={status === 'loading'}
+            onClick={() => {
+              setSelectedMonth(currentMonth);
+              setSelectedDate(today);
+            }}
+            className="inline-flex h-16 items-center justify-center rounded-xl border border-[#d6a15f]/40 px-6 text-[15px] font-extrabold uppercase tracking-[0.08em] text-[#f4eee4] transition hover:border-[#d6a15f] hover:bg-[#d6a15f]/10 disabled:pointer-events-none disabled:opacity-30"
+          >
+            Сегодня
+          </button>
           <button
             type="button"
             aria-label="Предыдущий месяц"
@@ -745,16 +773,26 @@ export default function AdminAvailabilityCalendar({ onUpdatedAt }: { onUpdatedAt
                             <button
                               key={slot.time}
                               type="button"
-                              disabled={slot.status !== 'free'}
-                              onClick={() => startBooking(slot)}
-                              title={slot.freeBaths.length ? `Свободны: ${slot.freeBaths.map((bath) => bath.title).join(', ')}` : undefined}
-                              aria-label={slot.status === 'free' ? `Забронировать на ${slot.time}` : `${slot.time}: ${statusLabel}`}
+                              disabled={slot.status === 'past' || slot.status === 'cleaning'}
+                              onClick={() => slot.status === 'free' ? startBooking(slot) : openBusyRecord(slot)}
+                              title={slot.status === 'free'
+                                ? `Свободны: ${slot.freeBaths.map((bath) => bath.title).join(', ')}`
+                                : slot.status === 'busy'
+                                  ? 'Открыть связанную запись в операционной панели'
+                                  : undefined}
+                              aria-label={slot.status === 'free'
+                                ? `Забронировать на ${slot.time}`
+                                : slot.status === 'busy'
+                                  ? `${slot.time}: открыть занятую запись`
+                                  : `${slot.time}: ${statusLabel}`}
                               className={`flex min-h-[66px] flex-col items-center justify-center rounded-lg border px-2 py-2 text-center transition ${toneClass} ${
                                 slot.status === 'free'
                                   ? isSelected
                                     ? '-translate-y-0.5 cursor-pointer'
                                     : 'cursor-pointer hover:-translate-y-0.5 hover:border-[#9bc29b] hover:bg-[#234029]/65'
-                                  : 'cursor-default'
+                                  : slot.status === 'busy'
+                                    ? 'cursor-pointer hover:border-[#d6a15f]/55 hover:text-[#b9aea0]'
+                                    : 'cursor-default'
                               }`}
                             >
                               <span className="text-[18px] font-extrabold leading-none">{slot.time}</span>

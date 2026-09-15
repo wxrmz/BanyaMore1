@@ -3,7 +3,7 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 
 const stats = [
-  { value: '4', label: 'Бани' },
+  { value: '3', label: 'Бани' },
   { value: '24/7', label: 'Режим работы' },
   { value: 'от 2500 ₽', label: 'за час' },
 ];

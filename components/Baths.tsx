@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion, useInView } from 'framer-motion';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { type PointerEvent as ReactPointerEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ArrowIcon } from './ArrowIcon';
 import { PeopleIcon } from './BathIcons';
 
@@ -24,15 +24,63 @@ const mobileIconPaths = {
 const containedGalleryImages = new Set([
   '/images/small-bath-2026-07.jpg',
   '/images/small-bath-2026-08.jpg',
-  '/images/big-bath-1-06.jpg',
-  '/images/big-bath-2-04.jpg',
-  '/images/big-bath-2-08.jpg',
+  '/images/big-bath-1-2026-04.jpg',
+  '/images/big-bath-1-2026-05.jpg',
+  '/images/big-bath-1-2026-12.jpg',
+  '/images/big-bath-2-2026-02.jpg',
+  '/images/big-bath-2-2026-03.jpg',
+  '/images/big-bath-2-2026-04.jpg',
+  '/images/big-bath-2-2026-05.jpg',
+  '/images/big-bath-2-2026-09.jpg',
+  '/images/big-bath-2-2026-10.jpg',
 ]);
 
-const bigBathCoverImages = [
-  '/images/big-bath-1-main.jpg',
-  '/images/big-bath-2-main.jpg',
+const bigBath1GalleryImages = [
+  '/images/big-bath-1-2026-01.jpg',
+  '/images/big-bath-1-2026-02.jpg',
+  '/images/big-bath-1-2026-03.jpg',
+  '/images/big-bath-1-2026-04.jpg',
+  '/images/big-bath-1-2026-05.jpg',
+  '/images/big-bath-1-2026-06.jpg',
+  '/images/big-bath-1-2026-07.jpg',
+  '/images/big-bath-1-2026-08.jpg',
+  '/images/big-bath-1-2026-09.jpg',
+  '/images/big-bath-1-2026-10.jpg',
+  '/images/big-bath-1-2026-11.jpg',
+  '/images/big-bath-1-2026-12.jpg',
+  '/images/big-bath-1-2026-13.jpg',
+  '/images/big-bath-1-2026-14.jpg',
+  '/images/big-bath-1-2026-15.jpg',
 ];
+
+const bigBath2GalleryImages = [
+  '/images/big-bath-2-2026-01.jpg',
+  '/images/big-bath-2-2026-02.jpg',
+  '/images/big-bath-2-2026-03.jpg',
+  '/images/big-bath-2-2026-04.jpg',
+  '/images/big-bath-2-2026-05.jpg',
+  '/images/big-bath-2-2026-06.jpg',
+  '/images/big-bath-2-2026-07.jpg',
+  '/images/big-bath-2-2026-08.jpg',
+  '/images/big-bath-2-2026-09.jpg',
+  '/images/big-bath-2-2026-10.jpg',
+  '/images/big-bath-2-2026-11.jpg',
+  '/images/big-bath-2-2026-12.jpg',
+  '/images/big-bath-2-2026-13.jpg',
+  '/images/big-bath-2-2026-14.jpg',
+];
+
+const bigBathCoverImages = [
+  bigBath1GalleryImages[0],
+  bigBath2GalleryImages[0],
+];
+
+const getBathThumbnailSrc = (src: string) =>
+  src.startsWith('/images/small-bath-2026-') ||
+  src.startsWith('/images/big-bath-1-2026-') ||
+  src.startsWith('/images/big-bath-2-2026-')
+    ? src.replace('/images/', '/images/thumbnails/')
+    : src;
 
 type BathConfig = {
   name: string;
@@ -110,59 +158,11 @@ const baths: BathConfig[] = [
     ],
   },
   {
-    name: 'Средние бани',
-    capacity: '1-6 человек',
-    price: '2 800 ₽/ч',
-    image: '/images/photo-22.jpg',
-    underRepair: true,
-    gallery: ['/images/photo-22.jpg'],
-    lead: 'Удобные бани для компании у моря.',
-    text: 'Два уровня для отдыха, просторная парная и отдельные зоны, чтобы удобно провести вечер семьей или компанией друзей.',
-    details: ['Два этажа', 'Просторная парная', 'Вид на море', 'Для компании'],
-    distance: '10 метров от моря',
-    extraPerson: '+ 400 ₽ доп. человек',
-    included: [
-      { icon: 'towel', count: 6 },
-      { icon: 'hat', count: 6 },
-      { icon: 'slippers', count: 6 },
-    ],
-    subBaths: [
-      {
-        name: 'Средняя 1',
-        capacity: '1-6 человек',
-        price: '2 800 ₽/ч',
-        image: '/images/photo-22.jpg',
-        underRepair: true,
-        gallery: ['/images/photo-22.jpg'],
-        lead: 'Удобная баня для компании у моря.',
-        text: 'Два уровня для отдыха, просторная парная и отдельные зоны, чтобы удобно провести вечер семьей или компанией друзей.',
-        details: ['Два этажа', 'Просторная парная', 'Вид на море', 'Для компании'],
-        distance: '10 метров от моря',
-        extraPerson: '+ 400 ₽ доп. человек',
-        included: [
-          { icon: 'towel', count: 6 },
-          { icon: 'hat', count: 6 },
-          { icon: 'slippers', count: 6 },
-        ],
-      },
-    ],
-  },
-  {
     name: 'Большие бани',
     capacity: '1-8 человек',
     price: '3 000 ₽/ч',
-    image: '/images/big-bath-1-main.jpg',
-    gallery: [
-      '/images/big-bath-1-main.jpg',
-      '/images/big-bath-1-01.jpg',
-      '/images/big-bath-1-02.jpg',
-      '/images/big-bath-1-03.jpg',
-      '/images/big-bath-1-04.jpg',
-      '/images/big-bath-1-05.jpg',
-      '/images/big-bath-1-06.jpg',
-      '/images/big-bath-1-07.jpg',
-      '/images/big-bath-1-08.jpg',
-    ],
+    image: bigBath1GalleryImages[0],
+    gallery: bigBath1GalleryImages,
     lead: 'Просторные бани для свободного отдыха.',
     text: 'Много воздуха, широкая зона отдыха и комфортный общий стол для длинного вечера после парной.',
     details: ['Очень просторно', 'Большая терраса', 'Мини-кухня', 'Для компании'],
@@ -179,18 +179,8 @@ const baths: BathConfig[] = [
         calendarBathId: 'big-1',
         capacity: '1-8 человек',
         price: '3 000 ₽/ч',
-        image: '/images/big-bath-1-main.jpg',
-        gallery: [
-          '/images/big-bath-1-main.jpg',
-          '/images/big-bath-1-01.jpg',
-          '/images/big-bath-1-02.jpg',
-          '/images/big-bath-1-03.jpg',
-          '/images/big-bath-1-04.jpg',
-          '/images/big-bath-1-05.jpg',
-          '/images/big-bath-1-06.jpg',
-          '/images/big-bath-1-07.jpg',
-          '/images/big-bath-1-08.jpg',
-        ],
+        image: bigBath1GalleryImages[0],
+        gallery: bigBath1GalleryImages,
         lead: 'Просторная баня с большой террасой.',
         text: 'Много воздуха, широкая зона отдыха и комфортный общий стол для длинного вечера после парной.',
         details: ['Очень просторно', 'Большая терраса', 'Мини-кухня', 'Для компании'],
@@ -207,18 +197,8 @@ const baths: BathConfig[] = [
         calendarBathId: 'big-2',
         capacity: '1-8 человек',
         price: '3 000 ₽/ч',
-        image: '/images/big-bath-2-main.jpg',
-        gallery: [
-          '/images/big-bath-2-main.jpg',
-          '/images/big-bath-2-01.jpg',
-          '/images/big-bath-2-02.jpg',
-          '/images/big-bath-2-03.jpg',
-          '/images/big-bath-2-04.jpg',
-          '/images/big-bath-2-08.jpg',
-          '/images/big-bath-2-05.jpg',
-          '/images/big-bath-2-06.jpg',
-          '/images/big-bath-2-07.jpg',
-        ],
+        image: bigBath2GalleryImages[0],
+        gallery: bigBath2GalleryImages,
         lead: 'Уютная большая баня с панорамным видом.',
         text: 'Просторная парная, отдельная зона отдыха и всё необходимое для большой компании у моря.',
         details: ['Панорамный вид', 'Просторная парная', 'Большой стол', 'Для компании'],
@@ -254,7 +234,58 @@ export default function Baths() {
   const [isGalleryFading, setIsGalleryFading] = useState(false);
   const [bathViewerIndex, setBathViewerIndex] = useState<number | null>(null);
   const galleryFadeTimer = useRef<number | null>(null);
+  const bathThumbsRef = useRef<HTMLDivElement | null>(null);
+  const bathThumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const bathThumbDrag = useRef({
+    pointerId: null as number | null,
+    startX: 0,
+    scrollLeft: 0,
+    moved: false,
+  });
   const [isClosing, setIsClosing] = useState(false);
+
+  const handleBathThumbPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== 'mouse' || event.button !== 0) {
+      return;
+    }
+
+    bathThumbDrag.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      scrollLeft: event.currentTarget.scrollLeft,
+      moved: false,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+    event.currentTarget.classList.add('is-dragging');
+  };
+
+  const handleBathThumbPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = bathThumbDrag.current;
+    if (drag.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const delta = event.clientX - drag.startX;
+    if (!drag.moved && Math.abs(delta) <= 8) {
+      return;
+    }
+
+    drag.moved = true;
+    event.preventDefault();
+    event.currentTarget.scrollLeft = drag.scrollLeft - delta;
+  };
+
+  const finishBathThumbDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (bathThumbDrag.current.pointerId !== event.pointerId) {
+      return;
+    }
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    event.currentTarget.classList.remove('is-dragging');
+    bathThumbDrag.current.pointerId = null;
+  };
 
   useEffect(() => {
     bigBathCoverImages.forEach((src) => {
@@ -535,6 +566,47 @@ export default function Baths() {
   const expandedBath = expanded === null ? null : baths[expanded];
   const expandedSubBath = subExpanded === null ? null : (baths[active].subBaths?.[subExpanded] ?? null);
   const selectedBath = expandedSubBath ?? expandedBath ?? baths[active];
+
+  useEffect(() => {
+    if (!isExpandedView || selectedBath.gallery.length < 2) {
+      return;
+    }
+
+    const lastIndex = selectedBath.gallery.length - 1;
+    const nearbyImages = [
+      selectedBath.gallery[galleryIndex],
+      selectedBath.gallery[galleryIndex === 0 ? lastIndex : galleryIndex - 1],
+      selectedBath.gallery[galleryIndex === lastIndex ? 0 : galleryIndex + 1],
+    ];
+
+    nearbyImages.forEach((src) => {
+      const image = new window.Image();
+      image.decoding = 'async';
+      image.src = src;
+      void image.decode().catch(() => undefined);
+    });
+  }, [galleryIndex, isExpandedView, selectedBath]);
+
+  useEffect(() => {
+    if (!isExpandedView) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      const list = bathThumbsRef.current;
+      const item = bathThumbRefs.current[galleryIndex];
+      if (!list || !item) {
+        return;
+      }
+
+      list.scrollTo({
+        behavior: 'smooth',
+        left: item.offsetLeft - (list.clientWidth - item.clientWidth) / 2,
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [galleryIndex, isExpandedView, selectedBath]);
 
   const openBathViewer = (index: number) => {
     setBathViewerIndex(index);
@@ -922,6 +994,7 @@ export default function Baths() {
                         <img
                           key={`${selectedBath.gallery[prevGalleryIndex]}-backdrop`}
                           src={selectedBath.gallery[prevGalleryIndex]}
+                          decoding="async"
                           alt=""
                           aria-hidden="true"
                           className="baths-showcase__expandedImage baths-showcase__expandedBackdrop is-fading-out"
@@ -930,6 +1003,7 @@ export default function Baths() {
                       <img
                         key={selectedBath.gallery[prevGalleryIndex]}
                         src={selectedBath.gallery[prevGalleryIndex]}
+                        decoding="async"
                         alt={selectedBath.name}
                         className={`baths-showcase__expandedImage is-fading-out ${
                           containedGalleryImages.has(selectedBath.gallery[prevGalleryIndex]) ? 'is-contained' : ''
@@ -941,6 +1015,7 @@ export default function Baths() {
                     <img
                       key={`${selectedBath.gallery[galleryIndex]}-backdrop`}
                       src={selectedBath.gallery[galleryIndex]}
+                      decoding="async"
                       alt=""
                       aria-hidden="true"
                       className={`baths-showcase__expandedImage baths-showcase__expandedBackdrop ${
@@ -951,6 +1026,7 @@ export default function Baths() {
                   <img
                     key={selectedBath.gallery[galleryIndex]}
                     src={selectedBath.gallery[galleryIndex]}
+                    decoding="async"
                     alt={selectedBath.name}
                     className={`baths-showcase__expandedImage ${
                       containedGalleryImages.has(selectedBath.gallery[galleryIndex]) ? 'is-contained' : ''
@@ -997,12 +1073,28 @@ export default function Baths() {
                           <path d="M5 16h20M18 9l7 7-7 7" />
                         </svg>
                       </button>
-                      <div className="baths-showcase__thumbs" aria-label="Фотографии бани">
+                      <div
+                        ref={bathThumbsRef}
+                        className="baths-showcase__thumbs"
+                        aria-label="Фотографии бани"
+                        onPointerDown={handleBathThumbPointerDown}
+                        onPointerMove={handleBathThumbPointerMove}
+                        onPointerUp={finishBathThumbDrag}
+                        onPointerCancel={finishBathThumbDrag}
+                      >
                         {selectedBath.gallery.map((image, index) => (
                           <button
                             key={image}
+                            ref={(node) => {
+                              bathThumbRefs.current[index] = node;
+                            }}
                             type="button"
                             onClick={() => {
+                              if (bathThumbDrag.current.moved) {
+                                bathThumbDrag.current.moved = false;
+                                return;
+                              }
+
                               if (galleryIndex === index && window.innerWidth <= 639) {
                                 openBathViewer(index);
                                 return;
@@ -1013,7 +1105,7 @@ export default function Baths() {
                             className={galleryIndex === index ? 'is-active' : ''}
                             aria-label={`Показать фото ${index + 1}`}
                           >
-                            <img src={image} alt="" />
+                            <img src={getBathThumbnailSrc(image)} alt="" loading="eager" decoding="async" />
                           </button>
                         ))}
                       </div>
@@ -1145,6 +1237,7 @@ export default function Baths() {
                     <motion.img
                       key={selectedBath.gallery[bathViewerIndex]}
                       src={selectedBath.gallery[bathViewerIndex]}
+                      decoding="async"
                       alt={`${selectedBath.name}, фото ${bathViewerIndex + 1}`}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}

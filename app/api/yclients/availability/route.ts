@@ -1,4 +1,9 @@
 import { NextResponse } from 'next/server';
+import {
+  cachedYclientsValue,
+  fetchYclientsWithRetry,
+  yclientsCacheTtlMs,
+} from '@/lib/yclientsTransport';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,6 +43,17 @@ type RawTimeSlot =
       service_id?: number;
       service_title?: string;
     };
+
+type RawRecord = {
+  id?: number;
+  staff_id?: number;
+  datetime?: string;
+  date?: string;
+  seance_length?: number;
+  length?: number;
+  technical_break_duration?: number;
+  deleted?: boolean | number;
+};
 
 type PublicSlot = {
   time: string;
@@ -200,6 +216,11 @@ const makeDayTimes = () => {
   return result;
 };
 
+const timeToMinutes = (time: string) => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
 const countBookableSlots = (slots: PublicSlot[]) =>
   slots.filter((slot) => slot.available && slot.canStartBooking !== false).length;
 
@@ -224,17 +245,20 @@ const authHeaders = () => {
 };
 
 async function fetchYclients<T>(path: string): Promise<T | null> {
-  const response = await fetch(`${API_BASE}${path}`, {
-    headers: authHeaders(),
-    next: { revalidate: 60 },
-  });
-
-  if (!response.ok) {
+  const authScope = process.env.YCLIENTS_USER_TOKEN ? 'user' : 'partner';
+  try {
+    return await cachedYclientsValue(`${authScope}:${path}`, yclientsCacheTtlMs(path), async () => {
+      const response = await fetchYclientsWithRetry(`${API_BASE}${path}`, {
+        cache: 'no-store',
+        headers: authHeaders(),
+      });
+      if (!response.ok) throw new Error(`YCLIENTS responded with ${response.status}`);
+      const json = (await response.json()) as YclientsEnvelope<T> | T;
+      return normalizeEnvelope<T>(json);
+    });
+  } catch {
     return null;
   }
-
-  const json = (await response.json()) as YclientsEnvelope<T> | T;
-  return normalizeEnvelope<T>(json);
 }
 
 async function firstSuccessful<T>(paths: string[]) {
@@ -247,6 +271,24 @@ async function firstSuccessful<T>(paths: string[]) {
   }
 
   return null;
+}
+
+async function fetchRecords(from: string, to: string) {
+  const records: RawRecord[] = [];
+  for (let page = 1; page <= 100; page += 1) {
+    const query = new URLSearchParams({
+      page: String(page),
+      count: '200',
+      start_date: from,
+      end_date: to,
+    });
+    const batch = await fetchYclients<RawRecord[]>(`/records/${COMPANY_ID}?${query}`);
+    if (!batch) throw new Error(`YCLIENTS records request failed for ${from} — ${to}`);
+    records.push(...batch);
+    if (batch.length < 200) break;
+    if (page === 100) throw new Error(`YCLIENTS records response is truncated for ${from} — ${to}`);
+  }
+  return records.filter((record) => record.deleted !== true && record.deleted !== 1);
 }
 
 const serviceTitle = (service: YclientsService) => service.booking_title ?? service.title ?? service.name ?? 'Баня Море';
@@ -513,7 +555,48 @@ function buildActualAvailabilitySlotDays(freeStartSlotsByDay: Map<string, Public
   );
 }
 
-async function buildBathAvailability(bath: BathConfig, dates: string[]): Promise<PublicBath> {
+const isoDayNumber = (value: string) => {
+  const [year, month, day] = value.split('-').map(Number);
+  return Math.floor(Date.UTC(year, month - 1, day) / 86_400_000);
+};
+
+function overlayExactRecordIntervals(
+  slotDays: PublicSlot[][],
+  dates: string[],
+  records: RawRecord[],
+  staffId: number,
+) {
+  const firstDay = isoDayNumber(dates[0]);
+  const intervals = records.flatMap((record) => {
+    if (Number(record.staff_id) !== staffId) return [];
+    const dateTime = record.datetime ?? record.date ?? '';
+    const match = /^(\d{4}-\d{2}-\d{2})[T\s](\d{1,2}):(\d{2})/.exec(dateTime);
+    if (!match) return [];
+    const start = (isoDayNumber(match[1]) - firstDay) * 1_440 + Number(match[2]) * 60 + Number(match[3]);
+    const totalMinutes = Math.max(0, Math.round(Number(record.seance_length ?? record.length ?? 0) / 60));
+    const cleaningMinutes = Math.min(totalMinutes, Math.max(0, Math.round(Number(record.technical_break_duration ?? 0) / 60)));
+    const serviceMinutes = Math.max(0, totalMinutes - cleaningMinutes);
+    if (!serviceMinutes) return [];
+    return [{
+      busyStart: start,
+      busyEnd: start + serviceMinutes,
+      cleaningStart: start + serviceMinutes,
+      cleaningEnd: start + serviceMinutes + cleaningMinutes,
+    }];
+  });
+
+  return slotDays.map((slots, dayIndex) => slots.map((slot) => {
+    const slotStart = dayIndex * 1_440 + timeToMinutes(slot.time);
+    const slotEnd = slotStart + SLOT_STEP_MINUTES;
+    const busy = intervals.some((interval) => slotStart < interval.busyEnd && slotEnd > interval.busyStart);
+    if (busy) return { ...slot, available: false, canStartBooking: false, status: 'busy' as const };
+    const cleaning = intervals.some((interval) => slotStart < interval.cleaningEnd && slotEnd > interval.cleaningStart);
+    if (cleaning) return { ...slot, available: false, canStartBooking: false, status: 'cleaning' as const };
+    return slot;
+  }));
+}
+
+async function buildBathAvailability(bath: BathConfig, dates: string[], records: RawRecord[]): Promise<PublicBath> {
   const service = { id: bath.serviceId, title: bath.title };
   const staff = { id: bath.staffId, name: bath.title };
   const lookaheadDate = formatDate(addDays(new Date(`${dates[dates.length - 1]}T00:00:00+10:00`), 1));
@@ -525,7 +608,12 @@ async function buildBathAvailability(bath: BathConfig, dates: string[]): Promise
     }),
     4,
   );
-  const slotDays = buildActualAvailabilitySlotDays(freeSlotsByDay, bath.durationMinutes);
+  const slotDays = overlayExactRecordIntervals(
+    buildActualAvailabilitySlotDays(freeSlotsByDay, bath.durationMinutes),
+    datesWithLookahead,
+    records,
+    bath.staffId,
+  );
   const days = dates.map((date, index) => {
     const slots = slotDays[index] ?? [];
 
@@ -616,7 +704,10 @@ export async function GET(request: Request) {
     }
 
     const dates = Array.from({ length: days }, (_, index) => formatDate(addDays(start, index)));
-    const baths = await Promise.all(bathConfigs.map((bath) => buildBathAvailability(bath, dates)));
+    const recordsFrom = formatDate(addDays(start, -1));
+    const recordsTo = formatDate(addDays(start, days));
+    const records = await fetchRecords(recordsFrom, recordsTo);
+    const baths = await Promise.all(bathConfigs.map((bath) => buildBathAvailability(bath, dates, records)));
     const availability = mergeBathDays(baths, dates);
 
     return NextResponse.json({

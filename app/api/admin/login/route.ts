@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
 import {
+  authenticateAdminCredentials,
+  clearFailedLogins,
   getClientRateLimitKey,
   isAdminAuthConfigured,
   isLoginRateLimited,
   isSameOriginRequest,
+  recordFailedLogin,
   setAdminSessionCookie,
-  validateAdminCredentials,
 } from '@/lib/adminAuth';
+import { getAdminAccess } from '@/lib/adminRoles';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -38,11 +41,22 @@ export async function POST(request: Request) {
   const password = typeof body === 'object' && body !== null && 'password' in body ? body.password : null;
   const remember = typeof body === 'object' && body !== null && 'remember' in body && body.remember === true;
 
-  if (typeof login !== 'string' || typeof password !== 'string' || !validateAdminCredentials(login, password)) {
+  const identity =
+    typeof login === 'string' && typeof password === 'string'
+      ? authenticateAdminCredentials(login, password)
+      : null;
+
+  if (!identity) {
+    recordFailedLogin(rateLimitKey);
     return NextResponse.json({ ok: false, message: 'Неверный логин или пароль.' }, { status: 401 });
   }
 
-  await setAdminSessionCookie(remember);
+  clearFailedLogins(rateLimitKey);
+  await setAdminSessionCookie(identity, remember);
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    role: identity.role,
+    access: getAdminAccess(identity.role),
+  });
 }

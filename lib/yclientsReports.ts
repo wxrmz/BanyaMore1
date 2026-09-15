@@ -1,3 +1,14 @@
+import {
+  BANYA_MORE_FINANCE_SOLD_ITEM_ENTRIES,
+  BANYA_MORE_INTERNAL_TRANSFER_EXPENSE_IDS,
+  BANYA_MORE_YCLIENTS_COMPANY_ID,
+} from './yclientsFinanceConfig.ts';
+import {
+  cachedYclientsValue,
+  fetchYclientsWithRetry,
+  yclientsCacheTtlMs,
+} from './yclientsTransport.ts';
+
 const API_BASE = 'https://api.yclients.com/api/v1';
 const COMPANY_ID = process.env.YCLIENTS_COMPANY_ID ?? '1300176';
 
@@ -38,7 +49,10 @@ type RawTransaction = {
   visit_id?: number;
   sold_item_id?: number;
   sold_item_type?: string;
-  expense?: { id?: number; title?: string; type?: number };
+  comment?: string;
+  description?: string;
+  document_id?: number;
+  expense?: { id?: number; title?: string; type?: number; comment?: string };
   account?: { id?: number; title?: string; is_cash?: boolean };
 };
 type RawConsumable = {
@@ -93,6 +107,8 @@ type RawGood = {
   good_id?: number;
   title?: string;
   category?: string;
+  category_title?: string;
+  category_parent_title?: string;
   category_id?: number;
   cost?: number;
   unit_short_title?: string;
@@ -109,7 +125,7 @@ type RawLoyaltyTransaction = {
   program?: { title?: string };
 };
 
-export type ExpenseBreakdownRow = { title: string; amount: number };
+export type ExpenseBreakdownRow = { id: string; title: string; amount: number; comments: string[]; transactionIds: number[] };
 export type DailyReport = {
   date: string;
   income: number;
@@ -131,8 +147,23 @@ export type BathRecordSummary = {
   state: 'past' | 'current' | 'future';
   durationMinutes: number;
   client: { name: string; phone: string; email: string };
-  services: Array<{ id: number; title: string; price: number; discount: number; amount: number; isKitchen: boolean }>;
+  bathTitle: string;
+  services: Array<{ id: number; title: string; price: number; discount: number; amount: number; total: number; isKitchen: boolean }>;
+  goods: Array<{ id: number; title: string; price: number; discount: number; amount: number; total: number }>;
+  payments: Array<{
+    id: number;
+    date: string;
+    amount: number;
+    account: string;
+    method: 'cash' | 'cashless';
+    kind: 'prepayment' | 'payment' | 'refund';
+  }>;
+  originalTotal: number;
+  discountTotal: number;
   total: number;
+  prepaymentAmount: number;
+  paidAmount: number;
+  balance: number;
   comment: string;
   attendance: number;
   prepaid: boolean;
@@ -168,18 +199,55 @@ export type ConsumableRow = {
   stock: number | null;
   stockUnit: string;
 };
+export type StandaloneKitchenOrder = {
+  id: string;
+  recordId: number;
+  date: string;
+  start: string;
+  client: { name: string; phone: string };
+  items: Array<{ id: number; title: string; quantity: number; unitPrice: number; total: number }>;
+  total: number;
+  comment: string;
+};
+export type StockRow = {
+  id: string;
+  goodId: number;
+  storageId: number;
+  storage: string;
+  group: string;
+  subgroup: string;
+  title: string;
+  unit: string;
+  stock: number;
+};
+export type DataIssue = {
+  id: string;
+  source: string;
+  period: string;
+  reason: 'unmapped' | 'unavailable' | 'permissions' | 'partial' | 'invalid';
+  message: string;
+};
+export type DataHealth = {
+  state: 'complete' | 'partial';
+  sources: Array<{ source: string; state: 'complete' | 'partial'; updatedAt: string }>;
+  issues: DataIssue[];
+};
+export const sourceUpdatedAt = (state: 'complete' | 'partial', generatedAt: string) => state === 'complete' ? generatedAt : '';
 export type ReportRange = { from: string; to: string };
 export type AdminDashboard = {
   ok: true;
   date: string;
   range: ReportRange;
-  report: DailyReport;
+  report?: DailyReport;
+  recordsAvailable: boolean;
   baths: BathSummary[];
-  kitchen: { sold: SalesRow[]; consumables: ConsumableRow[] };
-  additionalServices: SalesRow[];
-  goods: SalesRow[];
-  beer: SalesRow[];
-  drinks: SalesRow[];
+  kitchen?: { sold: SalesRow[]; consumables: ConsumableRow[]; standaloneOrders: StandaloneKitchenOrder[] };
+  additionalServices?: SalesRow[];
+  goods?: SalesRow[];
+  beer?: SalesRow[];
+  drinks?: SalesRow[];
+  stocks: StockRow[];
+  dataHealth: DataHealth;
   copyText: { freeWindows: string; occupiedTimes: string; occupiedBaths: string };
   generatedAt: string;
 };
@@ -213,11 +281,10 @@ async function yclientsRequest<T>(path: string, init?: RequestInit): Promise<T> 
   }
 
   const method = init?.method?.toUpperCase() ?? 'GET';
-  const maxAttempts = method === 'GET' ? 3 : 1;
-  let response: Response | undefined;
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+  const load = async () => {
+    let response: Response;
     try {
-      response = await fetch(`${API_BASE}${path}`, {
+      response = await fetchYclientsWithRetry(`${API_BASE}${path}`, {
         ...init,
         cache: 'no-store',
         headers: {
@@ -226,29 +293,29 @@ async function yclientsRequest<T>(path: string, init?: RequestInit): Promise<T> 
           ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
           ...init?.headers,
         },
-      });
+      }, method === 'GET' ? 5 : 1);
     } catch {
-      response = undefined;
+      throw new YclientsReportsError('YCLIENTS временно не отвечает.');
     }
-    if (response && response.status !== 429 && response.status < 500) break;
-    if (attempt < maxAttempts) await new Promise((resolve) => setTimeout(resolve, attempt * 250));
-  }
+    const payload = (await response.json().catch(() => null)) as YclientsEnvelope<T> | T | null;
+    if (response.ok && Array.isArray(payload)) return payload as T;
+    const envelope = payload as YclientsEnvelope<T> | null;
+    if (!response.ok || envelope?.success === false || envelope?.data === undefined) {
+      const permissionDenied = response.status === 401 || response.status === 403;
+      throw new YclientsReportsError(
+        permissionDenied
+          ? `YCLIENTS отклонил запрос: ${messageFromMeta(envelope?.meta) || 'у токена недостаточно прав.'}`
+          : messageFromMeta(envelope?.meta) || 'YCLIENTS временно не отвечает.',
+        response.status || 502,
+        permissionDenied ? 'yclients_permissions' : 'yclients_error',
+      );
+    }
+    return envelope.data;
+  };
 
-  if (!response) throw new YclientsReportsError('YCLIENTS временно не отвечает.');
-  const payload = (await response.json().catch(() => null)) as YclientsEnvelope<T> | T | null;
-  if (response.ok && Array.isArray(payload)) return payload as T;
-  const envelope = payload as YclientsEnvelope<T> | null;
-  if (!response.ok || envelope?.success === false || envelope?.data === undefined) {
-    const permissionDenied = response.status === 401 || response.status === 403;
-    throw new YclientsReportsError(
-      permissionDenied
-        ? `YCLIENTS отклонил запрос: ${messageFromMeta(envelope?.meta) || 'у токена недостаточно прав.'}`
-        : messageFromMeta(envelope?.meta) || 'YCLIENTS временно не отвечает.',
-      response.status || 502,
-      permissionDenied ? 'yclients_permissions' : 'yclients_error',
-    );
-  }
-  return envelope.data;
+  return method === 'GET'
+    ? cachedYclientsValue(`user:${path}`, yclientsCacheTtlMs(path), load)
+    : load();
 }
 
 async function fetchPages<T>(makePath: (page: number, count: number) => string, count: number) {
@@ -264,6 +331,14 @@ async function fetchPages<T>(makePath: (page: number, count: number) => string, 
 const numberValue = (value: unknown) => {
   const result = Number(value ?? 0);
   return Number.isFinite(result) ? result : 0;
+};
+const definedNumber = (...values: unknown[]) => {
+  for (const value of values) {
+    if (value === undefined || value === null) continue;
+    const result = Number(value);
+    if (Number.isFinite(result)) return result;
+  }
+  return null;
 };
 const normalizedTitle = (value?: string) => value?.trim().toLocaleLowerCase('ru-RU') ?? '';
 const isKppChecksTitle = (value?: string) => {
@@ -291,6 +366,12 @@ const serviceRevenue = (service: RawRecordService) => numberValue(service.cost ?
 const serviceUnitPrice = (service: RawRecordService) =>
   numberValue(service.cost_per_unit ?? service.first_cost ?? service.manual_cost) ||
   serviceRevenue(service) / Math.max(1, serviceQuantity(service));
+const goodsTransactionQuantity = (item: RawGoodsTransaction) => Math.abs(numberValue(item.amount));
+const goodsTransactionUnitPrice = (item: RawGoodsTransaction) => definedNumber(item.price, item.cost_per_unit) ?? 0;
+const goodsTransactionRevenue = (item: RawGoodsTransaction) => {
+  const recorded = definedNumber(item.cost_to_pay, item.cost, item.manual_cost);
+  return recorded ?? goodsTransactionQuantity(item) * goodsTransactionUnitPrice(item);
+};
 
 export const bathDefinitions: Array<{
   id: BathSummary['id'];
@@ -303,6 +384,39 @@ export const bathDefinitions: Array<{
   { id: 'big-2', title: 'Большая баня 2', shortTitle: 'ББ2', staffId: Number(process.env.YCLIENTS_BIG_BATH_2_STAFF_ID ?? 3873916) },
 ];
 
+const financeSoldItemRows = new Map(BANYA_MORE_FINANCE_SOLD_ITEM_ENTRIES);
+const bathRevenueRowById: Record<BathSummary['id'], string> = {
+  small: 'revenue.small_bath',
+  'big-1': 'revenue.big_bath',
+  'big-2': 'revenue.big_bath_2',
+};
+
+const financeRevenueRowForRecordTransaction = (
+  transaction: RawTransaction,
+  record: RawRecord,
+) => {
+  const soldItemId = numberValue(transaction.sold_item_id);
+  const soldItemType = (transaction.sold_item_type ?? '').trim().toLocaleLowerCase('en-US');
+  if (soldItemType === 'service' && soldItemId) {
+    return financeSoldItemRows.get(`service:${soldItemId}`) ?? null;
+  }
+  if (soldItemType === 'good' && soldItemId) {
+    return financeSoldItemRows.get(`good:${soldItemId}`) ?? null;
+  }
+  if (soldItemType === 'goods_transaction' && soldItemId) {
+    const goodId = numberValue(record.goods_transactions?.find((item) => numberValue(item.id) === soldItemId)?.good_id);
+    return goodId ? financeSoldItemRows.get(`good:${goodId}`) ?? null : null;
+  }
+  if (numberValue(transaction.expense?.id) === 8) {
+    const rows = new Set((record.services ?? []).flatMap((service) => {
+      const row = financeSoldItemRows.get(`service:${numberValue(service.id)}`);
+      return row ? [row] : [];
+    }));
+    return rows.size === 1 ? rows.values().next().value ?? null : null;
+  }
+  return null;
+};
+
 type Catalog = {
   services: RawService[];
   serviceCategoryTitles: Map<number, string>;
@@ -310,15 +424,29 @@ type Catalog = {
   goods: RawGood[];
   goodsById: Map<number, RawGood>;
   storages: RawStorage[];
+  issues: DataIssue[];
 };
 
 async function getCatalog(): Promise<Catalog> {
-  const [services, categories, goods, storages] = await Promise.all([
+  const settled = await Promise.allSettled([
     yclientsRequest<RawService[]>(`/services/${COMPANY_ID}?count=300`),
     yclientsRequest<RawCategory[]>(`/service_categories/${COMPANY_ID}`),
     fetchPages<RawGood>((page, count) => `/goods/${COMPANY_ID}?page=${page}&count=${count}`, 25),
     yclientsRequest<RawStorage[]>(`/storages/${COMPANY_ID}`),
   ]);
+  const [servicesResult, categoriesResult, goodsResult, storagesResult] = settled;
+  const services = servicesResult.status === 'fulfilled' ? servicesResult.value as RawService[] : [];
+  const categories = categoriesResult.status === 'fulfilled' ? categoriesResult.value as RawCategory[] : [];
+  const goods = goodsResult.status === 'fulfilled' ? goodsResult.value as RawGood[] : [];
+  const storages = storagesResult.status === 'fulfilled' ? storagesResult.value as RawStorage[] : [];
+  const names = ['Услуги YCLIENTS', 'Категории услуг YCLIENTS', 'Товары YCLIENTS', 'Склады YCLIENTS'];
+  const issues = settled.flatMap((result, index) => result.status === 'rejected' ? [{
+    id: `catalog:${index}`,
+    source: names[index],
+    period: 'Текущие справочники',
+    reason: result.reason instanceof YclientsReportsError && result.reason.code === 'yclients_permissions' ? 'permissions' as const : 'unavailable' as const,
+    message: result.reason instanceof Error ? result.reason.message : 'Источник временно недоступен.',
+  }] : []);
   const serviceCategoryTitles = new Map(categories.map((item) => [numberValue(item.id), item.title ?? 'Без группы']));
   const serviceCategoryByService = new Map(
     services.map((service) => [numberValue(service.id), serviceCategoryTitles.get(numberValue(service.category_id)) ?? 'Без группы']),
@@ -330,6 +458,7 @@ async function getCatalog(): Promise<Catalog> {
     goods,
     goodsById: new Map(goods.map((good) => [numberValue(good.good_id), good])),
     storages,
+    issues,
   };
 }
 
@@ -368,38 +497,70 @@ async function enrichCatalogWithReferencedGoods(catalog: Catalog, records: RawRe
     catalog.goods.push(good);
     catalog.goodsById.set(goodId, good);
   });
+  const missingCount = Array.from(referencedIds).filter((goodId) => !catalog.goodsById.has(goodId)).length;
+  if (missingCount) {
+    catalog.issues.push({
+      id: 'catalog:referenced-goods',
+      source: 'Карточки товаров YCLIENTS',
+      period: 'Текущие справочники',
+      reason: 'partial',
+      message: `Не удалось загрузить ${missingCount} ${missingCount === 1 ? 'карточку товара' : 'карточек товаров'}; для них остаток может быть недоступен.`,
+    });
+  }
 }
 
+const addIsoDays = (value: string, days: number) => {
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day + days));
+  return date.toISOString().slice(0, 10);
+};
+
+const reportRangeChunks = (from: string, to: string, chunkDays = 180) => {
+  const chunks: Array<{ from: string; to: string }> = [];
+  let cursor = from;
+  while (cursor <= to) {
+    const chunkTo = [addIsoDays(cursor, chunkDays - 1), to].sort()[0];
+    chunks.push({ from: cursor, to: chunkTo });
+    cursor = addIsoDays(chunkTo, 1);
+  }
+  return chunks;
+};
+
 async function getRecords(from: string, to: string) {
-  const records = await fetchPages<RawRecord>((page, count) => {
-    const query = new URLSearchParams({
-      page: String(page),
-      count: String(count),
-      start_date: from,
-      end_date: to,
-      include_consumables: '1',
-      include_finance_transactions: '1',
-    });
-    return `/records/${COMPANY_ID}?${query}`;
-  }, 200);
+  const records: RawRecord[] = [];
+  for (const chunk of reportRangeChunks(from, to)) {
+    records.push(...await fetchPages<RawRecord>((page, count) => {
+      const query = new URLSearchParams({
+        page: String(page),
+        count: String(count),
+        start_date: chunk.from,
+        end_date: chunk.to,
+        include_consumables: '1',
+        include_finance_transactions: '1',
+      });
+      return `/records/${COMPANY_ID}?${query}`;
+    }, 200));
+  }
   return records
     .filter((record) => !record.deleted && recordLocalDate(record) >= from && recordLocalDate(record) <= to)
     .sort((left, right) => recordDateTime(left).localeCompare(recordDateTime(right)));
 }
 
 async function getTransactions(from: string, to: string) {
-  const compactFrom = from.replaceAll('-', '');
-  const compactTo = to.replaceAll('-', '');
-  return fetchPages<RawTransaction>((page, count) => {
-    const query = new URLSearchParams({
-      page: String(page),
-      count: String(count),
-      start_date: compactFrom,
-      end_date: compactTo,
-      deleted: '0',
-    });
-    return `/transactions/${COMPANY_ID}?${query}`;
-  }, 200);
+  const transactions: RawTransaction[] = [];
+  for (const chunk of reportRangeChunks(from, to)) {
+    transactions.push(...await fetchPages<RawTransaction>((page, count) => {
+      const query = new URLSearchParams({
+        page: String(page),
+        count: String(count),
+        start_date: chunk.from.replaceAll('-', ''),
+        end_date: chunk.to.replaceAll('-', ''),
+        deleted: '0',
+      });
+      return `/transactions/${COMPANY_ID}?${query}`;
+    }, 200));
+  }
+  return transactions;
 }
 
 const kppAmountFromTitle = (title: string) =>
@@ -426,12 +587,12 @@ async function runPool<T>(tasks: Array<() => Promise<T>>, limit: number) {
   return results;
 }
 
-async function getKppByRecord(records: RawRecord[]) {
+async function getKppByRecord(records: RawRecord[], period: ReportRange) {
   const pairs = await runPool(
-    records.map((record) => async (): Promise<[number, number]> => {
+    records.map((record) => async () => {
       const fallback = kppFallbackFromRecord(record);
       const visitId = numberValue(record.visit_id);
-      if (!visitId) return [numberValue(record.id), fallback];
+      if (!visitId) return { recordId: numberValue(record.id), amount: fallback, failed: false };
       try {
         const transactions = await yclientsRequest<RawLoyaltyTransaction[]>(`/visit/loyalty/transactions/${visitId}`);
         const amount = transactions.reduce((sum, transaction) => {
@@ -444,14 +605,24 @@ async function getKppByRecord(records: RawRecord[]) {
           const fromTitle = kppAmountFromTitle(transaction.program?.title ?? '');
           return sum + (actual || fromTitle);
         }, 0);
-        return [numberValue(record.id), Math.round(amount || fallback)];
+        return { recordId: numberValue(record.id), amount: Math.round(amount || fallback), failed: false };
       } catch {
-        return [numberValue(record.id), fallback];
+        return { recordId: numberValue(record.id), amount: fallback, failed: true };
       }
     }),
     4,
   );
-  return new Map(pairs);
+  const failed = pairs.filter((pair) => pair.failed);
+  return {
+    values: new Map(pairs.map((pair) => [pair.recordId, pair.amount])),
+    issues: failed.length ? [{
+      id: 'loyalty:kpp',
+      source: 'Акции и скидки КПП YCLIENTS',
+      period: `${period.from} — ${period.to}`,
+      reason: 'partial' as const,
+      message: `Не удалось проверить программы лояльности у ${failed.length} ${failed.length === 1 ? 'записи' : 'записей'}; использован резервный поиск по данным записи.`,
+    }] : [],
+  };
 }
 
 const prepaymentAccounts = new Set(
@@ -459,25 +630,72 @@ const prepaymentAccounts = new Set(
 );
 const cashlessAccounts = new Set(['Безналичная оплата', 'Безналичная оплата терминал'].map(normalizedTitle));
 const terminalAccount = normalizedTitle('Безналичная оплата терминал');
+const cashlessAccount = (transaction: RawTransaction) =>
+  cashlessAccounts.has(normalizedTitle(transaction.account?.title)) || transaction.account?.is_cash === false;
+const internalTransferExpenseIds = new Set(
+  [
+    ...(COMPANY_ID === BANYA_MORE_YCLIENTS_COMPANY_ID ? BANYA_MORE_INTERNAL_TRANSFER_EXPENSE_IDS : []),
+    ...(process.env.YCLIENTS_INTERNAL_TRANSFER_EXPENSE_IDS ?? '').split(',').map(Number),
+  ].filter((value) => Number.isFinite(value) && value > 0),
+);
+const isInternalTransfer = (transaction: RawTransaction) => {
+  const text = normalizedTitle(`${transaction.expense?.title ?? ''} ${transaction.comment ?? ''} ${transaction.description ?? ''}`);
+  return internalTransferExpenseIds.has(numberValue(transaction.expense?.id)) || /перемещ|между касс|внутренн.*перевод/.test(text);
+};
+const transactionComment = (transaction: RawTransaction) =>
+  transaction.comment?.trim() || transaction.description?.trim() || transaction.expense?.comment?.trim() || '';
 
 export function calculateDailyReport({
   date,
   transactions,
   kppCompensation,
   kppCheckAmounts = [],
+  kppByRecord,
 }: {
   date: string;
   transactions: RawTransaction[];
   kppCompensation: number;
   kppCheckAmounts?: number[];
+  kppByRecord?: Map<number, number>;
 }): DailyReport {
   let income = 0;
   let expense = 0;
   let prepayments = 0;
   let cashless = 0;
   let terminal = 0;
-  const breakdown = new Map<string, number>();
-  const active = transactions.filter((transaction) => !transaction.deleted);
+  const breakdown = new Map<string, { title: string; amount: number; comments: Set<string>; transactionIds: Set<number> }>();
+  const unique = new Map<string, RawTransaction>();
+  transactions.filter((transaction) => !transaction.deleted && !isInternalTransfer(transaction)).forEach((transaction, index) => {
+    const id = numberValue(transaction.id);
+    const key = id ? `id:${id}` : `fallback:${transaction.date}:${transaction.amount}:${transaction.account?.id}:${transaction.expense?.id}:${index}`;
+    unique.set(key, transaction);
+  });
+  const active = Array.from(unique.values());
+  const linkedKppRecordIds = new Set(
+    active
+      .filter((transaction) => isKppChecksTitle(transaction.expense?.title))
+      .map((transaction) => numberValue(transaction.record_id))
+      .filter(Boolean),
+  );
+  const unmatchedKppExpenseAmounts = active
+    .filter((transaction) => isKppChecksTitle(transaction.expense?.title) && !numberValue(transaction.record_id))
+    .map((transaction) => Math.abs(numberValue(transaction.amount)));
+  const effectiveKppAmounts = kppByRecord
+    ? Array.from(kppByRecord, ([recordId, amount]) => ({ recordId, amount }))
+      .filter(({ recordId, amount }) => {
+        if (linkedKppRecordIds.has(recordId)) return false;
+        const matchingIndex = unmatchedKppExpenseAmounts.findIndex((candidate) => Math.abs(candidate - amount) < 0.01);
+        if (matchingIndex >= 0) {
+          unmatchedKppExpenseAmounts.splice(matchingIndex, 1);
+          return false;
+        }
+        return amount > 0;
+      })
+      .map(({ amount }) => amount)
+    : kppCheckAmounts;
+  const effectiveKppCompensation = kppByRecord
+    ? effectiveKppAmounts.reduce((sum, amount) => sum + amount, 0)
+    : kppCompensation;
 
   active.forEach((transaction) => {
     const amount = numberValue(transaction.amount);
@@ -488,7 +706,16 @@ export function calculateDailyReport({
       expense += absolute;
       const rawTitle = transaction.expense?.title?.trim() || 'Без статьи';
       const title = isKppChecksTitle(rawTitle) ? 'Чеки КПП' : rawTitle;
-      breakdown.set(title, (breakdown.get(title) ?? 0) + absolute);
+      const articleId = numberValue(transaction.expense?.id);
+      // КПП is a single business row by specification. Other rows use the
+      // immutable YCLIENTS article ID, so equal or renamed titles cannot merge.
+      const key = isKppChecksTitle(rawTitle) ? 'expense:kpp' : articleId ? `expense:${articleId}` : 'expense:unknown';
+      const current = breakdown.get(key) ?? { title, amount: 0, comments: new Set<string>(), transactionIds: new Set<number>() };
+      current.amount += absolute;
+      const comment = transactionComment(transaction);
+      if (comment) current.comments.add(comment);
+      if (numberValue(transaction.id)) current.transactionIds.add(numberValue(transaction.id));
+      breakdown.set(key, current);
       return;
     }
     const incoming = Math.max(0, amount);
@@ -498,25 +725,36 @@ export function calculateDailyReport({
     if (account === terminalAccount) terminal += incoming;
   });
 
-  if (kppCompensation > 0) {
-    income += kppCompensation;
-    expense += kppCompensation;
-    const existingKey = Array.from(breakdown.keys()).find(isKppChecksTitle);
-    const existingAmount = existingKey ? breakdown.get(existingKey) ?? 0 : 0;
-    if (existingKey && existingKey !== 'Чеки КПП') breakdown.delete(existingKey);
-    breakdown.set('Чеки КПП', existingAmount + kppCompensation);
+  if (effectiveKppCompensation > 0) {
+    const existingKey = 'expense:kpp';
+    const existing = breakdown.get(existingKey);
+    const existingAmount = existing?.amount ?? 0;
+    const targetAmount = existingAmount + effectiveKppCompensation;
+    expense += targetAmount - existingAmount;
+    breakdown.set(existingKey, {
+      title: 'Чеки КПП',
+      amount: targetAmount,
+      comments: existing?.comments ?? new Set<string>(),
+      transactionIds: existing?.transactionIds ?? new Set<number>(),
+    });
   }
 
-  const expenses = Array.from(breakdown, ([title, amount]) => ({ title, amount })).sort((left, right) => {
+  const expenses = Array.from(breakdown, ([id, row]) => ({
+    id,
+    title: row.title,
+    amount: row.amount,
+    comments: Array.from(row.comments),
+    transactionIds: Array.from(row.transactionIds),
+  })).sort((left, right) => {
     if (isKppChecksTitle(left.title)) return -1;
     if (isKppChecksTitle(right.title)) return 1;
     return left.title.localeCompare(right.title, 'ru');
   });
   const checkCounts = new Map<number, number>();
-  const sourceCheckAmounts = kppCheckAmounts.length
-    ? kppCheckAmounts
-    : kppCompensation > 0
-      ? [kppCompensation]
+  const sourceCheckAmounts = effectiveKppAmounts.length
+    ? effectiveKppAmounts
+    : effectiveKppCompensation > 0
+      ? [effectiveKppCompensation]
       : [];
   sourceCheckAmounts.forEach((amount) => {
     const denomination = Math.round(Math.abs(amount));
@@ -557,7 +795,7 @@ const recordState = (record: RawRecord, date: string): BathRecordSummary['state'
   return 'past';
 };
 
-function buildBaths(
+export function buildBaths(
   records: RawRecord[],
   date: string,
   catalog: Catalog,
@@ -574,18 +812,25 @@ function buildBaths(
     bathRecords.forEach((record) => {
       (record.services ?? []).forEach((service) => {
         const category = catalog.serviceCategoryByService.get(numberValue(service.id)) ?? '';
-        if (/баня|продлен/i.test(category) || /аренда|продлен/i.test(service.title ?? '')) revenue += serviceRevenue(service);
         if (/кухня/i.test(category)) {
-          kitchenRevenue += serviceRevenue(service);
           const title = service.title?.trim() || 'Блюдо';
           kitchenOrders.set(title, (kitchenOrders.get(title) ?? 0) + serviceQuantity(service));
         }
         discounts += Math.max(0, serviceUnitPrice(service) * serviceQuantity(service) - serviceRevenue(service));
       });
+      (record.goods_transactions ?? []).filter((item) => !item.deleted).forEach((item) => {
+        const original = goodsTransactionUnitPrice(item) * goodsTransactionQuantity(item);
+        discounts += Math.max(numberValue(item.discount), original - goodsTransactionRevenue(item), 0);
+      });
       (record.finance_transactions ?? []).forEach((transaction) => {
-        if (!transaction.deleted && prepaymentAccounts.has(normalizedTitle(transaction.account?.title))) {
-          prepayments += Math.max(0, numberValue(transaction.amount));
-        }
+        if (transaction.deleted || isInternalTransfer(transaction)) return;
+        const accountTitle = normalizedTitle(transaction.account?.title);
+        if (/сертификат/.test(accountTitle)) return;
+        const amount = numberValue(transaction.amount);
+        const rowKey = financeRevenueRowForRecordTransaction(transaction, record);
+        if (rowKey === bathRevenueRowById[bath.id]) revenue += amount;
+        if (rowKey === 'revenue.kitchen') kitchenRevenue += amount;
+        if (prepaymentAccounts.has(accountTitle)) prepayments += Math.max(0, amount);
       });
     });
     const kppChecks = bathRecords.reduce((sum, record) => sum + (kppByRecord.get(numberValue(record.id)) ?? 0), 0);
@@ -598,7 +843,7 @@ function buildBaths(
       kitchenRevenue,
       kitchenOrders: Array.from(kitchenOrders, ([title, quantity]) => ({ title, quantity })).sort((a, b) => a.title.localeCompare(b.title, 'ru')),
       kppChecks,
-      discounts: discounts + kppChecks,
+      discounts,
       records: bathRecords.map((record) => {
         const services = (record.services ?? []).map((service) => ({
           id: numberValue(service.id),
@@ -606,8 +851,49 @@ function buildBaths(
           price: serviceUnitPrice(service),
           discount: numberValue(service.discount),
           amount: Math.max(1, serviceQuantity(service)),
+          total: serviceRevenue(service),
           isKitchen: /кухня/i.test(catalog.serviceCategoryByService.get(numberValue(service.id)) ?? ''),
         }));
+        const goods = (record.goods_transactions ?? []).filter((item) => !item.deleted).map((item) => {
+          const id = numberValue(item.good_id);
+          const amount = goodsTransactionQuantity(item);
+          const total = goodsTransactionRevenue(item);
+          const price = goodsTransactionUnitPrice(item) || total / Math.max(1, amount);
+          const originalTotal = amount * price;
+          return {
+            id,
+            title: catalog.goodsById.get(id)?.title?.trim() || item.title?.trim() || `Товар ${id}`,
+            price,
+            discount: Math.max(numberValue(item.discount), originalTotal - total),
+            amount,
+            total,
+          };
+        });
+        const payments = (record.finance_transactions ?? [])
+          .filter((transaction) => !transaction.deleted && !isInternalTransfer(transaction))
+          .map((transaction) => {
+            const amount = numberValue(transaction.amount);
+            return {
+              id: numberValue(transaction.id),
+              date: transaction.date ?? '',
+              amount,
+              account: transaction.account?.title?.trim() || 'Касса не указана',
+              method: cashlessAccount(transaction) ? 'cashless' as const : 'cash' as const,
+              kind: amount < 0
+                ? 'refund' as const
+                : prepaymentAccounts.has(normalizedTitle(transaction.account?.title))
+                  ? 'prepayment' as const
+                  : 'payment' as const,
+            };
+          });
+        const originalTotal = services.reduce((sum, service) => sum + service.price * service.amount, 0)
+          + goods.reduce((sum, item) => sum + item.price * item.amount, 0);
+        const total = services.reduce((sum, service) => sum + service.total, 0)
+          + goods.reduce((sum, item) => sum + item.total, 0);
+        const prepaymentAmount = payments
+          .filter((payment) => payment.kind === 'prepayment')
+          .reduce((sum, payment) => sum + Math.max(0, payment.amount), 0);
+        const paidAmount = payments.reduce((sum, payment) => sum + payment.amount, 0);
         return {
           id: numberValue(record.id),
           date: recordLocalDate(record),
@@ -621,7 +907,15 @@ function buildBaths(
             email: record.client?.email?.trim() || '',
           },
           services,
-          total: services.reduce((sum, service) => sum + service.price * service.amount, 0),
+          goods,
+          payments,
+          bathTitle: bath.title,
+          originalTotal,
+          discountTotal: Math.max(0, originalTotal - total),
+          total,
+          prepaymentAmount,
+          paidAmount,
+          balance: Math.max(0, total - paidAmount),
           comment: record.comment?.trim() || '',
           attendance: numberValue(record.attendance ?? record.visit_attendance),
           prepaid: Boolean(record.prepaid || record.prepaid_confirmed),
@@ -641,7 +935,43 @@ const goodStock = (good: RawGood | undefined, storageIds?: Set<number>, inServic
   return stock * (inServiceUnits ? Math.max(1, numberValue(good.unit_equals) || 1) : 1);
 };
 
-function buildSalesReports(records: RawRecord[], catalog: Catalog) {
+const splitGoodCategory = (good: RawGood) => {
+  const raw = (good.category_parent_title || good.category_title || good.category || 'Без группы').trim();
+  const parts = raw.split(/\s*[>\/→]\s*/).filter(Boolean);
+  return {
+    group: parts[0] || 'Без группы',
+    subgroup: parts.slice(1).join(' / ') || parts[0] || 'Без подгруппы',
+  };
+};
+
+function buildStockReport(catalog: Catalog): StockRow[] {
+  const storageTitles = new Map(catalog.storages.map((storage) => [numberValue(storage.id), storage.title?.trim() || 'Склад']));
+  const rows: StockRow[] = [];
+  catalog.goods.forEach((good) => {
+    const goodId = numberValue(good.good_id);
+    const category = splitGoodCategory(good);
+    (good.actual_amounts ?? []).forEach((amount) => {
+      const storageId = numberValue(amount.storage_id);
+      rows.push({
+        id: `${storageId}:${goodId}`,
+        goodId,
+        storageId,
+        storage: storageTitles.get(storageId) || `Склад ${storageId}`,
+        ...category,
+        title: good.title?.trim() || `Товар ${goodId}`,
+        unit: good.unit_short_title || 'шт.',
+        stock: numberValue(amount.amount),
+      });
+    });
+  });
+  return rows.sort((left, right) =>
+    left.storage.localeCompare(right.storage, 'ru')
+    || left.group.localeCompare(right.group, 'ru')
+    || left.subgroup.localeCompare(right.subgroup, 'ru')
+    || left.title.localeCompare(right.title, 'ru'));
+}
+
+export function buildSalesReports(records: RawRecord[], catalog: Catalog) {
   type MutableSales = SalesRow & { storageIds: Set<number> };
   const kitchen = new Map<number, MutableSales>();
   const additionalServices = new Map<number, MutableSales>();
@@ -650,6 +980,9 @@ function buildSalesReports(records: RawRecord[], catalog: Catalog) {
   const drinks = new Map<number, MutableSales>();
   const consumables = new Map<number, ConsumableRow & { storageIds: Set<number> }>();
   const goodsByService = new Map<number, Set<number>>();
+  const kitchenOrderOccurrences = new Map<string, string>();
+  const kitchenOccurrencesWithConsumables = new Set<string>();
+  const standaloneOrders: StandaloneKitchenOrder[] = [];
 
   const addService = (map: Map<number, MutableSales>, service: RawRecordService) => {
     const id = numberValue(service.id);
@@ -669,17 +1002,50 @@ function buildSalesReports(records: RawRecord[], catalog: Catalog) {
     map.set(id, current);
   };
 
-  records.forEach((record) => {
+  records.forEach((record, recordIndex) => {
+    const recordKey = numberValue(record.id) || recordIndex + 1;
+    const recordKitchenItems: StandaloneKitchenOrder['items'] = [];
     (record.services ?? []).forEach((service) => {
+      const serviceId = numberValue(service.id);
       const category = catalog.serviceCategoryByService.get(numberValue(service.id)) ?? '';
-      if (/кухня/i.test(category)) addService(kitchen, service);
-      if (
-        /доп\.?\s*услуг/i.test(category) ||
-        /веник|мангал|реш[её]тк|шезлонг|шизлонг|тапоч|полотен|халат|шапк|простын/i.test(service.title ?? '')
-      ) addService(additionalServices, service);
+      const serviceText = `${category} ${service.title ?? ''}`;
+      const isKitchen = /кухня/i.test(category);
+      const isBath = /баня|аренд|продл[её]н/i.test(serviceText);
+      if (isKitchen) {
+        addService(kitchen, service);
+        kitchenOrderOccurrences.set(`${recordKey}:${serviceId}`, service.title?.trim() || `Услуга ${serviceId}`);
+        recordKitchenItems.push({
+          id: serviceId,
+          title: service.title?.trim() || `Блюдо ${serviceId}`,
+          quantity: serviceQuantity(service),
+          unitPrice: serviceUnitPrice(service),
+          total: serviceRevenue(service),
+        });
+      }
+      else if (!isBath) addService(additionalServices, service);
     });
 
-    (record.consumables ?? []).filter((item) => !item.deleted).forEach((item) => {
+    if (
+      recordKitchenItems.length
+      && !bathDefinitions.some((bath) => bath.staffId === numberValue(record.staff_id))
+    ) {
+      standaloneOrders.push({
+        id: `${recordKey}:${recordLocalDate(record)}:${recordStart(record)}`,
+        recordId: numberValue(record.id),
+        date: recordLocalDate(record),
+        start: recordStart(record),
+        client: {
+          name: record.client?.name?.trim() || 'Без имени',
+          phone: record.client?.phone?.trim() || '',
+        },
+        items: recordKitchenItems,
+        total: recordKitchenItems.reduce((sum, item) => sum + item.total, 0),
+        comment: record.comment?.trim() || '',
+      });
+    }
+
+    const activeServiceIds = new Set((record.services ?? []).map((service) => numberValue(service.id)));
+    (record.consumables ?? []).filter((item) => !item.deleted || activeServiceIds.has(numberValue(item.service_id))).forEach((item) => {
       const serviceId = numberValue(item.service_id);
       const serviceCategory = catalog.serviceCategoryByService.get(serviceId) ?? '';
       const goodId = numberValue(item.good_id);
@@ -690,18 +1056,21 @@ function buildSalesReports(records: RawRecord[], catalog: Catalog) {
         goodsByService.set(serviceId, linked);
       }
       if (!/кухня/i.test(serviceCategory) || !goodId) return;
+      kitchenOccurrencesWithConsumables.add(`${recordKey}:${serviceId}`);
       const multiplier = Math.max(1, numberValue(good?.unit_equals) || 1);
       const current = consumables.get(goodId) ?? {
         id: goodId,
         title: good?.title?.trim() || `Расходник ${goodId}`,
-        group: good?.category?.trim() || 'Без подгруппы',
+        group: good ? splitGoodCategory(good).subgroup : 'Без подгруппы',
         used: 0,
         usedUnit: good?.service_unit_short_title || good?.unit_short_title || 'ед.',
         stock: null,
         stockUnit: good?.service_unit_short_title || good?.unit_short_title || 'ед.',
         storageIds: new Set<number>(),
       };
-      current.used += Math.abs(numberValue(item.amount)) * multiplier;
+      const used = Math.abs(numberValue(item.amount)) * multiplier;
+      if (used <= 0) return;
+      current.used += used;
       if (numberValue(item.storage_id)) current.storageIds.add(numberValue(item.storage_id));
       consumables.set(goodId, current);
     });
@@ -710,14 +1079,18 @@ function buildSalesReports(records: RawRecord[], catalog: Catalog) {
       const id = numberValue(item.good_id);
       if (!id) return;
       const good = catalog.goodsById.get(id);
-      const category = good?.category?.trim() || 'Без категории';
+      const category = [good?.category_parent_title, good?.category_title, good?.category]
+        .map((value) => value?.trim())
+        .filter(Boolean)
+        .join(' / ') || 'Без категории';
       const target = /пиво/i.test(category) ? beer : /напит/i.test(category) ? drinks : goods;
-      const quantity = Math.abs(numberValue(item.amount));
-      const revenue = numberValue(item.cost_to_pay ?? item.cost ?? item.manual_cost) || quantity * numberValue(item.price ?? item.cost_per_unit);
+      const quantity = goodsTransactionQuantity(item);
+      if (!quantity) return;
+      const revenue = goodsTransactionRevenue(item);
       const current = target.get(id) ?? {
         id,
         title: good?.title?.trim() || item.title?.trim() || `Товар ${id}`,
-        unitPrice: numberValue(item.price ?? item.cost_per_unit) || revenue / Math.max(1, quantity),
+        unitPrice: goodsTransactionUnitPrice(item) || revenue / Math.max(1, quantity),
         quantity: 0,
         revenue: 0,
         stock: null,
@@ -747,17 +1120,35 @@ function buildSalesReports(records: RawRecord[], catalog: Catalog) {
   }));
 
   const finishSales = (map: Map<number, MutableSales>) => Array.from(map.values())
-    .map(({ storageIds: _storageIds, ...row }) => row)
+    .map(({ storageIds: _storageIds, ...row }) => ({
+      ...row,
+      unitPrice: row.quantity ? row.revenue / row.quantity : row.unitPrice,
+    }))
     .sort((left, right) => left.title.localeCompare(right.title, 'ru'));
   const finishConsumables = Array.from(consumables.values())
     .map(({ storageIds: _storageIds, ...row }) => row)
     .sort((left, right) => left.group.localeCompare(right.group, 'ru') || left.title.localeCompare(right.title, 'ru'));
+  const missingKitchenOccurrences = Array.from(kitchenOrderOccurrences)
+    .filter(([key]) => !kitchenOccurrencesWithConsumables.has(key));
+  const missingKitchenTitles = Array.from(new Set(missingKitchenOccurrences.map(([, title]) => title)));
   return {
-    kitchen: { sold: finishSales(kitchen), consumables: finishConsumables },
+    kitchen: {
+      sold: finishSales(kitchen),
+      consumables: finishConsumables,
+      standaloneOrders: standaloneOrders.sort((left, right) =>
+        left.date.localeCompare(right.date) || left.start.localeCompare(right.start)),
+    },
     additionalServices: finishSales(additionalServices),
     goods: finishSales(goods),
     beer: finishSales(beer),
     drinks: finishSales(drinks),
+    dataIssues: missingKitchenOccurrences.length ? [{
+      id: 'records:kitchen-consumables',
+      source: 'Расходники кухни YCLIENTS',
+      period: 'Выбранный диапазон',
+      reason: 'unmapped' as const,
+      message: `У ${missingKitchenOccurrences.length} ${missingKitchenOccurrences.length === 1 ? 'заказа' : 'заказов'} нет состава расходников в ответе YCLIENTS: ${missingKitchenTitles.slice(0, 4).join(', ')}${missingKitchenTitles.length > 4 ? '…' : ''}.`,
+    }] : [],
   };
 }
 
@@ -769,18 +1160,22 @@ export function buildCopyText(records: RawRecord[]) {
     end: minutesFromClock(recordStart(record)) + recordDurationMinutes(record),
   });
   const sorted = bathRecords.map(interval).sort((left, right) => left.start - right.start || left.end - right.end);
-  const occupiedTimes = sorted.map(({ start, end }) => `${clockFromMinutes(start)} - ${clockFromMinutes(end)}`).join('\n');
-  const occupiedBaths = sorted.map(({ record, start, end }) => {
-    const bath = bathDefinitions.find((item) => item.staffId === numberValue(record.staff_id));
-    return `${bath?.shortTitle ?? 'Баня'} с ${clockFromMinutes(start)} до ${clockFromMinutes(end)}`;
-  }).join('\n');
+  const occupiedTimes = sorted.length
+    ? sorted.map(({ start, end }) => `${clockFromMinutes(start)} - ${clockFromMinutes(end)}`).join('\n')
+    : 'Записей нет';
+  const occupiedBaths = bathDefinitions.map((bath) => {
+    const intervals = sorted.filter(({ record }) => numberValue(record.staff_id) === bath.staffId);
+    const lines = intervals.length
+      ? intervals.map(({ start, end }) => `с ${clockFromMinutes(start)} до ${clockFromMinutes(end)}`)
+      : ['Записей нет'];
+    return `${bath.title}\n${lines.join('\n')}`;
+  }).join('\n\n');
   const freeWindows = bathDefinitions.map((bath) => {
     const intervals = sorted.filter(({ record }) => numberValue(record.staff_id) === bath.staffId);
     if (!intervals.length) return `${bath.title}\nс 00:00`;
     const lines: string[] = [];
-    let cursor = intervals[0].end;
-    for (let index = 1; index < intervals.length; index += 1) {
-      const current = intervals[index];
+    let cursor = 0;
+    for (const current of intervals) {
       if (current.start > cursor) lines.push(`с ${clockFromMinutes(cursor)} до ${clockFromMinutes(current.start)}`);
       cursor = Math.max(cursor, current.end);
     }
@@ -790,29 +1185,92 @@ export function buildCopyText(records: RawRecord[]) {
   return { freeWindows, occupiedTimes, occupiedBaths };
 }
 
-export async function getAdminDashboard(date: string, from: string, to: string): Promise<AdminDashboard> {
-  const [catalog, rangeRecords, transactions] = await Promise.all([
+export async function getAdminDashboard(
+  date: string,
+  from: string,
+  to: string,
+  options: { includeReports?: boolean } = {},
+): Promise<AdminDashboard> {
+  const includeReports = options.includeReports !== false;
+  const generatedAt = new Date().toISOString();
+  const [catalog, recordsResult, transactionsResult] = await Promise.all([
     getCatalog(),
-    getRecords(from, to),
-    getTransactions(from, to),
+    getRecords(from, to).then(
+      (value) => ({ ok: true as const, value }),
+      (error: unknown) => ({ ok: false as const, error }),
+    ),
+    includeReports
+      ? getTransactions(from, to).then(
+        (value) => ({ ok: true as const, value }),
+        (error: unknown) => ({ ok: false as const, error }),
+      )
+      : Promise.resolve({ ok: true as const, value: [] as RawTransaction[] }),
   ]);
-  const dayRecords = date >= from && date <= to
-    ? rangeRecords.filter((record) => recordLocalDate(record) === date)
-    : await getRecords(date, date);
+  const rangeRecords = recordsResult.ok ? recordsResult.value : [];
+  const transactions = transactionsResult.ok ? transactionsResult.value : [];
+  const dayRecords = rangeRecords.filter((record) => recordLocalDate(record) === date);
   await enrichCatalogWithReferencedGoods(catalog, [...rangeRecords, ...dayRecords]);
-  const kppByRecord = await getKppByRecord(rangeRecords);
+  const kppRecords = includeReports
+    ? rangeRecords.filter((record) => bathDefinitions.some((bath) => bath.staffId === numberValue(record.staff_id)))
+    : [];
+  const kppLookup = includeReports
+    ? await getKppByRecord(kppRecords, { from, to })
+    : { values: new Map<number, number>(), issues: [] as DataIssue[] };
+  const kppByRecord = kppLookup.values;
   const kppCheckAmounts = Array.from(kppByRecord.values()).filter((amount) => amount > 0);
   const kppCompensation = kppCheckAmounts.reduce((sum, amount) => sum + amount, 0);
-  const report = calculateDailyReport({ date, transactions, kppCompensation, kppCheckAmounts });
-  const sales = buildSalesReports(rangeRecords, catalog);
+  const report = includeReports && transactionsResult.ok
+    ? calculateDailyReport({ date, transactions, kppCompensation, kppCheckAmounts, kppByRecord })
+    : undefined;
+  const salesResult = includeReports && recordsResult.ok ? buildSalesReports(rangeRecords, catalog) : null;
+  const { dataIssues: salesIssues, ...sales } = salesResult ?? {
+    dataIssues: [] as DataIssue[],
+    kitchen: undefined,
+    additionalServices: undefined,
+    goods: undefined,
+    beer: undefined,
+    drinks: undefined,
+  };
+  const loadIssues: DataIssue[] = [
+    ...(!recordsResult.ok ? [{
+      id: 'records:load',
+      source: 'Записи YCLIENTS',
+      period: `${from} — ${to}`,
+      reason: recordsResult.error instanceof YclientsReportsError && recordsResult.error.code === 'yclients_permissions' ? 'permissions' as const : 'unavailable' as const,
+      message: recordsResult.error instanceof Error ? recordsResult.error.message : 'Записи не загружены.',
+    }] : []),
+    ...(includeReports && !transactionsResult.ok ? [{
+      id: 'transactions:load',
+      source: 'Финансовые операции YCLIENTS',
+      period: `${from} — ${to}`,
+      reason: transactionsResult.error instanceof YclientsReportsError && transactionsResult.error.code === 'yclients_permissions' ? 'permissions' as const : 'unavailable' as const,
+      message: transactionsResult.error instanceof Error ? transactionsResult.error.message : 'Финансовые операции не загружены.',
+    }] : []),
+  ];
+  const issues = [...catalog.issues, ...loadIssues, ...kppLookup.issues, ...salesIssues];
   return {
     ok: true,
     date,
     range: { from, to },
-    report,
+    ...(report ? { report } : {}),
+    recordsAvailable: recordsResult.ok,
     baths: buildBaths(rangeRecords, date, catalog, kppByRecord),
     ...sales,
+    stocks: buildStockReport(catalog),
+    dataHealth: {
+      state: issues.length ? 'partial' : 'complete',
+      sources: [
+        { source: 'Записи YCLIENTS', state: recordsResult.ok ? 'complete' as const : 'partial' as const, updatedAt: sourceUpdatedAt(recordsResult.ok ? 'complete' : 'partial', generatedAt) },
+        { source: 'Склады YCLIENTS', state: catalog.issues.length ? 'partial' : 'complete', updatedAt: sourceUpdatedAt(catalog.issues.length ? 'partial' : 'complete', generatedAt) },
+        ...(includeReports ? [
+          { source: 'Финансовые операции YCLIENTS', state: transactionsResult.ok ? 'complete' as const : 'partial' as const, updatedAt: transactionsResult.ok ? generatedAt : '' },
+          { source: 'Акции и скидки КПП YCLIENTS', state: !recordsResult.ok || kppLookup.issues.length ? 'partial' as const : 'complete' as const, updatedAt: recordsResult.ok && !kppLookup.issues.length ? generatedAt : '' },
+          { source: 'Расходники кухни YCLIENTS', state: !recordsResult.ok || salesIssues.length ? 'partial' as const : 'complete' as const, updatedAt: recordsResult.ok && !salesIssues.length ? generatedAt : '' },
+        ] : []),
+      ],
+      issues,
+    },
     copyText: buildCopyText(dayRecords),
-    generatedAt: new Date().toISOString(),
+    generatedAt,
   };
 }

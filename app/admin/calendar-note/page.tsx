@@ -4,11 +4,23 @@ import { FormEvent, useCallback, useEffect, useState } from 'react';
 import AdminAvailabilityCalendar from '@/components/AdminAvailabilityCalendar';
 import AdminCalendarNoteEditor from '@/components/AdminCalendarNoteEditor';
 import AdminOperationsPanel, { AdminCopyTextsPanel, type AdminCopyData } from '@/components/AdminOperationsPanel';
+import {
+  type AdminAccess,
+  type AdminRole,
+  getAdminRoleLabel,
+} from '@/lib/adminRoles';
 
-type SessionResponse = { ok: boolean; authenticated: boolean };
+type SessionIdentity = { role: AdminRole; access: AdminAccess };
+type SessionResponse = {
+  ok: boolean;
+  authenticated: boolean;
+  role?: AdminRole;
+  access?: AdminAccess;
+};
 
 export default function AdminReportsPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [identity, setIdentity] = useState<SessionIdentity | null>(null);
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
@@ -32,8 +44,9 @@ export default function AdminReportsPage() {
         const response = await fetch('/api/admin/session', { cache: 'no-store' });
         const payload = (await response.json()) as SessionResponse;
         if (ignore) return;
-        if (response.ok && payload.authenticated) {
+        if (response.ok && payload.authenticated && payload.role && payload.access) {
           setIsAuthenticated(true);
+          setIdentity({ role: payload.role, access: payload.access });
           setStatus('ready');
         } else {
           setStatus('login');
@@ -56,9 +69,17 @@ export default function AdminReportsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ login, password, remember }),
       });
-      const payload = (await response.json()) as { ok: boolean; message?: string };
-      if (!response.ok || !payload.ok) throw new Error(payload.message || 'Неверный логин или пароль.');
+      const payload = (await response.json()) as {
+        ok: boolean;
+        role?: AdminRole;
+        access?: AdminAccess;
+        message?: string;
+      };
+      if (!response.ok || !payload.ok || !payload.role || !payload.access) {
+        throw new Error(payload.message || 'Неверный логин или пароль.');
+      }
       setIsAuthenticated(true);
+      setIdentity({ role: payload.role, access: payload.access });
       setPassword('');
       setStatus('ready');
     } catch (error) {
@@ -70,6 +91,7 @@ export default function AdminReportsPage() {
   async function handleLogout() {
     await fetch('/api/admin/logout', { method: 'POST' });
     setIsAuthenticated(false);
+    setIdentity(null);
     setPassword('');
     setStatus('login');
     setMessage('');
@@ -112,6 +134,11 @@ export default function AdminReportsPage() {
       ) : (
         <div className="mx-auto w-full max-w-[1500px]">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end sm:gap-6">
+            {identity && (
+              <div className="rounded-full border border-[#d6a15f]/35 bg-[#d6a15f]/10 px-4 py-2 text-sm font-extrabold uppercase tracking-[0.12em] text-[#d6a15f]">
+                {getAdminRoleLabel(identity.role)}
+              </div>
+            )}
             <div aria-live="polite" className="text-lg font-extrabold text-[#b9aea0] sm:text-xl">
               {updatedAt
                 ? `Обновлено в ${new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(new Date(updatedAt))}`
@@ -120,7 +147,11 @@ export default function AdminReportsPage() {
             <button type="button" onClick={handleLogout} className="inline-flex min-h-[52px] min-w-[130px] items-center justify-center rounded-lg border border-[#d6a15f]/50 px-6 text-xl font-extrabold uppercase tracking-[0.14em] text-[#f4eee4] transition hover:-translate-y-0.5 hover:border-[#d6a15f] hover:bg-[#d6a15f]/10">Выйти</button>
           </div>
           <div className="space-y-6">
-            <AdminOperationsPanel onUpdatedAt={handleUpdatedAt} onCopyData={handleCopyData} />
+            <AdminOperationsPanel
+              allowPeriod={identity?.access.periodReports ?? false}
+              onUpdatedAt={handleUpdatedAt}
+              onCopyData={handleCopyData}
+            />
             <AdminAvailabilityCalendar onUpdatedAt={handleUpdatedAt} />
             <AdminCopyTextsPanel data={copyData} />
             <AdminCalendarNoteEditor />
