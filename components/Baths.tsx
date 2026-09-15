@@ -88,6 +88,7 @@ type BathConfig = {
   capacity: string;
   price: string;
   image: string;
+  coverImages?: string[];
   gallery: string[];
   lead: string;
   text: string;
@@ -158,7 +159,46 @@ const baths: BathConfig[] = [
     ],
   },
   {
+    name: 'Средние бани',
+    capacity: '1-6 человек',
+    price: '2 800 ₽/ч',
+    image: '/images/photo-22.jpg',
+    underRepair: true,
+    gallery: ['/images/photo-22.jpg'],
+    lead: 'Удобные бани для компании у моря.',
+    text: 'Два уровня для отдыха, просторная парная и отдельные зоны, чтобы удобно провести вечер семьей или компанией друзей.',
+    details: ['Два этажа', 'Просторная парная', 'Вид на море', 'Для компании'],
+    distance: '10 метров от моря',
+    extraPerson: '+ 400 ₽ доп. человек',
+    included: [
+      { icon: 'towel', count: 6 },
+      { icon: 'hat', count: 6 },
+      { icon: 'slippers', count: 6 },
+    ],
+    subBaths: [
+      {
+        name: 'Средняя 1',
+        capacity: '1-6 человек',
+        price: '2 800 ₽/ч',
+        image: '/images/photo-22.jpg',
+        underRepair: true,
+        gallery: ['/images/photo-22.jpg'],
+        lead: 'Удобная баня для компании у моря.',
+        text: 'Два уровня для отдыха, просторная парная и отдельные зоны, чтобы удобно провести вечер семьей или компанией друзей.',
+        details: ['Два этажа', 'Просторная парная', 'Вид на море', 'Для компании'],
+        distance: '10 метров от моря',
+        extraPerson: '+ 400 ₽ доп. человек',
+        included: [
+          { icon: 'towel', count: 6 },
+          { icon: 'hat', count: 6 },
+          { icon: 'slippers', count: 6 },
+        ],
+      },
+    ],
+  },
+  {
     name: 'Большие бани',
+    coverImages: bigBathCoverImages,
     capacity: '1-8 человек',
     price: '3 000 ₽/ч',
     image: bigBath1GalleryImages[0],
@@ -304,7 +344,7 @@ export default function Baths() {
     const list = mobileBathListRef.current;
     const item = mobileBathRefs.current[index];
 
-    if (!list || !item) {
+    if (!list || !item || list.clientWidth === 0) {
       return;
     }
 
@@ -323,7 +363,7 @@ export default function Baths() {
   const handleMobileBathScroll = () => {
     const list = mobileBathListRef.current;
 
-    if (!list || mobileBathScrollFrame.current !== null) {
+    if (!list || list.clientWidth === 0 || mobileBathScrollFrame.current !== null) {
       return;
     }
 
@@ -376,7 +416,7 @@ export default function Baths() {
     const list = mobileSubBathListRef.current;
     const item = mobileSubBathRefs.current[index];
 
-    if (!list || !item) {
+    if (!list || !item || list.clientWidth === 0) {
       return;
     }
 
@@ -401,7 +441,7 @@ export default function Baths() {
   const handleMobileSubBathScroll = () => {
     const list = mobileSubBathListRef.current;
 
-    if (!list || mobileSubScrollFrame.current !== null) {
+    if (!list || list.clientWidth === 0 || mobileSubScrollFrame.current !== null) {
       return;
     }
 
@@ -437,6 +477,23 @@ export default function Baths() {
 
     selectMobileSubBath(index);
   };
+
+  useEffect(() => {
+    let frame = 0;
+    const onResize = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        if (window.innerWidth > 1023 || expanded !== null || subExpanded !== null) return;
+        if (subView) centerMobileSubBath(subActive, 'auto');
+        else centerMobileBath(active, 'auto');
+      });
+    };
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.cancelAnimationFrame(frame);
+    };
+  }, [active, subActive, subView, expanded, subExpanded]);
 
   useEffect(() => {
     return () => {
@@ -633,11 +690,11 @@ export default function Baths() {
             aria-pressed={isActive}
           >
             <div className="baths-showcase__cardShell">
-              {index === 2 ? (
+              {bath.coverImages ? (
                 <AnimatePresence initial={false}>
                   <motion.img
-                    key={bigBathCoverImages[bigBathCoverIndex]}
-                    src={bigBathCoverImages[bigBathCoverIndex]}
+                    key={bath.coverImages[bigBathCoverIndex]}
+                    src={bath.coverImages[bigBathCoverIndex]}
                     alt={bath.name}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -656,19 +713,10 @@ export default function Baths() {
                   {bath.capacity}
                 </div>
                 <h3>{bath.name}</h3>
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.span
-                    key={bath.underRepair ? 'repair' : isActive ? 'open' : 'select'}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.1 }}
-                    className="baths-showcase__cardAction"
-                  >
-                    {bath.underRepair ? (isActive ? 'На ремонте' : 'Выбрать') : isActive ? 'Открыть раздел' : 'Выбрать'}
-                    {(!bath.underRepair || !isActive) && <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>}
-                  </motion.span>
-                </AnimatePresence>
+                <span className="baths-showcase__cardAction">
+                  {bath.underRepair ? (isActive ? 'На ремонте' : 'Выбрать') : isActive ? 'Открыть раздел' : 'Выбрать'}
+                  {(!bath.underRepair || !isActive) && <b aria-hidden="true"><ArrowIcon className="h-[1em] w-[1em]" /></b>}
+                </span>
               </div>
             </div>
             <div className="baths-showcase__cardTop">
@@ -721,11 +769,11 @@ export default function Baths() {
             className={`baths-showcase__mobileCard ${isActive ? 'is-selected' : ''}`}
             aria-pressed={isActive}
           >
-            {index === 2 ? (
+            {bath.coverImages ? (
               <AnimatePresence initial={false}>
                 <motion.img
-                  key={bigBathCoverImages[bigBathCoverIndex]}
-                  src={bigBathCoverImages[bigBathCoverIndex]}
+                  key={bath.coverImages[bigBathCoverIndex]}
+                  src={bath.coverImages[bigBathCoverIndex]}
                   alt={bath.name}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}

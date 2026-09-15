@@ -167,7 +167,7 @@ export default function Navbar() {
               </span>
             </a>
 
-            <div className="hidden items-center gap-2 lg:flex">
+            <div className="hidden items-center gap-2 xl:flex">
               <nav
                 className="flex items-center rounded-full border border-[#d6a15f]/20 bg-[#21170f]/50 px-3 py-2 shadow-[inset_0_1px_0_rgba(214,161,95,0.10),0_18px_55px_rgba(0,0,0,0.22)] backdrop-blur-xl"
                 aria-label="Основная навигация"
@@ -204,11 +204,11 @@ export default function Navbar() {
                   <span className="inline-block translate-y-[1.5px] scale-[1.06]">+7 908 440 20 55</span>
                 </a>
               </span>
-              <div className="lg:hidden">{renderThemeButton()}</div>
+              <div className="xl:hidden">{renderThemeButton()}</div>
               <button
                 type="button"
                 onClick={() => setIsOpen((value) => !value)}
-                className="navbar-menu-button inline-flex h-12 w-12 items-center justify-center rounded-xl border border-[#d6a15f]/25 bg-[#21170f]/60 text-[#f4eee4] shadow-[inset_0_1px_0_rgba(214,161,95,0.12)] transition hover:border-[#d6a15f]/45 hover:bg-[#21170f]/80 lg:hidden"
+                className="navbar-menu-button inline-flex h-12 w-12 items-center justify-center rounded-xl border border-[#d6a15f]/25 bg-[#21170f]/60 text-[#f4eee4] shadow-[inset_0_1px_0_rgba(214,161,95,0.12)] transition hover:border-[#d6a15f]/45 hover:bg-[#21170f]/80 xl:hidden"
                 aria-label={isOpen ? 'Закрыть меню' : 'Открыть меню'}
               >
                 <span className="relative h-5 w-5">
@@ -223,7 +223,7 @@ export default function Navbar() {
       </motion.header>
 
       <div
-        className={`mobile-menu-overlay fixed inset-0 z-40 touch-none bg-[#090806]/78 lg:hidden ${isOpen ? 'is-open' : ''}`}
+        className={`mobile-menu-overlay fixed inset-0 z-40 touch-none bg-[#090806]/78 xl:hidden ${isOpen ? 'is-open' : ''}`}
         aria-hidden={!isOpen}
         onClick={() => setIsOpen(false)}
       >

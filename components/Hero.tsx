@@ -43,7 +43,7 @@ export default function Hero() {
       <div className="hero-overlay-top absolute inset-x-0 top-0 h-44 bg-[linear-gradient(180deg,rgba(9,8,6,0.8)_0%,rgba(9,8,6,0.76)_24%,rgba(9,8,6,0.52)_58%,rgba(9,8,6,0)_100%)]" />
 
       <div className="hero-inner relative z-10 flex min-h-[calc(100vh-76px)] w-full flex-col justify-end px-5 pb-8 sm:px-8 lg:px-16 lg:pb-12 2xl:px-24">
-        <div className="hero-content-grid grid w-full gap-10 lg:grid-cols-[minmax(0,40%)_minmax(0,60%)] lg:items-end">
+        <div className="hero-content-grid grid w-full gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-end">
           <motion.div
             initial={{ y: 34, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}

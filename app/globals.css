@@ -945,7 +945,7 @@ html[data-theme='light'] .baths-showcase__expanded {
 }
 
 html[data-theme='light'] .baths-showcase__card {
-  filter: drop-shadow(0 16px 18px rgba(42, 30, 19, 0.42));
+  filter: none;
 }
 
 html[data-theme='light'] .baths-showcase__card .baths-showcase__cardShell,
@@ -1326,16 +1326,11 @@ html[data-theme='light'] main > .schedule-section::before {
 
 @keyframes bath-sub-card-in {
   0% {
-    filter: blur(5px);
     opacity: 0;
     scale: 0.97;
     translate: 0 26px;
   }
-  65% {
-    filter: blur(0);
-  }
   100% {
-    filter: blur(0);
     opacity: 1;
     scale: 1;
     translate: 0 0 !important;
@@ -1694,6 +1689,7 @@ html[data-theme='light'] main > .schedule-section::before {
 }
 
 .baths-showcase__card {
+  isolation: isolate;
   --bath-card-scale: 0.82;
   --bath-card-x: -50%;
   appearance: none;
@@ -1706,7 +1702,7 @@ html[data-theme='light'] main > .schedule-section::before {
   height: var(--bath-card-height);
   left: 50%;
   opacity: 1;
-  overflow: hidden;
+  overflow: visible;
   padding: 0;
   position: absolute;
   text-align: left;
@@ -1721,6 +1717,7 @@ html[data-theme='light'] main > .schedule-section::before {
 }
 
 .baths-showcase__cardShell {
+  z-index: 0;
   background: #0d0a08;
   border: 1px solid rgba(107, 69, 35, 0.5);
   border-radius: inherit;
@@ -1752,7 +1749,7 @@ html[data-theme='light'] main > .schedule-section::before {
 
 .baths-showcase__card.is-selected {
   --bath-card-scale: 1.04;
-  filter: brightness(1) saturate(1);
+  filter: none;
   opacity: 1;
   z-index: 20;
 }
@@ -1867,6 +1864,8 @@ html[data-theme='light'] main > .schedule-section::before {
 }
 
 .baths-showcase__cardTop strong {
+  flex-shrink: 0;
+  white-space: nowrap;
   align-items: center;
   background: #17110c;
   border: 1px solid rgba(214, 161, 95, 0.45);
@@ -1882,7 +1881,6 @@ html[data-theme='light'] main > .schedule-section::before {
   margin-left: auto;
   padding: 0 18px;
   text-transform: uppercase;
-  transition: opacity 700ms ease 90ms, transform 1050ms cubic-bezier(0.16, 1, 0.3, 1) 90ms;
 }
 
 .baths-showcase__cardInfo {
@@ -2264,6 +2262,7 @@ html[data-theme='light'] .baths-showcase__mobileList--sub .baths-showcase__mobil
 }
 
 .baths-showcase__expanded {
+  scroll-margin-top: 92px;
   background: rgba(13, 10, 8, 0.82);
   border: 1px solid rgba(214, 161, 95, 0.18);
   border-radius: 16px;
@@ -4778,6 +4777,63 @@ html[data-theme='light'] .baths-showcase__price span {
   .schedule-calendar-panel .schedule-slot-status--unavailable {
     transform: translateX(-11px);
   }
+}
+
+/* Keep the original carousel composition at laptop / split-view widths. */
+@media (min-width: 1024px) and (max-width: 1535px) {
+  .baths-showcase__stage {
+    --bath-card-width: clamp(360px, 38vw, 540px);
+    --bath-laptop-shift: clamp(280px, 29vw, 400px);
+  }
+  .baths-showcase__card.is-left,
+  .baths-showcase__slider--active-0 .baths-showcase__card.is-left {
+    --bath-card-x: calc(-50% - var(--bath-laptop-shift));
+  }
+  .baths-showcase__card.is-right,
+  .baths-showcase__slider--active-2 .baths-showcase__card.is-right {
+    --bath-card-x: calc(-50% + var(--bath-laptop-shift));
+  }
+  .baths-showcase__expanded { width: calc(100% - 48px); }
+  .baths-showcase__expandedContent { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .baths-showcase__expandedInfo { padding: 24px; gap: 16px; }
+  .baths-showcase__expandedInfo > .baths-showcase__capacity { margin-top: 68px; top: 0; left: 0; font-size: 22px; }
+  .baths-showcase__expandedInfo > h3 { margin-top: 8px; }
+  .baths-showcase__expandedInfo h3 { font-size: clamp(46px, 4.5vw, 64px); padding-bottom: 22px; }
+  .baths-showcase__includedTitle,
+  .baths-showcase__includedIcon,
+  .baths-showcase__includedCount { scale: none; }
+  .baths-showcase__includedItem { padding: 0 12px; gap: 8px; }
+  .baths-showcase__includedIcon { width: 56px; height: 56px; }
+  .baths-showcase__includedCount { font-size: 38px; }
+  .baths-showcase__meta { flex-wrap: wrap; gap: 8px 12px; padding: 10px; }
+  .baths-showcase__metaItem { font-size: 13px; translate: none; }
+  .baths-showcase__actions { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 84px; }
+  .baths-showcase__price { min-width: 0; padding: 12px; }
+  .baths-showcase__price strong { font-size: clamp(25px, 2.2vw, 32px); white-space: nowrap; }
+  .baths-showcase__bookButton { font-size: clamp(17px, 1.5vw, 23px); padding: 12px; }
+}
+
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .hero-section .hero-content-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+  .hero-section .hero-logo { width: 190px; }
+  .hero-section .hero-copy { font-size: 20px; line-height: 1.5; }
+  .hero-section .hero-actions { flex-wrap: wrap; gap: 12px; }
+  .hero-actions > a { height: 60px; padding: 0 24px; font-size: 20px; }
+  .hero-actions > a > span { transform: none; }
+  .hero-stats-panel > div { padding-left: 10px; padding-right: 10px; }
+  .hero-stats-panel > div > div:first-child { font-size: clamp(24px, 2.4vw, 34px); }
+  .hero-section .hero-stat-label { font-size: 12px; letter-spacing: 0.04em; }
+  .site-header .container-custom > div { transform: none; gap: 16px; }
+  .site-header nav a { padding: 8px 10px; white-space: nowrap; }
+  .site-header nav a > span { transform: none; }
+  .navbar-phone-link { left: 0; padding-left: 16px; padding-right: 16px; white-space: nowrap; }
+}
+
+@media (min-width: 640px) {
+  .gallery-lightbox .gallery-lightbox__media,
+  .about-lightbox .about-lightbox__media { max-width: calc(100vw - 176px); max-height: calc(100dvh - 140px); }
+  .gallery-lightbox .gallery-lightbox__image,
+  .about-lightbox .about-lightbox__image { max-height: calc(100dvh - 140px); }
 }
 
 @keyframes admin-control-enter {

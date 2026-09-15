@@ -457,7 +457,7 @@ export default function BookingCalendar() {
     <section id="schedule" className="schedule-section layer-mid relative overflow-hidden bg-[#080706] pt-10 pb-14 sm:pt-12 sm:pb-16 lg:pt-16 lg:pb-20">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_18%,rgba(214,161,95,0.12),transparent_34rem),radial-gradient(circle_at_82%_44%,rgba(131,147,154,0.10),transparent_30rem)]" />
       <div className="relative mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-10">
-        <div className="mb-10 grid gap-7 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div className="mb-10 grid gap-7 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
           <motion.div
             initial={{ y: 28, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
@@ -474,7 +474,7 @@ export default function BookingCalendar() {
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true, margin: '-100px' }}
             transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-            className="hidden min-h-[56px] items-center gap-4 rounded-2xl border border-[#d6a15f]/55 bg-[#21170f]/70 px-5 py-3 shadow-[inset_0_1px_0_rgba(214,161,95,0.14),0_18px_55px_rgba(0,0,0,0.26)] backdrop-blur-xl sm:flex"
+            className="hidden min-h-[56px] flex-wrap items-center gap-4 rounded-2xl border border-[#d6a15f]/55 bg-[#21170f]/70 px-5 py-3 shadow-[inset_0_1px_0_rgba(214,161,95,0.14),0_18px_55px_rgba(0,0,0,0.26)] backdrop-blur-xl sm:flex"
           >
             <span className="inline-flex items-center gap-2 text-[15px] font-extrabold uppercase tracking-[0.14em] text-[#d8d0c4]">
               <span className="h-2.5 w-2.5 rounded-full bg-[#d6a15f]" />
