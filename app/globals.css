@@ -849,6 +849,48 @@ html[data-theme='light'] main .schedule-section .schedule-calendar-note {
   box-shadow: 0 0 0 1px rgba(214, 161, 95, 0.16), 0 38px 110px rgba(0, 0, 0, 0.46) !important;
 }
 
+/* Calendar states need stronger separation on the warm light surface. */
+html[data-theme='light'] main .schedule-section .schedule-slot--free {
+  background: #d9efdc !important;
+  border-color: #4b9259 !important;
+  color: #205f30 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+html[data-theme='light'] main .schedule-section .schedule-slot--free:hover {
+  background: #c7e8cc !important;
+  border-color: #2f7b40 !important;
+  color: #174d25 !important;
+}
+
+html[data-theme='light'] main .schedule-section .schedule-slot--free .schedule-slot-status--free {
+  color: #2f7b40 !important;
+}
+
+html[data-theme='light'] main .schedule-section .schedule-slot--cleaning {
+  background: #f6dfc3 !important;
+  border-color: #c77b2b !important;
+  color: #854711 !important;
+}
+
+html[data-theme='light'] main .schedule-section .schedule-slot--busy {
+  background: #e6ddd2 !important;
+  border-color: #a79a8b !important;
+  color: #554a40 !important;
+}
+
+html[data-theme='light'] main .schedule-section .schedule-slot--unavailable {
+  background: #eee7dd !important;
+  border-color: #b9ab9b !important;
+  color: #675b50 !important;
+}
+
+html[data-theme='light'] main .schedule-section .schedule-slot--past {
+  background: #eee9e1 !important;
+  border-color: #c9beb1 !important;
+  color: #81766a !important;
+}
+
 .contacts-section {
   overflow: hidden;
   position: relative;

@@ -55,6 +55,7 @@ type ReadOnlySlot = {
 };
 
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+const ALL_BATHS_ID = 'all';
 const CLEANING_MINUTES = 30;
 const SLOT_GROUPS = [
   { id: 'night', title: 'Ночь', from: '00:00', to: '05:30' },
@@ -182,12 +183,18 @@ const loadTone = (occupancy: number) => {
   return { label: 'Много свободного', bar: '#78a978', text: 'text-[#9bc29b]', border: 'border-[#78a978]/45' };
 };
 
-export default function AdminAvailabilityCalendar({ onUpdatedAt }: { onUpdatedAt?: (value: string) => void }) {
+export default function AdminAvailabilityCalendar({
+  onUpdatedAt,
+  onAllBathsChange,
+}: {
+  onUpdatedAt?: (value: string) => void;
+  onAllBathsChange?: (isAllBaths: boolean) => void;
+}) {
   const today = useMemo(localDate, []);
   const currentMonth = useMemo(() => monthStartFor(today), [today]);
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [baths, setBaths] = useState<CalendarBath[]>([]);
-  const [selectedBathId, setSelectedBathId] = useState('');
+  const [selectedBathId, setSelectedBathId] = useState(ALL_BATHS_ID);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [message, setMessage] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
@@ -234,7 +241,7 @@ export default function AdminAvailabilityCalendar({ onUpdatedAt }: { onUpdatedAt
         const nextGeneratedAt = payload.generatedAt || new Date().toISOString();
         onUpdatedAt?.(nextGeneratedAt);
         setSelectedBathId((current) =>
-          payload.baths?.some((bath) => bath.id === current) ? current : payload.baths?.[0]?.id ?? '',
+          current === ALL_BATHS_ID || payload.baths?.some((bath) => bath.id === current) ? current : ALL_BATHS_ID,
         );
         setStatus('ready');
       } catch (error) {
@@ -265,10 +272,19 @@ export default function AdminAvailabilityCalendar({ onUpdatedAt }: { onUpdatedAt
     setSelectedDurationMinutes(null);
   }, [selectedBathId, selectedDate]);
 
-  const selectedBaths = useMemo(() => baths.filter((bath) => bath.id === selectedBathId), [baths, selectedBathId]);
+  const isAllBaths = selectedBathId === ALL_BATHS_ID;
+
+  useEffect(() => {
+    onAllBathsChange?.(isAllBaths);
+  }, [isAllBaths, onAllBathsChange]);
+
+  const selectedBaths = useMemo(
+    () => isAllBaths ? baths : baths.filter((bath) => bath.id === selectedBathId),
+    [baths, isAllBaths, selectedBathId],
+  );
 
   const selectedDaySlots = useMemo<ReadOnlySlot[]>(() => {
-    if (!selectedDate || !selectedBaths.length) {
+    if (isAllBaths || !selectedDate || !selectedBaths.length) {
       return [];
     }
 
@@ -291,7 +307,7 @@ export default function AdminAvailabilityCalendar({ onUpdatedAt }: { onUpdatedAt
         freeBaths: freeBaths.map(({ bath }) => bath),
       };
     });
-  }, [selectedBaths, selectedDate, today]);
+  }, [isAllBaths, selectedBaths, selectedDate, today]);
 
   const selectedBookingBath = useMemo(
     () => baths.find((bath) => bath.id === selectedBookingBathId),
@@ -504,6 +520,20 @@ export default function AdminAvailabilityCalendar({ onUpdatedAt }: { onUpdatedAt
       </div>
 
       <div className="mt-7 flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedBathId(ALL_BATHS_ID);
+            setSelectedDate('');
+          }}
+          className={`inline-flex min-h-[54px] items-center justify-center rounded-xl border px-6 py-3 text-[14px] font-extrabold uppercase tracking-[0.08em] transition sm:text-[16px] ${
+            isAllBaths
+              ? 'border-[#d6a15f] bg-[#d6a15f] text-[#15110d]'
+              : 'border-[#d6a15f]/35 text-[#b9aea0] hover:border-[#d6a15f]/70'
+          }`}
+        >
+          Все бани
+        </button>
         {baths.map((bath) => (
           <button
             key={bath.id}
@@ -587,8 +617,8 @@ export default function AdminAvailabilityCalendar({ onUpdatedAt }: { onUpdatedAt
                   <button
                     key={date}
                     type="button"
-                    disabled={isPast || !load || status !== 'ready'}
-                    aria-pressed={selectedDate === date}
+                    disabled={isPast || !load || status !== 'ready' || isAllBaths}
+                    aria-pressed={!isAllBaths && selectedDate === date}
                     onClick={() => setSelectedDate((current) => (current === date ? '' : date))}
                     className={`min-h-[184px] w-full rounded-lg border p-3 text-left transition ${
                       isPast
@@ -596,7 +626,7 @@ export default function AdminAvailabilityCalendar({ onUpdatedAt }: { onUpdatedAt
                         : tone
                           ? `${tone.border} bg-[#0f0c09] hover:-translate-y-0.5 hover:border-[#d6a15f]/80`
                           : 'border-[#d6a15f]/20 bg-[#0f0c09]'
-                    } ${selectedDate === date ? 'ring-2 ring-inset ring-[#d6a15f]' : ''} disabled:pointer-events-none`}
+                    } ${!isAllBaths && selectedDate === date ? 'ring-2 ring-inset ring-[#d6a15f]' : ''} disabled:pointer-events-none`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <span className={`text-[28px] font-extrabold leading-none ${isPast ? 'text-[#5f574f]' : 'text-[#f4eee4]'}`}>{index + 1}</span>

@@ -119,8 +119,15 @@ const localDate = () => new Intl.DateTimeFormat('en-CA', {
   timeZone: 'Asia/Vladivostok', year: 'numeric', month: '2-digit', day: '2-digit',
 }).format(new Date());
 const money = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 2 });
+const compactMoney = new Intl.NumberFormat('ru-RU', {
+  style: 'currency',
+  currency: 'RUB',
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+});
 const quantity = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 });
 const formatMoney = (value: number) => money.format(value || 0);
+const formatCompactMoney = (value: number) => compactMoney.format(value || 0);
 const formatQuantity = (value: number, unit = '') => `${quantity.format(value || 0)}${unit ? ` ${unit}` : ''}`;
 const durationLabel = (minutes: number) => {
   const hours = Math.floor(minutes / 60);
@@ -210,6 +217,8 @@ export function ThemedDatePicker({
   value,
   onChange,
   embedded = false,
+  compact = false,
+  shiftLeft = false,
   showIcon = true,
   popoverAlign = 'left',
   ariaLabel = 'Выбрать день для итогов и бань',
@@ -217,6 +226,8 @@ export function ThemedDatePicker({
   value: string;
   onChange: (value: string) => void;
   embedded?: boolean;
+  compact?: boolean;
+  shiftLeft?: boolean;
   showIcon?: boolean;
   popoverAlign?: 'left' | 'right';
   ariaLabel?: string;
@@ -270,29 +281,31 @@ export function ThemedDatePicker({
   };
 
   return (
-    <div ref={rootRef} className={embedded ? `relative min-w-0 flex-1 ${showIcon ? 'sm:w-[224px] sm:flex-none' : ''}` : 'relative'}>
+    <div ref={rootRef} className={embedded ? `relative min-w-0 ${showIcon ? 'flex-[1.15] sm:w-[224px] sm:flex-none' : 'flex-1'}` : 'relative w-full sm:w-auto'}>
       <button
         type="button"
         aria-label={ariaLabel}
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
-        className={`flex min-h-[56px] w-full cursor-pointer items-center bg-[#0f0c09] text-left text-2xl font-extrabold text-[#f4eee4] outline-none transition-[transform,box-shadow,border-color,background-color] duration-300 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] focus:bg-[#d6a15f]/5 ${
+        className={`flex min-h-[56px] w-full cursor-pointer items-center justify-center whitespace-nowrap bg-[#0f0c09] text-center font-extrabold text-[#f4eee4] outline-none transition-[transform,box-shadow,border-color,background-color] duration-300 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] focus:bg-[#d6a15f]/5 ${compact ? 'text-lg sm:text-xl' : 'text-2xl'} ${
           embedded
-            ? 'rounded-lg px-3 hover:bg-[#d6a15f]/5'
+            ? `rounded-lg hover:bg-[#d6a15f]/5 ${compact ? 'px-1.5 sm:px-3' : 'px-3'}`
             : 'rounded-lg border border-[#d6a15f]/35 px-5 hover:border-[#d6a15f]/70 hover:shadow-[0_8px_24px_rgba(214,161,95,0.08)] focus:border-[#d6a15f] sm:w-[265px]'
         }`}
       >
-        {showIcon && (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" className={`${embedded ? 'mr-3' : 'mr-5'} h-9 w-9 shrink-0 text-[#d6a15f]`} aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M7 3v3m10-3v3M4.5 9.5h15M6.5 5h11a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
-          </svg>
-        )}
-        <span>{shortDate(value)}</span>
+        <span className={`flex items-center justify-center ${!embedded ? '-translate-x-2' : shiftLeft ? 'md:-translate-x-[24px]' : ''}`}>
+          {showIcon && (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" className={`${compact ? 'mr-2 h-6 w-6 sm:mr-3 sm:h-8 sm:w-8' : embedded ? 'mr-3 h-8 w-8 sm:h-9 sm:w-9' : 'mr-4 h-8 w-8 sm:mr-5 sm:h-9 sm:w-9'} shrink-0 text-[#d6a15f]`} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7 3v3m10-3v3M4.5 9.5h15M6.5 5h11a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
+            </svg>
+          )}
+          <span>{shortDate(value)}</span>
+        </span>
       </button>
 
         <div
           aria-hidden={!open}
-          className={`absolute top-full z-50 mt-3 w-[330px] origin-top rounded-xl border border-[#d6a15f]/55 bg-[#15110d] p-4 shadow-[0_24px_70px_rgba(0,0,0,0.7)] transition-[opacity,transform,visibility] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${popoverAlign === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'} ${open ? 'visible translate-y-0 scale-100 opacity-100' : 'invisible pointer-events-none -translate-y-2 scale-[0.97] opacity-0'}`}
+          className={`absolute top-full z-50 mt-3 w-[min(330px,calc(100vw-3rem))] origin-top rounded-xl border border-[#d6a15f]/55 bg-[#15110d] p-4 shadow-[0_24px_70px_rgba(0,0,0,0.7)] transition-[opacity,transform,visibility] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${popoverAlign === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'} ${open ? 'visible translate-y-0 scale-100 opacity-100' : 'invisible pointer-events-none -translate-y-2 scale-[0.97] opacity-0'}`}
         >
           <div className="mb-4 flex items-center justify-between">
             <button type="button" aria-label="Предыдущий месяц" onClick={() => changeMonth(-1)} className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#d6a15f]/30 text-[#d6a15f] transition hover:border-[#d6a15f] hover:bg-[#d6a15f]/10">
@@ -439,6 +452,15 @@ function ConsumablesTable({ rows }: { rows: ConsumableRow[] }) {
   );
 }
 
+function ResponsiveReportMoney({ value }: { value: number }) {
+  return (
+    <>
+      <span className="sm:hidden">{formatCompactMoney(value)}</span>
+      <span className="hidden sm:inline">{formatMoney(value)}</span>
+    </>
+  );
+}
+
 function StandaloneKitchenOrders({ rows }: { rows: StandaloneKitchenOrder[] }) {
   if (!rows.length) return <EmptyState text="Заказов кухни без привязки к бане за выбранный диапазон нет." />;
   return (
@@ -479,6 +501,7 @@ function DataHealthPanel({
   sources: DataSourceStatus[];
   lastSuccessful: Record<string, string>;
 }) {
+  const [isOpen, setIsOpen] = useState(false);
   if (!issues.length && !sources.length) return null;
   const updatedLabel = (value?: string) => value
     ? new Intl.DateTimeFormat('ru-RU', {
@@ -488,32 +511,48 @@ function DataHealthPanel({
     }).format(new Date(value))
     : 'успешного обновления ещё не было';
   return (
-    <div className={`rounded-lg border p-4 ${issues.length ? 'border-[#d98a4a]/45 bg-[#2a1d12]' : 'border-[#d6a15f]/25 bg-[#15110d]'}`}>
-      <div className={`font-extrabold ${issues.length ? 'text-[#e9a66e]' : 'text-[#d6a15f]'}`}>
-        {issues.length ? 'Часть данных не загружена' : 'Источники данных обновлены'}
-      </div>
-      {!!sources.length && (
-        <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-          {sources.map((source) => (
-            <div key={source.source} className="rounded-md border border-[#d6a15f]/15 bg-[#0f0c09] px-3 py-2 text-sm font-semibold text-[#b9aea0]">
-              <div className="flex items-center justify-between gap-3">
-                <span className="font-extrabold text-[#f4eee4]">{source.source}</span>
-                <span className={source.state === 'complete' ? 'text-[#9bc29b]' : 'text-[#e9a66e]'}>
-                  {source.state === 'complete' ? 'Загружено' : 'Неполно'}
-                </span>
-              </div>
-              <div className="mt-1 text-xs text-[#81776d]">Последнее успешное: {updatedLabel(lastSuccessful[source.source])}</div>
+    <div className={`rounded-lg border p-4 md:px-4 md:py-3 ${issues.length ? 'border-[#d98a4a]/45 bg-[#2a1d12]' : 'border-[#d6a15f]/25 bg-[#15110d]'}`}>
+      <button
+        type="button"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((current) => !current)}
+        className="flex w-full cursor-pointer items-center justify-between gap-4 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-[#d6a15f]/55"
+      >
+        <span className={`text-[17px] font-extrabold md:text-xl ${issues.length ? 'text-[#e9a66e]' : 'text-[#d6a15f]'}`}>
+          {issues.length ? 'Часть данных не загружена' : 'Источники данных обновлены'}
+        </span>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#d6a15f]/30 text-[#d6a15f] md:h-11 md:w-11" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" className={`h-5 w-5 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:h-6 md:w-6 ${isOpen ? 'rotate-180' : ''}`}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
+          </svg>
+        </span>
+      </button>
+      <div className={`grid transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+        <div className="min-h-0 overflow-hidden">
+          {!!sources.length && (
+            <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+              {sources.map((source) => (
+                <div key={source.source} className="rounded-md border border-[#d6a15f]/15 bg-[#0f0c09] px-3 py-2 text-sm font-semibold text-[#b9aea0]">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-extrabold text-[#f4eee4]">{source.source}</span>
+                    <span className={source.state === 'complete' ? 'text-[#9bc29b]' : 'text-[#e9a66e]'}>
+                      {source.state === 'complete' ? 'Загружено' : 'Неполно'}
+                    </span>
+                  </div>
+                  <div className="mt-1 text-xs text-[#81776d]">Последнее успешное: {updatedLabel(lastSuccessful[source.source])}</div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
+          {!!issues.length && <div className="mt-3 space-y-2">
+            {issues.map((issue) => (
+              <div key={issue.id} className="rounded-md bg-[#0f0c09] px-3 py-2 text-sm font-semibold leading-6 text-[#b9aea0]">
+                <span className="font-extrabold text-[#f4eee4]">{issue.source}</span> · {issue.period}: {issue.message}
+              </div>
+            ))}
+          </div>}
         </div>
-      )}
-      {!!issues.length && <div className="mt-3 space-y-2">
-        {issues.map((issue) => (
-          <div key={issue.id} className="rounded-md bg-[#0f0c09] px-3 py-2 text-sm font-semibold leading-6 text-[#b9aea0]">
-            <span className="font-extrabold text-[#f4eee4]">{issue.source}</span> · {issue.period}: {issue.message}
-          </div>
-        ))}
-      </div>}
+      </div>
     </div>
   );
 }
@@ -756,10 +795,14 @@ function KitchenRecordCard({ record, period, kitchenTitles }: { record: BathReco
 
 export default function AdminOperationsPanel({
   allowPeriod = true,
+  manualRefreshKey = 0,
+  onLoadingChange,
   onUpdatedAt,
   onCopyData,
 }: {
   allowPeriod?: boolean;
+  manualRefreshKey?: number;
+  onLoadingChange?: (loading: boolean) => void;
   onUpdatedAt?: (value: string) => void;
   onCopyData?: (value: AdminCopyData | null) => void;
 }) {
@@ -789,6 +832,10 @@ export default function AdminOperationsPanel({
   useEffect(() => {
     if (!allowPeriod && mode !== 'day') setMode('day');
   }, [allowPeriod, mode]);
+
+  useEffect(() => {
+    onLoadingChange?.(status === 'loading');
+  }, [onLoadingChange, status]);
 
   useEffect(() => {
     const openRecord = (event: Event) => {
@@ -901,7 +948,7 @@ export default function AdminOperationsPanel({
       ignore = true;
       controller.abort();
     };
-  }, [copyDate, onUpdatedAt, rangeFrom, rangeTo, reloadKey, today]);
+  }, [copyDate, manualRefreshKey, onUpdatedAt, rangeFrom, rangeTo, reloadKey, today]);
 
   useEffect(() => {
     if (!reportDeadline) return;
@@ -963,11 +1010,11 @@ export default function AdminOperationsPanel({
 
   const report = reportExpired ? undefined : dashboard?.report;
   const reportRows = report ? [
-    ['Приход', formatMoney(report.income)],
-    ['Расход', formatMoney(report.expense)],
-    ['Предоплаты', formatMoney(report.prepayments)],
-    ['Безналичная оплата', `${formatMoney(report.cashless)} (${formatMoney(report.terminal)})`],
-    ['Сдал', formatMoney(report.surrendered)],
+    ['Приход', 'Приход', formatMoney(report.income), formatCompactMoney(report.income)],
+    ['Расход', 'Расход', formatMoney(report.expense), formatCompactMoney(report.expense)],
+    ['Предоплаты', 'Предоплаты', formatMoney(report.prepayments), formatCompactMoney(report.prepayments)],
+    ['Безналичная оплата', 'Безнал', `${formatMoney(report.cashless)} (${formatMoney(report.terminal)})`, `${formatCompactMoney(report.cashless)} (${formatCompactMoney(report.terminal)})`],
+    ['Сдал', 'Сдал', formatMoney(report.surrendered), formatCompactMoney(report.surrendered)],
   ] : [];
   const expenseRows = report?.expenses ?? [];
   const checksTotal = report
@@ -993,16 +1040,16 @@ export default function AdminOperationsPanel({
             <p className="text-[15px] font-extrabold uppercase tracking-[0.18em] text-[#d6a15f] sm:text-base">YCLIENTS</p>
             <h1 className="mt-2 text-[28px] font-extrabold leading-tight text-[#f4eee4] sm:text-[34px]">Отчётная панель</h1>
           </div>
-          <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-center lg:justify-center">
+          <div className="flex w-full flex-col items-center gap-4 md:flex-row md:flex-nowrap md:justify-center xl:w-auto">
             {mode === 'day' ? (
-              <div key="day" className="admin-control-enter">
+              <div key="day" className="admin-control-enter w-full sm:w-[265px]">
                 <ThemedDatePicker
                   value={selectedDate}
                   onChange={setSelectedDate}
                 />
               </div>
             ) : (
-              <div key="period" className="admin-control-enter flex min-h-[56px] w-full rounded-lg border border-[#d6a15f]/35 bg-[#0f0c09] transition-[border-color,box-shadow] duration-300 hover:border-[#d6a15f]/55 hover:shadow-[0_8px_24px_rgba(214,161,95,0.08)] sm:w-[430px]">
+              <div key="period" className="admin-control-enter flex min-h-[56px] w-full max-w-[430px] flex-row items-stretch rounded-lg border border-[#d6a15f]/35 bg-[#0f0c09] transition-[border-color,box-shadow] duration-300 hover:border-[#d6a15f]/55 hover:shadow-[0_8px_24px_rgba(214,161,95,0.08)] md:w-[360px] md:shrink-0 xl:w-[390px]">
                 <ThemedDatePicker
                   value={from}
                   onChange={(value) => {
@@ -1010,10 +1057,11 @@ export default function AdminOperationsPanel({
                     if (value > to) setTo(value);
                   }}
                   embedded
+                  compact
                   ariaLabel="Выбрать начало периода"
                 />
-                <span className="flex w-9 shrink-0 self-stretch items-center justify-center" aria-hidden="true">
-                  <span className="h-[3px] w-6 -translate-x-1 rounded-full bg-[#b9aea0]" />
+                <span className="flex w-5 translate-x-1 shrink-0 self-stretch items-center justify-center sm:w-9 md:-translate-x-[24px]" aria-hidden="true">
+                  <span className="h-[3px] w-4 rounded-full bg-[#b9aea0] sm:w-6" />
                 </span>
                 <ThemedDatePicker
                   value={to}
@@ -1022,13 +1070,15 @@ export default function AdminOperationsPanel({
                     if (value < from) setFrom(value);
                   }}
                   embedded
+                  compact
+                  shiftLeft
                   showIcon={false}
                   popoverAlign="right"
                   ariaLabel="Выбрать конец периода"
                 />
               </div>
             )}
-            {allowPeriod && <div className="flex min-h-[56px] rounded-lg border border-[#d6a15f]/35 bg-[#0f0c09] p-1 transition-[border-color,box-shadow] duration-300 hover:border-[#d6a15f]/55 hover:shadow-[0_8px_24px_rgba(214,161,95,0.08)]">
+            {allowPeriod && <div className="flex min-h-[56px] w-full max-w-[430px] rounded-lg border border-[#d6a15f]/35 bg-[#0f0c09] p-1 transition-[border-color,box-shadow] duration-300 hover:border-[#d6a15f]/55 hover:shadow-[0_8px_24px_rgba(214,161,95,0.08)] sm:w-auto md:shrink-0">
                 {([['day', 'Дата'], ['period', 'Период']] as const).map(([value, label]) => (
                   <button
                     key={value}
@@ -1040,15 +1090,12 @@ export default function AdminOperationsPanel({
                       }
                       setMode(value);
                     }}
-                    className={`rounded-md px-5 text-xl font-extrabold uppercase tracking-[0.1em] transition-[color,background-color,transform,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.97] ${mode === value ? 'bg-[#d6a15f] text-[#15110d] shadow-[0_5px_16px_rgba(214,161,95,0.18)]' : 'text-[#b9aea0] hover:bg-[#d6a15f]/5 hover:text-[#f4eee4]'}`}
+                    className={`flex-1 rounded-md px-4 text-lg font-extrabold uppercase tracking-[0.08em] transition-[color,background-color,transform,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.97] sm:flex-none md:px-4 md:text-lg xl:px-5 xl:text-xl xl:tracking-[0.1em] ${mode === value ? 'bg-[#d6a15f] text-[#15110d] shadow-[0_5px_16px_rgba(214,161,95,0.18)]' : 'text-[#b9aea0] hover:bg-[#d6a15f]/5 hover:text-[#f4eee4]'}`}
                   >
                     {label}
                   </button>
                 ))}
             </div>}
-            <button type="button" onClick={() => setReloadKey((value) => value + 1)} disabled={status === 'loading'} className="inline-flex min-h-[56px] items-center justify-center rounded-lg border border-[#d6a15f]/50 px-6 text-xl font-extrabold uppercase tracking-[0.12em] text-[#f4eee4] transition hover:border-[#d6a15f] disabled:opacity-55">
-              {status === 'loading' ? 'Загрузка...' : 'Обновить'}
-            </button>
           </div>
         </div>
         {status === 'error' && <div className="mt-5 rounded-lg border border-[#d56755]/45 bg-[#2a1512] px-4 py-3 text-sm font-semibold text-[#ef9b8d]">{message}</div>}
@@ -1085,10 +1132,10 @@ export default function AdminOperationsPanel({
                 <div className="bg-[#201912] px-4 py-3 font-extrabold uppercase tracking-[0.1em] text-[#d6a15f]" style={{ fontSize: '16px', lineHeight: 1.1 }}>
                   Финансовые итоги
                 </div>
-                {reportRows.map(([label, value], index) => (
-                  <div key={label} className={`flex flex-1 flex-col justify-center gap-1 border-b border-[#d6a15f]/20 px-4 py-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between ${index === reportRows.length - 1 ? 'bg-[#d6a15f]/10' : 'bg-[#0f0c09]'}`}>
-                    <span className={`font-bold ${index === reportRows.length - 1 ? 'text-[#d6a15f]' : 'text-[#b9aea0]'}`} style={{ fontSize: '18px', lineHeight: 1.1 }}>{label}:</span>
-                    <span className={`font-extrabold ${index === reportRows.length - 1 ? 'text-[#f0b45e]' : 'text-[#f4eee4]'}`} style={{ fontSize: '20px', lineHeight: 1.1 }}>{value}</span>
+                {reportRows.map(([label, mobileLabel, value, mobileValue], index) => (
+                  <div key={label} className={`flex flex-1 flex-row items-center justify-between gap-2 border-b border-[#d6a15f]/20 px-4 py-4 last:border-b-0 ${index === reportRows.length - 1 ? 'bg-[#d6a15f]/10' : 'bg-[#0f0c09]'}`}>
+                    <span className={`font-bold ${index === reportRows.length - 1 ? 'text-[#d6a15f]' : 'text-[#b9aea0]'}`} style={{ fontSize: '18px', lineHeight: 1.1 }}><span className="sm:hidden">{mobileLabel}</span><span className="hidden sm:inline">{label}</span>:</span>
+                    <span className={`shrink-0 text-right font-extrabold ${index === reportRows.length - 1 ? 'text-[#f0b45e]' : 'text-[#f4eee4]'}`} style={{ fontSize: '20px', lineHeight: 1.1 }}><span className="sm:hidden">{mobileValue}</span><span className="hidden sm:inline">{value}</span></span>
                   </div>
                 ))}
               </div>
@@ -1096,13 +1143,13 @@ export default function AdminOperationsPanel({
                 <div className="bg-[#201912] px-4 py-3 font-extrabold uppercase tracking-[0.1em] text-[#d6a15f]" style={{ fontSize: '16px', lineHeight: 1.1 }}>Расшифровка расходов</div>
                 {expenseRows.length ? expenseRows.map((row) => (
                   <div key={row.id} className="flex flex-1 items-start justify-between gap-4 border-t border-[#d6a15f]/15 bg-[#0f0c09] px-4 py-3 text-sm">
-                    <span className="font-semibold text-[#b9aea0]" style={{ fontSize: '18px', lineHeight: 1.2 }}>{row.title}{row.comments?.length ? <span className="mt-1 block text-sm font-semibold text-[#81776d]">{row.comments.join(' · ')}</span> : null}</span><span className="shrink-0 font-extrabold text-[#f4eee4]" style={{ fontSize: '18px', lineHeight: 1.1 }}>{formatMoney(row.amount)}</span>
+                    <span className="font-semibold text-[#b9aea0]" style={{ fontSize: '18px', lineHeight: 1.2 }}>{row.title}{row.comments?.length ? <span className="mt-1 block text-sm font-semibold text-[#81776d]">{row.comments.join(' · ')}</span> : null}</span><span className="shrink-0 font-extrabold text-[#f4eee4]" style={{ fontSize: '18px', lineHeight: 1.1 }}><ResponsiveReportMoney value={row.amount} /></span>
                   </div>
                 )) : <EmptyState text={isPeriodReport ? 'Расходов за период нет' : 'Расходов за день нет'} prominent />}
                 {report.expense > 0 && (
                   <div className="flex flex-1 items-center justify-between gap-4 border-t border-[#d6a15f]/20 bg-[#d6a15f]/10 px-4 py-3 text-sm">
                     <span className="font-extrabold text-[#d6a15f]" style={{ fontSize: '18px', lineHeight: 1.1 }}>Всего расходов</span>
-                    <span className="font-extrabold text-[#f0b45e]" style={{ fontSize: '18px', lineHeight: 1.1 }}>{formatMoney(report.expense)}</span>
+                    <span className="font-extrabold text-[#f0b45e]" style={{ fontSize: '18px', lineHeight: 1.1 }}><ResponsiveReportMoney value={report.expense} /></span>
                   </div>
                 )}
               </div>
@@ -1112,19 +1159,19 @@ export default function AdminOperationsPanel({
                   <>
                     {(report.checks ?? []).map((row) => (
                       <div key={row.denomination} className="flex flex-1 items-center justify-between gap-4 border-t border-[#d6a15f]/15 bg-[#0f0c09] px-4 py-3 text-sm">
-                        <span className="font-semibold text-[#b9aea0]" style={{ fontSize: '18px', lineHeight: 1.1 }}>{formatMoney(row.denomination)} × {row.quantity}</span>
-                        <span className="font-extrabold text-[#f4eee4]" style={{ fontSize: '18px', lineHeight: 1.1 }}>{formatMoney(row.total)}</span>
+                        <span className="font-semibold text-[#b9aea0]" style={{ fontSize: '18px', lineHeight: 1.1 }}><ResponsiveReportMoney value={row.denomination} /> × {row.quantity}</span>
+                        <span className="font-extrabold text-[#f4eee4]" style={{ fontSize: '18px', lineHeight: 1.1 }}><ResponsiveReportMoney value={row.total} /></span>
                       </div>
                     ))}
                     {report.unclassifiedChecks > 0 && (
                       <div className="flex flex-1 items-center justify-between gap-4 border-t border-[#d6a15f]/15 bg-[#0f0c09] px-4 py-3 text-sm">
-                        <span className="font-semibold text-[#b9aea0]" style={{ fontSize: '18px', lineHeight: 1.1 }}>КПП — {formatMoney(report.unclassifiedChecks)} наличкой</span>
-                        <span className="font-extrabold text-[#f4eee4]" style={{ fontSize: '18px', lineHeight: 1.1 }}>{formatMoney(report.unclassifiedChecks)}</span>
+                        <span className="font-semibold text-[#b9aea0]" style={{ fontSize: '18px', lineHeight: 1.1 }}>КПП — <ResponsiveReportMoney value={report.unclassifiedChecks} /> наличкой</span>
+                        <span className="font-extrabold text-[#f4eee4]" style={{ fontSize: '18px', lineHeight: 1.1 }}><ResponsiveReportMoney value={report.unclassifiedChecks} /></span>
                       </div>
                     )}
                     <div className="flex flex-1 items-center justify-between gap-4 border-t border-[#d6a15f]/20 bg-[#d6a15f]/10 px-4 py-3 text-sm">
                       <span className="font-extrabold text-[#d6a15f]" style={{ fontSize: '18px', lineHeight: 1.1 }}>Всего</span>
-                      <span className="font-extrabold text-[#f0b45e]" style={{ fontSize: '18px', lineHeight: 1.1 }}>{formatMoney(checksTotal)}</span>
+                      <span className="font-extrabold text-[#f0b45e]" style={{ fontSize: '18px', lineHeight: 1.1 }}><ResponsiveReportMoney value={checksTotal} /></span>
                     </div>
                   </>
                 ) : <EmptyState text={isPeriodReport ? 'Чеков за период нет' : 'Чеков за день нет'} prominent />}
@@ -1132,7 +1179,7 @@ export default function AdminOperationsPanel({
             </div>
           </Section>}
 
-          <div id="admin-bath-records" className="scroll-mt-5"><Section eyebrow="Бани" title={isPeriodReport ? 'Записи и показатели по каждой бане за период' : 'Записи и показатели по каждой бане'}>
+          <div id="admin-bath-records" className="hidden scroll-mt-5 md:block"><Section eyebrow="Бани" title={isPeriodReport ? 'Записи и показатели по каждой бане за период' : 'Записи и показатели по каждой бане'}>
             <div className="space-y-3">
               {(dashboard.baths ?? []).map((bath) => {
                 const isOpen = openBaths.has(bath.id);

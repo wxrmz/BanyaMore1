@@ -28,6 +28,9 @@ export default function AdminReportsPage() {
   const [message, setMessage] = useState('');
   const [updatedAt, setUpdatedAt] = useState('');
   const [copyData, setCopyData] = useState<AdminCopyData | null>(null);
+  const [isAllBathsSelected, setIsAllBathsSelected] = useState(true);
+  const [reportRefreshKey, setReportRefreshKey] = useState(0);
+  const [isReportLoading, setIsReportLoading] = useState(true);
 
   const handleUpdatedAt = useCallback((value: string) => {
     setUpdatedAt((current) => {
@@ -133,27 +136,53 @@ export default function AdminReportsPage() {
         </div>
       ) : (
         <div className="mx-auto w-full max-w-[1500px]">
-          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end sm:gap-6">
-            {identity && (
-              <div className="rounded-full border border-[#d6a15f]/35 bg-[#d6a15f]/10 px-4 py-2 text-sm font-extrabold uppercase tracking-[0.12em] text-[#d6a15f]">
-                {getAdminRoleLabel(identity.role)}
+          <div className="mx-auto mb-6 grid w-full max-w-[390px] grid-cols-2 gap-3 sm:mx-0 sm:ml-auto sm:gap-5">
+            <div className="flex min-w-0 flex-col items-center gap-3">
+              <div aria-live="polite" className="flex min-h-[40px] w-full items-center justify-center text-center text-base font-extrabold leading-tight text-[#b9aea0] sm:text-lg">
+                {updatedAt
+                  ? `Обновлено в ${new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(new Date(updatedAt))}`
+                  : 'Данные обновляются…'}
               </div>
-            )}
-            <div aria-live="polite" className="text-lg font-extrabold text-[#b9aea0] sm:text-xl">
-              {updatedAt
-                ? `Обновлено в ${new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(new Date(updatedAt))}`
-                : 'Данные обновляются…'}
+              <button
+                type="button"
+                onClick={() => setReportRefreshKey((value) => value + 1)}
+                disabled={isReportLoading}
+                className="inline-flex h-[52px] w-full items-center justify-center rounded-lg border border-[#d6a15f]/50 px-3 text-lg font-extrabold uppercase tracking-[0.08em] text-[#f4eee4] transition hover:-translate-y-0.5 hover:border-[#d6a15f] hover:bg-[#d6a15f]/10 disabled:pointer-events-none disabled:opacity-55 sm:text-xl"
+              >
+                {isReportLoading ? 'Загрузка...' : 'Обновить'}
+              </button>
             </div>
-            <button type="button" onClick={handleLogout} className="inline-flex min-h-[52px] min-w-[130px] items-center justify-center rounded-lg border border-[#d6a15f]/50 px-6 text-xl font-extrabold uppercase tracking-[0.14em] text-[#f4eee4] transition hover:-translate-y-0.5 hover:border-[#d6a15f] hover:bg-[#d6a15f]/10">Выйти</button>
+            <div className="flex min-w-0 flex-col items-center gap-3">
+              {identity ? (
+                <div className="flex min-h-[40px] w-full items-center justify-center rounded-full border border-[#d6a15f]/35 bg-[#d6a15f]/10 px-3 text-center text-sm font-extrabold uppercase tracking-[0.1em] text-[#d6a15f] sm:text-base">
+                  {getAdminRoleLabel(identity.role)}
+                </div>
+              ) : <div className="min-h-[40px]" />}
+              <button type="button" onClick={handleLogout} className="inline-flex h-[52px] w-full items-center justify-center rounded-lg border border-[#d6a15f]/50 px-3 text-lg font-extrabold uppercase tracking-[0.08em] text-[#f4eee4] transition hover:-translate-y-0.5 hover:border-[#d6a15f] hover:bg-[#d6a15f]/10 sm:text-xl">Выйти</button>
+            </div>
           </div>
           <div className="space-y-6">
             <AdminOperationsPanel
               allowPeriod={identity?.access.periodReports ?? false}
+              manualRefreshKey={reportRefreshKey}
+              onLoadingChange={setIsReportLoading}
               onUpdatedAt={handleUpdatedAt}
               onCopyData={handleCopyData}
             />
-            <AdminAvailabilityCalendar onUpdatedAt={handleUpdatedAt} />
-            <AdminCopyTextsPanel data={copyData} />
+            <div className="hidden md:block">
+              <AdminAvailabilityCalendar
+                onUpdatedAt={handleUpdatedAt}
+                onAllBathsChange={setIsAllBathsSelected}
+              />
+            </div>
+            <div className="md:hidden">
+              <AdminCopyTextsPanel data={copyData} />
+            </div>
+            {!isAllBathsSelected && (
+              <div className="hidden md:block">
+                <AdminCopyTextsPanel data={copyData} />
+              </div>
+            )}
             <AdminCalendarNoteEditor />
           </div>
         </div>

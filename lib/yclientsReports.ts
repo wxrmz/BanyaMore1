@@ -697,6 +697,12 @@ export function calculateDailyReport({
     ? effectiveKppAmounts.reduce((sum, amount) => sum + amount, 0)
     : kppCompensation;
 
+  // Cheques are redeemed revenue: they increase the day's receipts, while the
+  // matching "Чеки КПП" row remains an expense when calculating cash to hand in.
+  // Use the full amount found in records here; only the expense side is deduped
+  // against finance transactions below.
+  income += kppCompensation;
+
   active.forEach((transaction) => {
     const amount = numberValue(transaction.amount);
     const isExpense = amount < 0 || numberValue(transaction.expense?.type) === 2;

@@ -4,6 +4,7 @@ import {
   fetchYclientsWithRetry,
   yclientsCacheTtlMs,
 } from '@/lib/yclientsTransport';
+import { buildExactAvailabilitySlotDays } from '@/lib/availabilitySlotStatus';
 
 export const dynamic = 'force-dynamic';
 
@@ -94,7 +95,6 @@ type BathConfig = {
   title: string;
   serviceId: number;
   staffId: number;
-  durationMinutes: number;
   bookingServices: BookingService[];
 };
 
@@ -105,7 +105,6 @@ const BOOKING_URL = process.env.YCLIENTS_BOOKING_URL ?? 'https://n1437834.yclien
 const BUSINESS_START = '00:00';
 const BUSINESS_END = '23:30';
 const SLOT_STEP_MINUTES = 30;
-const CLEANING_MINUTES = 30;
 const BOOKING_SERVICE_DURATIONS = [
   { durationMinutes: 120, label: '2 часа' },
   { durationMinutes: 150, label: '2 часа 30 минут' },
@@ -137,7 +136,6 @@ const DEFAULT_BATHS: BathConfig[] = [
     title: 'Малая баня',
     serviceId: Number(process.env.YCLIENTS_SMALL_BATH_SERVICE_ID ?? 20671398),
     staffId: Number(process.env.YCLIENTS_SMALL_BATH_STAFF_ID ?? 3872281),
-    durationMinutes: Number(process.env.YCLIENTS_SMALL_BATH_DURATION_MINUTES ?? 120),
     bookingServices: makeBookingServices([
       20671398, 20671401, 20671404, 20671407, 20671410, 20671413, 20671416, 20671419, 20671422,
       20671428, 20671431, 20671434, 20671440, 20671443, 20671449, 20671455, 20671386,
@@ -148,7 +146,6 @@ const DEFAULT_BATHS: BathConfig[] = [
     title: 'Большая баня 1',
     serviceId: Number(process.env.YCLIENTS_BIG_BATH_1_SERVICE_ID ?? 20671209),
     staffId: Number(process.env.YCLIENTS_BIG_BATH_1_STAFF_ID ?? 3873893),
-    durationMinutes: Number(process.env.YCLIENTS_BIG_BATH_1_DURATION_MINUTES ?? 120),
     bookingServices: makeBookingServices([
       20671209, 20671212, 20671215, 20671218, 20671221, 20671224, 20671227, 20671230, 20671233,
       20671236, 20671239, 20671242, 20671248, 20671251, 20671260, 20671266, 20671200,
@@ -159,7 +156,6 @@ const DEFAULT_BATHS: BathConfig[] = [
     title: 'Большая баня 2',
     serviceId: Number(process.env.YCLIENTS_BIG_BATH_2_SERVICE_ID ?? 20671305),
     staffId: Number(process.env.YCLIENTS_BIG_BATH_2_STAFF_ID ?? 3873916),
-    durationMinutes: Number(process.env.YCLIENTS_BIG_BATH_2_DURATION_MINUTES ?? 120),
     bookingServices: makeBookingServices([
       20671305, 20671308, 20671314, 20671317, 20671323, 20671326, 20671332, 20671335, 20671341,
       20671344, 20671347, 20671350, 20671353, 20671356, 20671362, 20671365, 20671299,
@@ -214,11 +210,6 @@ const makeDayTimes = () => {
   }
 
   return result;
-};
-
-const timeToMinutes = (time: string) => {
-  const [hours, minutes] = time.split(':').map(Number);
-  return hours * 60 + minutes;
 };
 
 const countBookableSlots = (slots: PublicSlot[]) =>
@@ -456,146 +447,6 @@ async function fetchFreeSlots(date: string, services: Awaited<ReturnType<typeof 
   return slots;
 }
 
-function buildActualAvailabilitySlotDays(freeStartSlotsByDay: Map<string, PublicSlot>[], durationMinutes: number) {
-  const dayTimes = makeDayTimes();
-  const dayLength = dayTimes.length;
-  const startAvailability = freeStartSlotsByDay.flatMap((freeStartSlots) => dayTimes.map((time) => freeStartSlots.has(time)));
-
-  if (startAvailability.every((available) => !available)) {
-    return freeStartSlotsByDay.map(() =>
-      dayTimes.map((time) => ({ time, available: false, canStartBooking: false, status: 'busy' as const })),
-    );
-  }
-
-  const actualAvailability = dayTimes.map(() => true);
-  while (actualAvailability.length < startAvailability.length) {
-    actualAvailability.push(true);
-  }
-  const cleaningSlots = actualAvailability.map(() => false);
-  const shiftSlots = Math.max(1, Math.round(durationMinutes / SLOT_STEP_MINUTES));
-  const cleaningSlotsCount = Math.max(1, Math.round(CLEANING_MINUTES / SLOT_STEP_MINUTES));
-  const requiredStartSlots = shiftSlots + cleaningSlotsCount;
-
-  const busyRuns: Array<{ start: number; endExclusive: number }> = [];
-
-  for (let index = 0; index < startAvailability.length; index += 1) {
-    if (startAvailability[index]) {
-      continue;
-    }
-
-    const runStart = index;
-
-    while (index + 1 < startAvailability.length && !startAvailability[index + 1]) {
-      index += 1;
-    }
-
-    const runEnd = index;
-    const hasFreeBefore = runStart > 0 && startAvailability[runStart - 1];
-    const actualStart = hasFreeBefore ? Math.min(runStart + shiftSlots, startAvailability.length) : runStart;
-    const actualEnd = Math.max(actualStart, runEnd - cleaningSlotsCount + 1);
-
-    busyRuns.push({ start: actualStart, endExclusive: actualEnd });
-
-    for (let busyIndex = actualStart; busyIndex < actualEnd; busyIndex += 1) {
-      actualAvailability[busyIndex] = false;
-    }
-  }
-
-  busyRuns.forEach(({ start, endExclusive }) => {
-    for (let offset = 1; offset <= cleaningSlotsCount; offset += 1) {
-      const cleaningIndex = start - offset;
-
-      if (cleaningIndex >= 0 && actualAvailability[cleaningIndex]) {
-        cleaningSlots[cleaningIndex] = true;
-      }
-    }
-
-    for (let offset = 1; offset <= cleaningSlotsCount; offset += 1) {
-      const cleaningIndex = endExclusive + offset - 1;
-
-      if (cleaningIndex < actualAvailability.length && actualAvailability[cleaningIndex]) {
-        cleaningSlots[cleaningIndex] = true;
-      }
-    }
-  });
-
-  const firstFreeStart = freeStartSlotsByDay.find((freeStartSlots) => freeStartSlots.size > 0)?.values().next().value;
-
-  return freeStartSlotsByDay.map((freeStartSlots, dayIndex) =>
-    dayTimes.map((time, timeIndex) => {
-    const index = dayIndex * dayLength + timeIndex;
-    const originalSlot = freeStartSlots.get(time);
-
-    if (cleaningSlots[index]) {
-      return {
-        time,
-        available: false,
-        canStartBooking: false,
-        status: 'cleaning' as const,
-      };
-    }
-
-    const canStartBooking = time !== BUSINESS_END && Array.from({ length: requiredStartSlots }, (_, offset) => index + offset).every(
-      (slotIndex) => slotIndex < actualAvailability.length && actualAvailability[slotIndex] && !cleaningSlots[slotIndex],
-    );
-
-    return actualAvailability[index]
-      ? {
-          time,
-          available: true,
-          canStartBooking: freeStartSlots.has(time) && canStartBooking,
-          status: 'free' as const,
-          service: originalSlot?.service ?? firstFreeStart?.service,
-          serviceId: originalSlot?.serviceId ?? firstFreeStart?.serviceId,
-          staff: originalSlot?.staff ?? firstFreeStart?.staff,
-          staffId: originalSlot?.staffId ?? firstFreeStart?.staffId,
-        }
-      : { time, available: false, canStartBooking: false, status: 'busy' as const };
-  }),
-  );
-}
-
-const isoDayNumber = (value: string) => {
-  const [year, month, day] = value.split('-').map(Number);
-  return Math.floor(Date.UTC(year, month - 1, day) / 86_400_000);
-};
-
-function overlayExactRecordIntervals(
-  slotDays: PublicSlot[][],
-  dates: string[],
-  records: RawRecord[],
-  staffId: number,
-) {
-  const firstDay = isoDayNumber(dates[0]);
-  const intervals = records.flatMap((record) => {
-    if (Number(record.staff_id) !== staffId) return [];
-    const dateTime = record.datetime ?? record.date ?? '';
-    const match = /^(\d{4}-\d{2}-\d{2})[T\s](\d{1,2}):(\d{2})/.exec(dateTime);
-    if (!match) return [];
-    const start = (isoDayNumber(match[1]) - firstDay) * 1_440 + Number(match[2]) * 60 + Number(match[3]);
-    const totalMinutes = Math.max(0, Math.round(Number(record.seance_length ?? record.length ?? 0) / 60));
-    const cleaningMinutes = Math.min(totalMinutes, Math.max(0, Math.round(Number(record.technical_break_duration ?? 0) / 60)));
-    const serviceMinutes = Math.max(0, totalMinutes - cleaningMinutes);
-    if (!serviceMinutes) return [];
-    return [{
-      busyStart: start,
-      busyEnd: start + serviceMinutes,
-      cleaningStart: start + serviceMinutes,
-      cleaningEnd: start + serviceMinutes + cleaningMinutes,
-    }];
-  });
-
-  return slotDays.map((slots, dayIndex) => slots.map((slot) => {
-    const slotStart = dayIndex * 1_440 + timeToMinutes(slot.time);
-    const slotEnd = slotStart + SLOT_STEP_MINUTES;
-    const busy = intervals.some((interval) => slotStart < interval.busyEnd && slotEnd > interval.busyStart);
-    if (busy) return { ...slot, available: false, canStartBooking: false, status: 'busy' as const };
-    const cleaning = intervals.some((interval) => slotStart < interval.cleaningEnd && slotEnd > interval.cleaningStart);
-    if (cleaning) return { ...slot, available: false, canStartBooking: false, status: 'cleaning' as const };
-    return slot;
-  }));
-}
-
 async function buildBathAvailability(bath: BathConfig, dates: string[], records: RawRecord[]): Promise<PublicBath> {
   const service = { id: bath.serviceId, title: bath.title };
   const staff = { id: bath.staffId, name: bath.title };
@@ -608,12 +459,15 @@ async function buildBathAvailability(bath: BathConfig, dates: string[], records:
     }),
     4,
   );
-  const slotDays = overlayExactRecordIntervals(
-    buildActualAvailabilitySlotDays(freeSlotsByDay, bath.durationMinutes),
-    datesWithLookahead,
+  const slotDays: PublicSlot[][] = buildExactAvailabilitySlotDays({
+    dates: datesWithLookahead,
+    dayTimes: makeDayTimes(),
+    freeStartSlotsByDay: freeSlotsByDay,
     records,
-    bath.staffId,
-  );
+    staffId: bath.staffId,
+    businessEnd: BUSINESS_END,
+    slotStepMinutes: SLOT_STEP_MINUTES,
+  });
   const days = dates.map((date, index) => {
     const slots = slotDays[index] ?? [];
 

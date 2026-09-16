@@ -800,6 +800,18 @@ export default function BookingCalendar() {
                             const isShortFree = !isPastSlot && slot.available && slot.canStartBooking === false;
                             const isBookable = !isPastSlot && slot.available && !isShortFree;
 
+                            const slotToneClass = isSelected
+                              ? 'schedule-slot--selected'
+                              : isPastSlot
+                                ? 'schedule-slot--past'
+                                : isBookable
+                                  ? 'schedule-slot--free'
+                                  : isShortFree
+                                    ? 'schedule-slot--unavailable'
+                                    : slot.status === 'cleaning'
+                                      ? 'schedule-slot--cleaning'
+                                      : 'schedule-slot--busy';
+
                             return (
                             <button
                               key={slot.time}
@@ -811,7 +823,7 @@ export default function BookingCalendar() {
                               }}
                               disabled={!isBookable}
                               aria-disabled={!isBookable}
-                              className={`group relative flex min-h-[60px] flex-col items-center rounded-lg border px-2.5 py-2.5 transition duration-300 ease-out sm:min-h-[64px] sm:px-4 ${
+                              className={`schedule-slot ${slotToneClass} group relative flex min-h-[60px] flex-col items-center rounded-lg border px-2.5 py-2.5 transition duration-300 ease-out sm:min-h-[64px] sm:px-4 ${
                                 isSelected
                                   ? '-translate-y-0.5 border-[#d6a15f] bg-[#d6a15f] text-[#15110d] shadow-[0_14px_34px_rgba(214,161,95,0.18)]'
                                   : isPastSlot
