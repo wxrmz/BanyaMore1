@@ -62,29 +62,7 @@ const vladivostokDateFormatter = new Intl.DateTimeFormat('en-CA', {
   day: '2-digit',
 });
 
-const vladivostokTimeFormatter = new Intl.DateTimeFormat('en-GB', {
-  timeZone: VLADIVOSTOK_TIME_ZONE,
-  hour: '2-digit',
-  minute: '2-digit',
-  second: '2-digit',
-  hourCycle: 'h23',
-});
-
 export const dateInVladivostok = (now = new Date()) => vladivostokDateFormatter.format(now);
-
-const timeInVladivostok = (now: Date) => {
-  const values = Object.fromEntries(
-    vladivostokTimeFormatter
-      .formatToParts(now)
-      .filter((part) => part.type !== 'literal')
-      .map((part) => [part.type, Number(part.value)]),
-  );
-  return {
-    hour: values.hour ?? 0,
-    minute: values.minute ?? 0,
-    second: values.second ?? 0,
-  };
-};
 
 export function shiftIsoDate(value: string, days: number) {
   if (!isValidIsoDate(value)) return '';
@@ -95,7 +73,7 @@ export function shiftIsoDate(value: string, days: number) {
 
 export type AdminDailyReportAccess = {
   allowed: boolean;
-  reason: 'today' | 'yesterday_before_noon' | 'closed';
+  reason: 'today' | 'yesterday' | 'closed';
   closesAt: string | null;
   today: string;
   yesterday: string;
@@ -107,18 +85,16 @@ export function getAdminDailyReportAccess(
 ): AdminDailyReportAccess {
   const today = dateInVladivostok(now);
   const yesterday = shiftIsoDate(today, -1);
-  const time = timeInVladivostok(now);
-  const beforeNoon = time.hour < 12;
 
   if (requestedDate === today) {
     return { allowed: true, reason: 'today', closesAt: null, today, yesterday };
   }
 
-  if (requestedDate === yesterday && beforeNoon) {
+  if (requestedDate === yesterday) {
     return {
       allowed: true,
-      reason: 'yesterday_before_noon',
-      closesAt: new Date(`${today}T12:00:00+10:00`).toISOString(),
+      reason: 'yesterday',
+      closesAt: new Date(`${shiftIsoDate(today, 1)}T00:00:00+10:00`).toISOString(),
       today,
       yesterday,
     };

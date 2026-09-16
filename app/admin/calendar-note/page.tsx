@@ -164,6 +164,7 @@ export default function AdminReportsPage() {
           <div className="space-y-6">
             <AdminOperationsPanel
               allowPeriod={identity?.access.periodReports ?? false}
+              adminOnlyRecentDates={identity?.role === 'admin'}
               manualRefreshKey={reportRefreshKey}
               onLoadingChange={setIsReportLoading}
               onUpdatedAt={handleUpdatedAt}

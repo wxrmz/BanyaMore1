@@ -9,7 +9,6 @@ import {
   reportRangeDays,
 } from '@/lib/adminDateRange';
 import { getAdminAccess } from '@/lib/adminRoles';
-import { stripClosedAdminReport } from '@/lib/adminDashboardAccess';
 import { getAdminDashboard, YclientsReportsError } from '@/lib/yclientsReports';
 
 export const dynamic = 'force-dynamic';
@@ -67,22 +66,30 @@ export async function GET(request: Request) {
     const dailyAccess = session.role === 'admin'
       ? getAdminDailyReportAccess(date, requestTime)
       : { allowed: true, reason: 'today' as const, closesAt: null, today: dateInVladivostok(requestTime), yesterday: '' };
+    if (!access.fullReports && !dailyAccess.allowed) {
+      return NextResponse.json(
+        { ok: false, message: 'Администратору доступны только сегодня и вчера по времени Владивостока.' },
+        { status: 403 },
+      );
+    }
     const dashboard = await getAdminDashboard(date, from, to, {
-      includeReports: access.fullReports || dailyAccess.allowed,
+      includeReports: true,
     });
     const responseTime = new Date();
     const finalDailyAccess = session.role === 'admin'
       ? getAdminDailyReportAccess(date, responseTime)
       : dailyAccess;
-    const reportAllowed = access.fullReports || finalDailyAccess.allowed;
-    const safeDashboard = reportAllowed
-      ? dashboard
-      : stripClosedAdminReport(dashboard);
+    if (!access.fullReports && !finalDailyAccess.allowed) {
+      return NextResponse.json(
+        { ok: false, message: 'Дата отчёта больше недоступна администратору. Выберите сегодня или вчера.' },
+        { status: 403 },
+      );
+    }
 
     return NextResponse.json({
-      ...safeDashboard,
+      ...dashboard,
       reportAccess: {
-        allowed: reportAllowed,
+        allowed: true,
         reason: access.fullReports ? 'full_access' : finalDailyAccess.reason,
         closesAt: access.fullReports ? null : finalDailyAccess.closesAt,
         serverNow: responseTime.toISOString(),

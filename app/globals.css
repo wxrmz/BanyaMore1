@@ -3665,6 +3665,11 @@ html[data-theme='light'] .baths-showcase__price span {
 }
 
 @media (max-width: 640px) {
+  .baths-showcase__mobileList--sub .baths-showcase__mobileCard[data-bath-id='big-1'] > img,
+  .baths-showcase__mobileList--sub .baths-showcase__mobileCard[data-bath-id='big-2'] > img {
+    object-position: 32% center;
+  }
+
   html[data-theme='dark'] main > .contacts-section::before {
     z-index: 1;
   }
@@ -3975,7 +3980,7 @@ html[data-theme='light'] .baths-showcase__price span {
   }
 
   .hero-image-motion {
-    object-position: 55% center;
+    object-position: 62% center;
   }
 
   .hero-inner {

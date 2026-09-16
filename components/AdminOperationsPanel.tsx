@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { AvailabilityBath, buildFreeWindowsFromAvailability } from '@/lib/availabilityCopyText';
-import { getAdminReportDeadlineDelays } from '@/lib/adminDateRange';
+import { getAdminReportDeadlineDelays, shiftIsoDate } from '@/lib/adminDateRange';
 
 type DailyReport = {
   date: string;
@@ -102,7 +102,7 @@ type DashboardResponse = {
   generatedAt?: string;
   reportAccess?: {
     allowed: boolean;
-    reason: 'today' | 'yesterday_before_noon' | 'closed' | 'full_access';
+    reason: 'today' | 'yesterday' | 'closed' | 'full_access';
     closesAt: string | null;
     serverNow: string;
   };
@@ -222,6 +222,8 @@ export function ThemedDatePicker({
   showIcon = true,
   popoverAlign = 'left',
   ariaLabel = 'Выбрать день для итогов и бань',
+  allowedDates,
+  currentDate,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -231,12 +233,14 @@ export function ThemedDatePicker({
   showIcon?: boolean;
   popoverAlign?: 'left' | 'right';
   ariaLabel?: string;
+  allowedDates?: readonly string[];
+  currentDate?: string;
 }) {
   const selected = useMemo(() => parseIsoDate(value), [value]);
   const [open, setOpen] = useState(false);
   const [view, setView] = useState({ year: selected.year, month: selected.month });
   const rootRef = useRef<HTMLDivElement>(null);
-  const todayValue = useMemo(localDate, []);
+  const todayValue = currentDate ?? localDate();
 
   useEffect(() => {
     if (!open) setView({ year: selected.year, month: selected.month });
@@ -275,8 +279,17 @@ export function ThemedDatePicker({
     });
   };
 
+  const canNavigateMonth = (offset: number) => {
+    if (!allowedDates) return true;
+    const target = new Date(view.year, view.month + offset, 1);
+    const monthPrefix = `${target.getFullYear()}-${`${target.getMonth() + 1}`.padStart(2, '0')}-`;
+    return allowedDates.some((date) => date.startsWith(monthPrefix));
+  };
+
   const chooseDate = (day: number) => {
-    onChange(isoDate(view.year, view.month, day));
+    const nextDate = isoDate(view.year, view.month, day);
+    if (allowedDates && !allowedDates.includes(nextDate)) return;
+    onChange(nextDate);
     setOpen(false);
   };
 
@@ -308,14 +321,14 @@ export function ThemedDatePicker({
           className={`absolute top-full z-50 mt-3 w-[min(330px,calc(100vw-3rem))] origin-top rounded-xl border border-[#d6a15f]/55 bg-[#15110d] p-4 shadow-[0_24px_70px_rgba(0,0,0,0.7)] transition-[opacity,transform,visibility] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${popoverAlign === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'} ${open ? 'visible translate-y-0 scale-100 opacity-100' : 'invisible pointer-events-none -translate-y-2 scale-[0.97] opacity-0'}`}
         >
           <div className="mb-4 flex items-center justify-between">
-            <button type="button" aria-label="Предыдущий месяц" onClick={() => changeMonth(-1)} className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#d6a15f]/30 text-[#d6a15f] transition hover:border-[#d6a15f] hover:bg-[#d6a15f]/10">
+            <button type="button" aria-label="Предыдущий месяц" onClick={() => changeMonth(-1)} disabled={!canNavigateMonth(-1)} className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#d6a15f]/30 text-[#d6a15f] transition hover:border-[#d6a15f] hover:bg-[#d6a15f]/10 disabled:cursor-not-allowed disabled:opacity-30">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="h-5 w-5"><path strokeLinecap="round" strokeLinejoin="round" d="m15 18-6-6 6-6" /></svg>
             </button>
             <div className="text-center">
               <div className="text-lg font-extrabold text-[#f4eee4]">{calendarMonths[view.month]}</div>
               <div className="text-xs font-extrabold tracking-[0.14em] text-[#d6a15f]">{view.year}</div>
             </div>
-            <button type="button" aria-label="Следующий месяц" onClick={() => changeMonth(1)} className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#d6a15f]/30 text-[#d6a15f] transition hover:border-[#d6a15f] hover:bg-[#d6a15f]/10">
+            <button type="button" aria-label="Следующий месяц" onClick={() => changeMonth(1)} disabled={!canNavigateMonth(1)} className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#d6a15f]/30 text-[#d6a15f] transition hover:border-[#d6a15f] hover:bg-[#d6a15f]/10 disabled:cursor-not-allowed disabled:opacity-30">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="h-5 w-5"><path strokeLinecap="round" strokeLinejoin="round" d="m9 18 6-6-6-6" /></svg>
             </button>
           </div>
@@ -329,15 +342,19 @@ export function ThemedDatePicker({
               const cellValue = isoDate(view.year, view.month, day);
               const isSelected = cellValue === value;
               const isToday = cellValue === todayValue;
+              const isAllowed = !allowedDates || allowedDates.includes(cellValue);
               return (
                 <button
                   key={cellValue}
                   type="button"
                   aria-label={dateLabel(cellValue)}
                   aria-pressed={isSelected}
+                  disabled={!isAllowed}
                   onClick={() => chooseDate(day)}
                   className={`h-9 rounded-md text-sm font-extrabold transition ${
-                    isSelected
+                    !isAllowed
+                      ? 'cursor-not-allowed text-[#81776d]/35'
+                      : isSelected
                       ? 'bg-[#d6a15f] text-[#15110d] shadow-[0_0_0_1px_rgba(214,161,95,0.4)]'
                       : isToday
                         ? 'border border-[#d6a15f]/70 text-[#f0b45e] hover:bg-[#d6a15f]/10'
@@ -795,18 +812,24 @@ function KitchenRecordCard({ record, period, kitchenTitles }: { record: BathReco
 
 export default function AdminOperationsPanel({
   allowPeriod = true,
+  adminOnlyRecentDates = false,
   manualRefreshKey = 0,
   onLoadingChange,
   onUpdatedAt,
   onCopyData,
 }: {
   allowPeriod?: boolean;
+  adminOnlyRecentDates?: boolean;
   manualRefreshKey?: number;
   onLoadingChange?: (loading: boolean) => void;
   onUpdatedAt?: (value: string) => void;
   onCopyData?: (value: AdminCopyData | null) => void;
 }) {
-  const today = useMemo(localDate, []);
+  const [today, setToday] = useState(localDate);
+  const allowedAdminDates = useMemo(
+    () => adminOnlyRecentDates ? [today, shiftIsoDate(today, -1)] : undefined,
+    [adminOnlyRecentDates, today],
+  );
   const [selectedDate, setSelectedDate] = useState(today);
   const [mode, setMode] = useState<'day' | 'period'>('day');
   const [from, setFrom] = useState(today);
@@ -834,6 +857,15 @@ export default function AdminOperationsPanel({
   }, [allowPeriod, mode]);
 
   useEffect(() => {
+    const timer = window.setInterval(() => setToday(localDate()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (allowedAdminDates && !allowedAdminDates.includes(selectedDate)) setSelectedDate(today);
+  }, [allowedAdminDates, selectedDate, today]);
+
+  useEffect(() => {
     onLoadingChange?.(status === 'loading');
   }, [onLoadingChange, status]);
 
@@ -841,6 +873,7 @@ export default function AdminOperationsPanel({
     const openRecord = (event: Event) => {
       const detail = (event as CustomEvent<{ date?: string; bathId?: string; time?: string }>).detail;
       if (!detail?.date || !detail.bathId || !detail.time) return;
+      if (allowedAdminDates && !allowedAdminDates.includes(detail.date)) return;
       setMode('day');
       setSelectedDate(detail.date);
       setPendingRecordNavigation({
@@ -852,7 +885,7 @@ export default function AdminOperationsPanel({
     };
     window.addEventListener('admin:open-record', openRecord);
     return () => window.removeEventListener('admin:open-record', openRecord);
-  }, []);
+  }, [allowedAdminDates]);
 
   useEffect(() => {
     let ignore = false;
@@ -1024,7 +1057,6 @@ export default function AdminOperationsPanel({
   const reportTitle = isPeriodReport
     ? `Отчёт за период ${shortDate(rangeFrom)} — ${shortDate(rangeTo)}`
     : `Отчёт за ${dateLabel(report?.date ?? rangeFrom)}`;
-  const reportIsPartial = dashboard?.dataHealth?.state === 'partial';
   const recordsAvailable = dashboard?.recordsAvailable !== false;
 
   useEffect(() => {
@@ -1046,6 +1078,8 @@ export default function AdminOperationsPanel({
                 <ThemedDatePicker
                   value={selectedDate}
                   onChange={setSelectedDate}
+                  allowedDates={allowedAdminDates}
+                  currentDate={today}
                 />
               </div>
             ) : (
@@ -1058,6 +1092,7 @@ export default function AdminOperationsPanel({
                   }}
                   embedded
                   compact
+                  currentDate={today}
                   ariaLabel="Выбрать начало периода"
                 />
                 <span className="flex w-5 translate-x-1 shrink-0 self-stretch items-center justify-center sm:w-9 md:-translate-x-[24px]" aria-hidden="true">
@@ -1072,6 +1107,7 @@ export default function AdminOperationsPanel({
                   embedded
                   compact
                   shiftLeft
+                  currentDate={today}
                   showIcon={false}
                   popoverAlign="right"
                   ariaLabel="Выбрать конец периода"
@@ -1112,7 +1148,7 @@ export default function AdminOperationsPanel({
           />
           {dashboard.reportAccess && !dashboard.reportAccess.allowed && (
             <div className="rounded-lg border border-[#d6a15f]/35 bg-[#15110d] px-5 py-4 text-base font-semibold leading-7 text-[#b9aea0]">
-              Финансовый отчёт за эту дату закрыт. Администратору доступны отчёты за сегодня и за вчера до 12:00 по времени Владивостока. Записи, тексты и текущие складские остатки остаются доступны.
+              Администратору доступны отчёты только за сегодня и вчера по времени Владивостока.
             </div>
           )}
           {reportExpired && dashboard.reportAccess?.allowed && (
@@ -1126,7 +1162,6 @@ export default function AdminOperationsPanel({
             </div>
           )}
           {report && <Section eyebrow={isPeriodReport ? 'Итоги периода' : 'Итоги дня'} title={reportTitle}>
-            {reportIsPartial && <div className="mb-5 rounded-lg border border-[#d98a4a]/35 bg-[#2a1d12] px-4 py-3 text-sm font-extrabold text-[#e9a66e]">Итоги неполные: один или несколько источников загрузились не полностью.</div>}
             <div className="grid items-stretch gap-5 lg:grid-cols-3">
               <div className="flex flex-col overflow-hidden rounded-lg border border-[#d6a15f]/25">
                 <div className="bg-[#201912] px-4 py-3 font-extrabold uppercase tracking-[0.1em] text-[#d6a15f]" style={{ fontSize: '16px', lineHeight: 1.1 }}>
@@ -1183,7 +1218,7 @@ export default function AdminOperationsPanel({
             <div className="space-y-3">
               {(dashboard.baths ?? []).map((bath) => {
                 const isOpen = openBaths.has(bath.id);
-                const kitchenTitles = new Set(bath.kitchenOrders.map((item) => item.title.trim().toLocaleLowerCase('ru-RU')));
+                const kitchenTitles = new Set((bath.kitchenOrders ?? []).map((item) => item.title.trim().toLocaleLowerCase('ru-RU')));
                 return (
                 <div key={bath.id} className="overflow-hidden rounded-lg border border-[#d6a15f]/25 bg-[#0f0c09]">
                   <button

@@ -890,6 +890,7 @@ export default function Baths() {
             type="button"
             disabled={bath.underRepair}
             onClick={() => handleMobileSubBathClick(index, isActive)}
+            data-bath-id={bath.calendarBathId}
             className={`baths-showcase__mobileCard ${isActive ? 'is-selected' : ''} ${bath.underRepair ? 'is-disabled' : ''}`}
             aria-pressed={isActive}
           >
