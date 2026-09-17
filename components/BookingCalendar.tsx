@@ -865,7 +865,7 @@ export default function BookingCalendar() {
               whileInView={{ y: 0, opacity: 1 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className="schedule-calendar-note mx-auto mt-5 flex min-h-[62px] w-fit max-w-full items-center justify-center rounded-lg border border-[#d6a15f]/45 bg-[#15110d] px-6 py-4 text-center text-[20px] font-extrabold leading-8 text-[#f4eee4] shadow-[0_14px_38px_rgba(0,0,0,0.18)] sm:min-h-[70px] sm:px-8 sm:py-4 sm:text-[23px]"
+              className="schedule-calendar-note mx-auto mt-5 min-h-[62px] w-full max-w-full rounded-lg border border-[#d6a15f]/45 bg-[#15110d] px-6 py-4 text-center text-[20px] font-extrabold leading-8 text-[#f4eee4] shadow-[0_14px_38px_rgba(0,0,0,0.18)] sm:min-h-[70px] sm:w-fit sm:px-8 sm:py-4 sm:text-[23px]"
             >
               {calendarNote}
             </motion.p>

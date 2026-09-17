@@ -817,6 +817,7 @@ export default function AdminOperationsPanel({
   onLoadingChange,
   onUpdatedAt,
   onCopyData,
+  afterFinancialReport,
 }: {
   allowPeriod?: boolean;
   adminOnlyRecentDates?: boolean;
@@ -824,6 +825,7 @@ export default function AdminOperationsPanel({
   onLoadingChange?: (loading: boolean) => void;
   onUpdatedAt?: (value: string) => void;
   onCopyData?: (value: AdminCopyData | null) => void;
+  afterFinancialReport?: ReactNode;
 }) {
   const [today, setToday] = useState(localDate);
   const allowedAdminDates = useMemo(
@@ -1213,6 +1215,18 @@ export default function AdminOperationsPanel({
               </div>
             </div>
           </Section>}
+
+        </>
+      )}
+
+      {afterFinancialReport && (
+        <div className={status === 'ready' && dashboard ? 'space-y-6' : 'hidden'}>
+          {afterFinancialReport}
+        </div>
+      )}
+
+      {status === 'ready' && dashboard && (
+        <>
 
           <div id="admin-bath-records" className="hidden scroll-mt-5 md:block"><Section eyebrow="Бани" title={isPeriodReport ? 'Записи и показатели по каждой бане за период' : 'Записи и показатели по каждой бане'}>
             <div className="space-y-3">

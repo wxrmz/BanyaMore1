@@ -4,7 +4,8 @@ import {
   readCalendarNote,
   writeCalendarNote,
 } from '@/lib/calendarNote';
-import { hasAdminSession } from '@/lib/adminAuth';
+import { hasAdminSession, isSameOriginRequest } from '@/lib/adminAuth';
+import { readJsonBody, RequestBodyTooLargeError } from '@/lib/requestBody';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -20,6 +21,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json({ ok: false, message: 'Forbidden.' }, { status: 403 });
+  }
+
   if (!(await hasAdminSession())) {
     return NextResponse.json(
       { ok: false, message: 'Нужно войти в админ-панель.' },
@@ -30,8 +35,15 @@ export async function POST(request: Request) {
   let body: unknown;
 
   try {
-    body = await request.json();
-  } catch {
+    body = await readJsonBody(request);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json(
+        { ok: false, message: 'Запрос слишком большой.' },
+        { status: 413 },
+      );
+    }
+
     return NextResponse.json(
       { ok: false, message: 'Некорректный JSON.' },
       { status: 400 },

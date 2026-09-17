@@ -28,7 +28,6 @@ export default function AdminReportsPage() {
   const [message, setMessage] = useState('');
   const [updatedAt, setUpdatedAt] = useState('');
   const [copyData, setCopyData] = useState<AdminCopyData | null>(null);
-  const [isAllBathsSelected, setIsAllBathsSelected] = useState(true);
   const [reportRefreshKey, setReportRefreshKey] = useState(0);
   const [isReportLoading, setIsReportLoading] = useState(true);
 
@@ -169,22 +168,14 @@ export default function AdminReportsPage() {
               onLoadingChange={setIsReportLoading}
               onUpdatedAt={handleUpdatedAt}
               onCopyData={handleCopyData}
+              afterFinancialReport={(
+                <>
+                  <AdminCopyTextsPanel data={copyData} />
+                  <AdminAvailabilityCalendar onUpdatedAt={handleUpdatedAt} />
+                  <AdminCalendarNoteEditor />
+                </>
+              )}
             />
-            <div className="hidden md:block">
-              <AdminAvailabilityCalendar
-                onUpdatedAt={handleUpdatedAt}
-                onAllBathsChange={setIsAllBathsSelected}
-              />
-            </div>
-            <div className="md:hidden">
-              <AdminCopyTextsPanel data={copyData} />
-            </div>
-            {!isAllBathsSelected && (
-              <div className="hidden md:block">
-                <AdminCopyTextsPanel data={copyData} />
-              </div>
-            )}
-            <AdminCalendarNoteEditor />
           </div>
         </div>
       )}

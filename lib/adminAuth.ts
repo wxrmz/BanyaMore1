@@ -8,6 +8,9 @@ const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
 const REMEMBERED_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_MAX_ATTEMPTS = 5;
+const LOGIN_MAX_TRACKED_KEYS = 10_000;
+const MIN_PRODUCTION_SESSION_SECRET_LENGTH = 32;
+const MIN_PRODUCTION_PASSWORD_LENGTH = 12;
 
 const loginAttempts = new Map<string, { count: number; resetAt: number }>();
 
@@ -71,8 +74,10 @@ const requireAdminConfig = () => {
 
   if (
     !sessionSecret ||
+    (process.env.NODE_ENV === 'production' && sessionSecret.length < MIN_PRODUCTION_SESSION_SECRET_LENGTH) ||
     partiallyConfigured ||
     !accounts.length ||
+    (process.env.NODE_ENV === 'production' && accounts.some((account) => account.password.length < MIN_PRODUCTION_PASSWORD_LENGTH)) ||
     new Set(accounts.map((account) => account.login)).size !== accounts.length
   ) {
     throw new Error('Admin authentication is not configured.');
@@ -126,6 +131,7 @@ export const validateAdminCredentials = (login: string, password: string) =>
 
 export const isLoginRateLimited = (key: string) => {
   const now = Date.now();
+  pruneLoginAttempts(now);
   const attempt = loginAttempts.get(key);
 
   if (!attempt || attempt.resetAt <= now) {
@@ -137,6 +143,7 @@ export const isLoginRateLimited = (key: string) => {
 
 export const recordFailedLogin = (key: string) => {
   const now = Date.now();
+  pruneLoginAttempts(now);
   const attempt = loginAttempts.get(key);
 
   if (!attempt || attempt.resetAt <= now) {
@@ -147,6 +154,22 @@ export const recordFailedLogin = (key: string) => {
   attempt.count += 1;
 };
 
+const pruneLoginAttempts = (now: number) => {
+  for (const [key, attempt] of loginAttempts) {
+    if (attempt.resetAt <= now) loginAttempts.delete(key);
+  }
+
+  if (loginAttempts.size <= LOGIN_MAX_TRACKED_KEYS) return;
+
+  const excess = loginAttempts.size - LOGIN_MAX_TRACKED_KEYS;
+  let removed = 0;
+  for (const key of loginAttempts.keys()) {
+    loginAttempts.delete(key);
+    removed += 1;
+    if (removed >= excess) break;
+  }
+};
+
 export const clearFailedLogins = (key: string) => {
   loginAttempts.delete(key);
 };
@@ -154,9 +177,9 @@ export const clearFailedLogins = (key: string) => {
 export const getClientRateLimitKey = (request: Request) => {
   const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
   const realIp = request.headers.get('x-real-ip')?.trim();
-  const userAgent = request.headers.get('user-agent')?.slice(0, 120) ?? 'unknown';
+  const clientIp = forwardedFor || realIp || 'local';
 
-  return `${forwardedFor || realIp || 'local'}:${userAgent}`;
+  return clientIp.slice(0, 128);
 };
 
 const createSessionValue = (identity: AdminIdentity, maxAgeSeconds: number) => {

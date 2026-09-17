@@ -834,6 +834,8 @@ html[data-theme='light'] .schedule-section::after {
 .schedule-calendar-note {
   background: #15110d !important;
   box-shadow: 0 0 0 1px rgba(214, 161, 95, 0.16), 0 38px 110px rgba(0, 0, 0, 0.46) !important;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 html[data-theme='light'] main .schedule-section .schedule-calendar-panel {

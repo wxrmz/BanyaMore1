@@ -361,6 +361,8 @@ const recordDurationMinutes = (record: RawRecord) => {
   const cleaning = numberValue(record.technical_break_duration);
   return Math.max(0, Math.round((total - Math.min(total, cleaning)) / 60));
 };
+const recordFullDurationMinutes = (record: RawRecord) =>
+  Math.max(0, Math.round(numberValue(record.seance_length ?? record.length) / 60));
 const serviceQuantity = (service: RawRecordService) => Math.max(0, numberValue(service.amount) || 1);
 const serviceRevenue = (service: RawRecordService) => numberValue(service.cost ?? service.cost_to_pay);
 const serviceUnitPrice = (service: RawRecordService) =>
@@ -1158,7 +1160,7 @@ export function buildSalesReports(records: RawRecord[], catalog: Catalog) {
   };
 }
 
-export function buildCopyText(records: RawRecord[]) {
+export function buildCopyText(records: RawRecord[], previousDayRecords: RawRecord[] = []) {
   const bathRecords = records.filter((record) => bathDefinitions.some((bath) => bath.staffId === numberValue(record.staff_id)));
   const interval = (record: RawRecord) => ({
     record,
@@ -1177,16 +1179,22 @@ export function buildCopyText(records: RawRecord[]) {
     return `${bath.title}\n${lines.join('\n')}`;
   }).join('\n\n');
   const freeWindows = bathDefinitions.map((bath) => {
-    const intervals = sorted.filter(({ record }) => numberValue(record.staff_id) === bath.staffId);
-    if (!intervals.length) return `${bath.title}\nс 00:00`;
+    const intervals = sorted.filter(({ record }) => numberValue(record.staff_id) === bath.staffId)
+      .map(({ record, start }) => ({ start, end: start + recordFullDurationMinutes(record) }));
+    const carryoverEnd = previousDayRecords
+      .filter((record) => numberValue(record.staff_id) === bath.staffId)
+      .reduce((latest, record) => Math.max(latest,
+        minutesFromClock(recordStart(record)) + recordFullDurationMinutes(record) - 1_440), 0);
+    if (carryoverEnd >= 1_440) return `${bath.title}\nСвободных окон нет`;
+    if (!intervals.length) return `${bath.title}\nс ${clockFromMinutes(carryoverEnd)}`;
     const lines: string[] = [];
-    let cursor = 0;
+    let cursor = carryoverEnd;
     for (const current of intervals) {
       if (current.start > cursor) lines.push(`с ${clockFromMinutes(cursor)} до ${clockFromMinutes(current.start)}`);
       cursor = Math.max(cursor, current.end);
     }
-    lines.push(`с ${clockFromMinutes(cursor)}`);
-    return `${bath.title}\n${lines.join('\n')}`;
+    if (cursor < 1_440) lines.push(`с ${clockFromMinutes(cursor)}`);
+    return `${bath.title}\n${lines.length ? lines.join('\n') : 'Свободных окон нет'}`;
   }).join('\n\n');
   return { freeWindows, occupiedTimes, occupiedBaths };
 }
@@ -1201,7 +1209,7 @@ export async function getAdminDashboard(
   const generatedAt = new Date().toISOString();
   const [catalog, recordsResult, transactionsResult] = await Promise.all([
     getCatalog(),
-    getRecords(from, to).then(
+    getRecords(addIsoDays(from, -1), to).then(
       (value) => ({ ok: true as const, value }),
       (error: unknown) => ({ ok: false as const, error }),
     ),
@@ -1212,9 +1220,11 @@ export async function getAdminDashboard(
       )
       : Promise.resolve({ ok: true as const, value: [] as RawTransaction[] }),
   ]);
-  const rangeRecords = recordsResult.ok ? recordsResult.value : [];
+  const allRecords = recordsResult.ok ? recordsResult.value : [];
+  const rangeRecords = allRecords.filter((record) => recordLocalDate(record) >= from);
   const transactions = transactionsResult.ok ? transactionsResult.value : [];
   const dayRecords = rangeRecords.filter((record) => recordLocalDate(record) === date);
+  const previousDayRecords = allRecords.filter((record) => recordLocalDate(record) === addIsoDays(date, -1));
   await enrichCatalogWithReferencedGoods(catalog, [...rangeRecords, ...dayRecords]);
   const kppRecords = includeReports
     ? rangeRecords.filter((record) => bathDefinitions.some((bath) => bath.staffId === numberValue(record.staff_id)))
@@ -1276,7 +1286,7 @@ export async function getAdminDashboard(
       ],
       issues,
     },
-    copyText: buildCopyText(dayRecords),
+    copyText: buildCopyText(dayRecords, previousDayRecords),
     generatedAt,
   };
 }

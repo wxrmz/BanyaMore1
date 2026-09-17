@@ -4,7 +4,8 @@ import {
   fetchYclientsWithRetry,
   yclientsCacheTtlMs,
 } from '@/lib/yclientsTransport';
-import { buildExactAvailabilitySlotDays } from '@/lib/availabilitySlotStatus';
+import { buildExactAvailabilitySlotDays, carryoverEndMinutes } from '@/lib/availabilitySlotStatus';
+import { isValidIsoDate } from '@/lib/adminDateRange';
 
 export const dynamic = 'force-dynamic';
 
@@ -72,6 +73,7 @@ type PublicDay = {
   label: string;
   weekday: string;
   freeCount: number;
+  carryoverEndMinutes?: number | null;
   slots: PublicSlot[];
 };
 
@@ -476,6 +478,7 @@ async function buildBathAvailability(bath: BathConfig, dates: string[], records:
       label: dayLabel(date),
       weekday: weekdayLabel(date),
       freeCount: countBookableSlots(slots),
+      carryoverEndMinutes: carryoverEndMinutes(records, bath.staffId, date),
       slots,
     };
   });
@@ -540,7 +543,17 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const from = searchParams.get('from') ?? formatDate(new Date());
-  const days = Math.min(Math.max(Number(searchParams.get('days') ?? 7), 1), 32);
+  const requestedDays = searchParams.get('days');
+  const parsedDays = requestedDays === null ? 7 : Number(requestedDays);
+
+  if (!isValidIsoDate(from) || !Number.isFinite(parsedDays)) {
+    return NextResponse.json(
+      { ok: false, bookingUrl: BOOKING_URL, message: 'Некорректные параметры календаря.' },
+      { status: 400 },
+    );
+  }
+
+  const days = Math.min(Math.max(Math.trunc(parsedDays), 1), 32);
   const start = new Date(`${from}T00:00:00+10:00`);
 
   try {

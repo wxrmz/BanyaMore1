@@ -10,6 +10,7 @@ import {
   setAdminSessionCookie,
 } from '@/lib/adminAuth';
 import { getAdminAccess } from '@/lib/adminRoles';
+import { readJsonBody, RequestBodyTooLargeError } from '@/lib/requestBody';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -32,8 +33,12 @@ export async function POST(request: Request) {
   let body: unknown;
 
   try {
-    body = await request.json();
-  } catch {
+    body = await readJsonBody(request);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json({ ok: false, message: 'Request body is too large.' }, { status: 413 });
+    }
+
     return NextResponse.json({ ok: false, message: 'Некорректный JSON.' }, { status: 400 });
   }
 

@@ -18,6 +18,7 @@ type TransportState = {
 
 const MAX_CONCURRENCY = 2;
 const MAX_RETRY_DELAY_MS = 15_000;
+const YCLIENTS_REQUEST_TIMEOUT_MS = 20_000;
 const globalTransport = globalThis as typeof globalThis & {
   __banyaMoreYclientsTransport?: TransportState;
 };
@@ -58,6 +59,17 @@ const schedule = <T>(run: () => Promise<T>) => new Promise<T>((resolve, reject) 
   state.queue.push({ run, resolve, reject } as QueueTask<unknown>);
   pump();
 });
+
+const fetchWithTimeout = async (url: string, init: RequestInit) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), YCLIENTS_REQUEST_TIMEOUT_MS);
+
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+};
 
 const retryAfterHeaderMs = (value: string | null, nowMs: number) => {
   if (!value) return 0;
@@ -115,7 +127,7 @@ export async function fetchYclientsWithRetry(
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
-      const response = await schedule(() => fetch(url, init));
+      const response = await schedule(() => fetchWithTimeout(url, init));
       lastResponse = response;
       const retryable = response.status === 429 || response.status >= 500;
       if (!retryable) return response;

@@ -28,6 +28,38 @@ const isoDayNumber = (value: string) => {
   return Math.floor(Date.UTC(year, month - 1, day) / 86_400_000);
 };
 
+const recordIntervals = (records: AvailabilityRecord[], staffId: number, firstDay: string) =>
+  records.flatMap((record) => {
+    if (Number(record.staff_id) !== staffId) return [];
+
+    const dateTime = record.datetime ?? record.date ?? '';
+    const match = /^(\d{4}-\d{2}-\d{2})[T\s](\d{1,2}):(\d{2})/.exec(dateTime);
+    if (!match) return [];
+
+    const start = (isoDayNumber(match[1]) - isoDayNumber(firstDay)) * 1_440 + Number(match[2]) * 60 + Number(match[3]);
+    const totalMinutes = Math.max(0, Math.round(Number(record.seance_length ?? record.length ?? 0) / 60));
+    const cleaningMinutes = Math.min(
+      totalMinutes,
+      Math.max(0, Math.round(Number(record.technical_break_duration ?? 0) / 60)),
+    );
+    const serviceMinutes = Math.max(0, totalMinutes - cleaningMinutes);
+    if (!serviceMinutes) return [];
+
+    return [{
+      busyStart: start,
+      busyEnd: start + serviceMinutes,
+      cleaningStart: start + serviceMinutes,
+      cleaningEnd: start + serviceMinutes + cleaningMinutes,
+    }];
+  });
+
+export function carryoverEndMinutes(records: AvailabilityRecord[], staffId: number, date: string): number | null {
+  const ends = recordIntervals(records, staffId, date)
+    .filter((interval) => interval.busyStart < 0 && interval.cleaningEnd > 0)
+    .map((interval) => interval.cleaningEnd);
+  return ends.length ? Math.max(...ends) : null;
+}
+
 /**
  * Builds the visible timetable from exact YCLIENTS records. Book-times are
  * used only to mark starts that the widget actually accepts; their gaps must
@@ -51,30 +83,7 @@ export function buildExactAvailabilitySlotDays({
   businessEnd?: string;
   slotStepMinutes?: number;
 }): AvailabilitySlotStatus[][] {
-  const firstDay = isoDayNumber(dates[0]);
-  const intervals = records.flatMap((record) => {
-    if (Number(record.staff_id) !== staffId) return [];
-
-    const dateTime = record.datetime ?? record.date ?? '';
-    const match = /^(\d{4}-\d{2}-\d{2})[T\s](\d{1,2}):(\d{2})/.exec(dateTime);
-    if (!match) return [];
-
-    const start = (isoDayNumber(match[1]) - firstDay) * 1_440 + Number(match[2]) * 60 + Number(match[3]);
-    const totalMinutes = Math.max(0, Math.round(Number(record.seance_length ?? record.length ?? 0) / 60));
-    const cleaningMinutes = Math.min(
-      totalMinutes,
-      Math.max(0, Math.round(Number(record.technical_break_duration ?? 0) / 60)),
-    );
-    const serviceMinutes = Math.max(0, totalMinutes - cleaningMinutes);
-    if (!serviceMinutes) return [];
-
-    return [{
-      busyStart: start,
-      busyEnd: start + serviceMinutes,
-      cleaningStart: start + serviceMinutes,
-      cleaningEnd: start + serviceMinutes + cleaningMinutes,
-    }];
-  });
+  const intervals = recordIntervals(records, staffId, dates[0]);
 
   return dates.map((_, dayIndex) => dayTimes.map((time) => {
     const slotStart = dayIndex * 1_440 + timeToMinutes(time);

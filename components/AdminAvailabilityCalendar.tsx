@@ -185,10 +185,8 @@ const loadTone = (occupancy: number) => {
 
 export default function AdminAvailabilityCalendar({
   onUpdatedAt,
-  onAllBathsChange,
 }: {
   onUpdatedAt?: (value: string) => void;
-  onAllBathsChange?: (isAllBaths: boolean) => void;
 }) {
   const today = useMemo(localDate, []);
   const currentMonth = useMemo(() => monthStartFor(today), [today]);
@@ -273,10 +271,6 @@ export default function AdminAvailabilityCalendar({
   }, [selectedBathId, selectedDate]);
 
   const isAllBaths = selectedBathId === ALL_BATHS_ID;
-
-  useEffect(() => {
-    onAllBathsChange?.(isAllBaths);
-  }, [isAllBaths, onAllBathsChange]);
 
   const selectedBaths = useMemo(
     () => isAllBaths ? baths : baths.filter((bath) => bath.id === selectedBathId),
