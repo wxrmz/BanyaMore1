@@ -6,6 +6,8 @@ tmp/
 .tmp*/
 .agents/
 
+data/admin-revoked-sessions.json
+
 .env*
 !.env.example
 
@@ -17,3 +19,4 @@ pnpm-debug.log*
 
 *.tsbuildinfo
 .vercel/
+

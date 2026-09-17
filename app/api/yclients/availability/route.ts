@@ -5,9 +5,19 @@ import {
   yclientsCacheTtlMs,
 } from '@/lib/yclientsTransport';
 import { buildExactAvailabilitySlotDays, carryoverEndMinutes } from '@/lib/availabilitySlotStatus';
-import { isValidIsoDate } from '@/lib/adminDateRange';
+import { dateInVladivostok, isValidIsoDate, reportRangeDays } from '@/lib/adminDateRange';
+import { getAdminSession } from '@/lib/adminAuth';
+import { getClientIp } from '@/lib/clientIp';
+import { createRateLimiter } from '@/lib/rateLimit';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+/** Public visitors may look from yesterday up to a year ahead. */
+const PUBLIC_MIN_OFFSET_DAYS = -1;
+const PUBLIC_MAX_OFFSET_DAYS = 366;
+/** Each uncached request costs dozens of YCLIENTS calls, so anonymous traffic is limited per IP. */
+const publicRateLimit = createRateLimiter({ limit: 30, windowMs: 60_000 });
 
 type YclientsEnvelope<T> = {
   success?: boolean;
@@ -171,18 +181,10 @@ const toList = (value?: string) =>
     .map((item) => item.trim())
     .filter(Boolean) ?? [];
 
-const formatDate = (date: Date) => {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, '0');
-  const day = `${date.getDate()}`.padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
+// Dates are always calculated in Vladivostok time, regardless of the server's timezone.
+const formatDate = (date: Date) => dateInVladivostok(date);
 
-const addDays = (date: Date, days: number) => {
-  const next = new Date(date);
-  next.setDate(next.getDate() + days);
-  return next;
-};
+const addDays = (date: Date, days: number) => new Date(date.getTime() + days * 86_400_000);
 
 const dayLabel = (date: string) =>
   new Intl.DateTimeFormat('ru-RU', {
@@ -541,8 +543,20 @@ export async function GET(request: Request) {
     );
   }
 
+  const isAdmin = (await getAdminSession()) !== null;
+
+  if (!isAdmin) {
+    const retryAfter = publicRateLimit(getClientIp(request));
+    if (retryAfter > 0) {
+      return NextResponse.json(
+        { ok: false, bookingUrl: BOOKING_URL, message: 'Слишком много запросов. Попробуйте через минуту.' },
+        { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+      );
+    }
+  }
+
   const { searchParams } = new URL(request.url);
-  const from = searchParams.get('from') ?? formatDate(new Date());
+  const from = searchParams.get('from') ?? dateInVladivostok(new Date());
   const requestedDays = searchParams.get('days');
   const parsedDays = requestedDays === null ? 7 : Number(requestedDays);
 
@@ -551,6 +565,16 @@ export async function GET(request: Request) {
       { ok: false, bookingUrl: BOOKING_URL, message: 'Некорректные параметры календаря.' },
       { status: 400 },
     );
+  }
+
+  if (!isAdmin) {
+    const offset = reportRangeDays(dateInVladivostok(new Date()), from) - 1;
+    if (offset < PUBLIC_MIN_OFFSET_DAYS || offset > PUBLIC_MAX_OFFSET_DAYS) {
+      return NextResponse.json(
+        { ok: false, bookingUrl: BOOKING_URL, message: 'Дата вне доступного периода.' },
+        { status: 400 },
+      );
+    }
   }
 
   const days = Math.min(Math.max(Math.trunc(parsedDays), 1), 32);

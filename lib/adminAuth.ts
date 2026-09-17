@@ -1,7 +1,9 @@
-import { createHmac, timingSafeEqual } from 'crypto';
+import { createHmac, randomUUID, timingSafeEqual } from 'crypto';
 import { cookies } from 'next/headers';
 import { isSameOriginRequest as matchesAdminOrigin } from './adminRequestOrigin';
 import type { AdminRole } from './adminRoles';
+import { getClientIp } from './clientIp';
+import { isSessionRevoked, revokeSession } from './adminSessionRevocation';
 
 const COOKIE_NAME = 'banyamore-admin-session';
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
@@ -174,19 +176,14 @@ export const clearFailedLogins = (key: string) => {
   loginAttempts.delete(key);
 };
 
-export const getClientRateLimitKey = (request: Request) => {
-  const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-  const realIp = request.headers.get('x-real-ip')?.trim();
-  const clientIp = forwardedFor || realIp || 'local';
-
-  return clientIp.slice(0, 128);
-};
+export const getClientRateLimitKey = (request: Request) => getClientIp(request);
 
 const createSessionValue = (identity: AdminIdentity, maxAgeSeconds: number) => {
   const payload = Buffer.from(
     JSON.stringify({
       login: identity.login,
       role: identity.role,
+      sid: randomUUID(),
       expiresAt: Date.now() + maxAgeSeconds * 1000,
     }),
   ).toString('base64url');
@@ -194,10 +191,15 @@ const createSessionValue = (identity: AdminIdentity, maxAgeSeconds: number) => {
   return `${payload}.${sign(payload)}`;
 };
 
-export const getAdminSessionFromValue = (sessionValue: string | undefined): AdminIdentity | null => {
-  if (!sessionValue) {
-    return null;
-  }
+type SessionPayload = {
+  login?: string;
+  role?: AdminRole;
+  sid?: string;
+  expiresAt?: number;
+};
+
+const readSignedSession = (sessionValue: string | undefined): SessionPayload | null => {
+  if (!sessionValue) return null;
 
   try {
     const [payload, signature] = sessionValue.split('.');
@@ -206,17 +208,26 @@ export const getAdminSessionFromValue = (sessionValue: string | undefined): Admi
       return null;
     }
 
-    const { accounts } = requireAdminConfig();
-    const session = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as {
-      login?: string;
-      role?: AdminRole;
-      expiresAt?: number;
-    };
+    return JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as SessionPayload;
+  } catch {
+    return null;
+  }
+};
+
+export const getAdminSessionFromValue = (sessionValue: string | undefined): AdminIdentity | null => {
+  try {
+    const session = readSignedSession(sessionValue);
+    if (!session) return null;
 
     if (typeof session.expiresAt !== 'number' || session.expiresAt <= Date.now()) {
       return null;
     }
 
+    if (typeof session.sid !== 'string' || !session.sid || isSessionRevoked(session.sid)) {
+      return null;
+    }
+
+    const { accounts } = requireAdminConfig();
     const account = accounts.find(
       (candidate) => candidate.login === session.login && candidate.role === session.role,
     );
@@ -258,6 +269,11 @@ export async function setAdminSessionCookie(identity: AdminIdentity, remember = 
 
 export async function clearAdminSessionCookie() {
   const cookieStore = await cookies();
+  const session = readSignedSession(cookieStore.get(COOKIE_NAME)?.value);
+
+  if (session && typeof session.sid === 'string' && typeof session.expiresAt === 'number') {
+    await revokeSession(session.sid, session.expiresAt);
+  }
 
   cookieStore.set({
     name: COOKIE_NAME,
