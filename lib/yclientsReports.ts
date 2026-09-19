@@ -1190,7 +1190,9 @@ export function buildCopyText(records: RawRecord[], previousDayRecords: RawRecor
     const lines: string[] = [];
     let cursor = carryoverEnd;
     for (const current of intervals) {
-      if (current.start > cursor) lines.push(`с ${clockFromMinutes(cursor)} до ${clockFromMinutes(current.start)}`);
+      // Баню освобождают за 30 минут до следующей записи, окна короче получаса не показываем.
+      const windowEnd = current.start - 30;
+      if (windowEnd > cursor) lines.push(`с ${clockFromMinutes(cursor)} до ${clockFromMinutes(windowEnd)}`);
       cursor = Math.max(cursor, current.end);
     }
     if (cursor < 1_440) lines.push(`с ${clockFromMinutes(cursor)}`);

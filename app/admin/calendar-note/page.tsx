@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useState } from 'react';
 import AdminAvailabilityCalendar from '@/components/AdminAvailabilityCalendar';
 import AdminCalendarNoteEditor from '@/components/AdminCalendarNoteEditor';
 import AdminOperationsPanel, { AdminCopyTextsPanel, type AdminCopyData } from '@/components/AdminOperationsPanel';
+import AdminCopyTextsOnlyPanel from '@/components/AdminCopyTextsOnlyPanel';
 import {
   type AdminAccess,
   type AdminRole,
@@ -161,6 +162,13 @@ export default function AdminReportsPage() {
             </div>
           </div>
           <div className="space-y-6">
+            {identity?.access.copyTextsOnly ? (
+              <AdminCopyTextsOnlyPanel
+                manualRefreshKey={reportRefreshKey}
+                onLoadingChange={setIsReportLoading}
+                onUpdatedAt={handleUpdatedAt}
+              />
+            ) : (
             <AdminOperationsPanel
               allowPeriod={identity?.access.periodReports ?? false}
               adminOnlyRecentDates={identity?.role === 'admin'}
@@ -176,6 +184,7 @@ export default function AdminReportsPage() {
                 </>
               )}
             />
+            )}
           </div>
         </div>
       )}

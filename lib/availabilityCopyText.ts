@@ -42,6 +42,8 @@ export function buildFreeWindowsFromAvailability(baths: AvailabilityBath[], date
     const visibleRuns = runs.filter((run) => run.some((slot) => slot.time !== '23:30'));
     if (!visibleRuns.length) return `${bath.title}\nСвободных окон нет`;
 
+    // Окно заканчивается последним свободным получасом: баню нужно освободить
+    // за 30 минут до следующей записи.
     const lines = visibleRuns.map((run, index) => {
       const slotStart = timeToMinutes(run[0].time);
       const carryoverEnd = day?.carryoverEndMinutes;
@@ -51,10 +53,13 @@ export function buildFreeWindowsFromAvailability(baths: AvailabilityBath[], date
         : run[0].time;
       const last = run[run.length - 1];
       const endsAtDayBoundary = last.time === slots[slots.length - 1]?.time;
-      return endsAtDayBoundary
-        ? `с ${start}`
-        : `с ${start} до ${minutesToTime(timeToMinutes(last.time) + 30)}`;
-    });
+      if (endsAtDayBoundary) return `с ${start}`;
+      const end = timeToMinutes(last.time);
+      // Окно короче получаса забронировать нельзя, поэтому его не показываем.
+      if (end <= timeToMinutes(start)) return '';
+      return `с ${start} до ${minutesToTime(end)}`;
+    }).filter(Boolean);
+    if (!lines.length) return `${bath.title}\nСвободных окон нет`;
     return `${bath.title}\n${lines.join('\n')}`;
   }).join('\n\n');
 }

@@ -10,6 +10,7 @@ import {
 } from '@/lib/adminDateRange';
 import { getAdminAccess } from '@/lib/adminRoles';
 import { getAdminDashboard, YclientsReportsError } from '@/lib/yclientsReports';
+import { stripToCopyTexts } from '@/lib/adminDashboardAccess';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,6 +40,29 @@ export async function GET(request: Request) {
   const date = search.get('date') || dateInVladivostok(requestTime);
   const from = search.get('from') || date;
   const to = search.get('to') || from;
+
+  if (access.copyTextsOnly) {
+    // Учётная запись «Тексты занятости»: только один день и только тексты для копирования.
+    if (!isValidIsoDate(date)) {
+      return NextResponse.json({ ok: false, message: 'Некорректная дата.' }, { status: 400 });
+    }
+
+    try {
+      const dashboard = await getAdminDashboard(date, date, date, { includeReports: false });
+
+      return NextResponse.json({
+        ...stripToCopyTexts(dashboard),
+        reportAccess: {
+          allowed: true,
+          reason: 'copy_texts',
+          closesAt: null,
+          serverNow: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      return errorResponse(error);
+    }
+  }
 
   if (![date, from, to].every(isValidIsoDate)) {
     return NextResponse.json({ ok: false, message: 'Некорректная дата.' }, { status: 400 });

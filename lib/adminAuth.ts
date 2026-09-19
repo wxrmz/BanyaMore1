@@ -24,7 +24,7 @@ export type AdminIdentity = {
 type AdminAccount = AdminIdentity & { password: string };
 
 const isAdminRole = (value: unknown): value is AdminRole =>
-  value === 'admin' || value === 'owner' || value === 'director';
+  value === 'admin' || value === 'owner' || value === 'director' || value === 'copy';
 
 const additionalAccounts = (): AdminAccount[] => {
   const raw = process.env.ADMIN_USERS_JSON?.trim();
@@ -65,6 +65,11 @@ const requireAdminConfig = () => {
       role: 'director' as const,
       login: process.env.ADMIN_DIRECTOR_LOGIN?.trim() ?? '',
       password: process.env.ADMIN_DIRECTOR_PASSWORD ?? '',
+    },
+    {
+      role: 'copy' as const,
+      login: process.env.ADMIN_COPY_LOGIN?.trim() ?? '',
+      password: process.env.ADMIN_COPY_PASSWORD ?? '',
     },
   ];
   const partiallyConfigured = configured.some((account) => Boolean(account.login) !== Boolean(account.password));
