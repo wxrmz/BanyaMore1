@@ -1016,10 +1016,11 @@ export default function AdminOperationsPanel({
 
   useEffect(() => {
     if (status !== 'ready') return;
-    const interval = dashboard?.dataHealth?.state === 'partial' ? 30_000 : 300_000;
-    const timer = window.setInterval(() => setReloadKey((value) => value + 1), interval);
+    // Обновляем раз в 5 минут в любом случае: при неполных данных частые
+    // повторы только упирались в лимиты YCLIENTS и дёргали панель.
+    const timer = window.setInterval(() => setReloadKey((value) => value + 1), 300_000);
     return () => window.clearInterval(timer);
-  }, [dashboard?.dataHealth?.state, status]);
+  }, [status]);
 
   useEffect(() => {
     if (!pendingRecordNavigation || status !== 'ready' || dashboard?.date !== pendingRecordNavigation.date) return;

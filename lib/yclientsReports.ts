@@ -1160,8 +1160,15 @@ export function buildSalesReports(records: RawRecord[], catalog: Catalog) {
   };
 }
 
+/** attendance = -1 в YCLIENTS означает «не пришёл»: время считается свободным. */
+const isNoShowRecord = (record: RawRecord) => {
+  const attendance = record.attendance ?? record.visit_attendance;
+  return numberValue(attendance) === -1;
+};
+
 export function buildCopyText(records: RawRecord[], previousDayRecords: RawRecord[] = []) {
-  const bathRecords = records.filter((record) => bathDefinitions.some((bath) => bath.staffId === numberValue(record.staff_id)));
+  const bathRecords = records.filter((record) =>
+    bathDefinitions.some((bath) => bath.staffId === numberValue(record.staff_id)) && !isNoShowRecord(record));
   const interval = (record: RawRecord) => ({
     record,
     start: minutesFromClock(recordStart(record)),
@@ -1182,7 +1189,7 @@ export function buildCopyText(records: RawRecord[], previousDayRecords: RawRecor
     const intervals = sorted.filter(({ record }) => numberValue(record.staff_id) === bath.staffId)
       .map(({ record, start }) => ({ start, end: start + recordFullDurationMinutes(record) }));
     const carryoverEnd = previousDayRecords
-      .filter((record) => numberValue(record.staff_id) === bath.staffId)
+      .filter((record) => numberValue(record.staff_id) === bath.staffId && !isNoShowRecord(record))
       .reduce((latest, record) => Math.max(latest,
         minutesFromClock(recordStart(record)) + recordFullDurationMinutes(record) - 1_440), 0);
     if (carryoverEnd >= 1_440) return `${bath.title}\nСвободных окон нет`;

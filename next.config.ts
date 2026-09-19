@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const isProduction = process.env.NODE_ENV === 'production';
+// Пока HTTPS-сертификат не выпущен (SITE_HTTPS=off), браузер не должен принудительно
+// переводить запросы на https и запоминать HSTS: иначе сайт откроется сломанным.
+const httpsReady = process.env.SITE_HTTPS !== 'off';
 
 // Content-Security-Policy: only our own code plus the services the site really uses
 // (Yandex Metrika, Yandex Maps widget, Google Fonts, YCLIENTS booking links).
@@ -18,7 +21,7 @@ const contentSecurityPolicy = [
   "base-uri 'self'",
   "form-action 'self' https://*.yclients.com",
   "frame-ancestors 'self'",
-  ...(isProduction ? ['upgrade-insecure-requests'] : []),
+  ...(isProduction && httpsReady ? ['upgrade-insecure-requests'] : []),
 ].join('; ');
 
 const nextConfig: NextConfig = {
@@ -36,7 +39,9 @@ const nextConfig: NextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
           { key: 'X-Permitted-Cross-Domain-Policies', value: 'none' },
           { key: 'X-DNS-Prefetch-Control', value: 'off' },
-          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
+          ...(httpsReady
+            ? [{ key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' }]
+            : []),
           { key: 'Content-Security-Policy', value: contentSecurityPolicy },
         ],
       },

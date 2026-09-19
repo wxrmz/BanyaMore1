@@ -64,11 +64,31 @@ if grep -q '^ADMIN_PUBLIC_ORIGIN=' "$ENV_FILE"; then
 else
   printf '\nADMIN_PUBLIC_ORIGIN=https://%s\n' "$DOMAIN" >> "$ENV_FILE"
 fi
+set_site_https() {
+  # Пока сертификата нет, сайт отдаётся как обычный HTTP-сайт: без принудительного
+  # перехода на https и без HSTS, иначе страница откроется без стилей.
+  if grep -q '^SITE_HTTPS=' "$ENV_FILE"; then
+    sed -i "s|^SITE_HTTPS=.*|SITE_HTTPS=$1|" "$ENV_FILE"
+  else
+    printf 'SITE_HTTPS=%s\n' "$1" >> "$ENV_FILE"
+  fi
+}
+
+has_certificate() {
+  [ -d "/etc/letsencrypt/live/$DOMAIN" ]
+}
+
+if has_certificate; then set_site_https on; else set_site_https off; fi
+
 chown -R "$APP_USER:$APP_USER" "$APP_DIR"
 chmod 600 "$ENV_FILE"
 
+build_site() {
+  sudo -u "$APP_USER" -H bash -c "cd '$APP_DIR' && npm ci --no-audit --no-fund && npm run build"
+}
+
 log "Устанавливаю зависимости и собираю сайт (несколько минут)"
-sudo -u "$APP_USER" -H bash -c "cd '$APP_DIR' && npm ci --no-audit --no-fund && npm run build"
+build_site
 
 log "Настраиваю автозапуск (systemd)"
 cat > /etc/systemd/system/banyamore.service <<UNIT
@@ -166,10 +186,18 @@ elif [ -n "$SERVER_IP" ] && [ "$SERVER_IP" = "$DNS_IP" ]; then
   else
     certbot --nginx -d "$DOMAIN" --redirect --agree-tos --register-unsafely-without-email --non-interactive
   fi
+  if has_certificate && grep -q '^SITE_HTTPS=off' "$ENV_FILE"; then
+    log "Включаю строгие настройки HTTPS и пересобираю сайт"
+    set_site_https on
+    chown "$APP_USER:$APP_USER" "$ENV_FILE"
+    build_site
+    systemctl restart banyamore
+  fi
 else
   printf '\n\033[1;31mDNS домена %s пока указывает на "%s", а IP сервера "%s".\033[0m\n' "$DOMAIN" "${DNS_IP:-нет записи}" "${SERVER_IP:-?}"
   printf 'Создайте A-запись на IP сервера, подождите обновления DNS и запустите скрипт ещё раз — он выпустит сертификат.\n'
-  printf 'Приложение уже запущено, но полноценно (стили, вход в админку) сайт заработает только по HTTPS.\n'
+  printf 'Сайт уже работает по http://%s — без замочка в браузере, но со стилями и фотографиями.\n' "${DNS_IP:-$SERVER_IP}"
+  printf 'Вход в админку заработает после выпуска сертификата.\n'
   exit 0
 fi
 

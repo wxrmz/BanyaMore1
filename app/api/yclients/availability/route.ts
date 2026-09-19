@@ -65,7 +65,13 @@ type RawRecord = {
   length?: number;
   technical_break_duration?: number;
   deleted?: boolean | number;
+  attendance?: number;
+  visit_attendance?: number;
 };
+
+/** attendance = -1 в YCLIENTS означает «не пришёл»: баня в это время фактически свободна. */
+const isNoShow = (record: RawRecord) =>
+  record.attendance === -1 || (record.attendance === undefined && record.visit_attendance === -1);
 
 type PublicSlot = {
   time: string;
@@ -283,7 +289,7 @@ async function fetchRecords(from: string, to: string) {
     if (batch.length < 200) break;
     if (page === 100) throw new Error(`YCLIENTS records response is truncated for ${from} — ${to}`);
   }
-  return records.filter((record) => record.deleted !== true && record.deleted !== 1);
+  return records.filter((record) => record.deleted !== true && record.deleted !== 1 && !isNoShow(record));
 }
 
 const serviceTitle = (service: YclientsService) => service.booking_title ?? service.title ?? service.name ?? 'Баня Море';
