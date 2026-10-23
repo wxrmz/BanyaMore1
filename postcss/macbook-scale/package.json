@@ -1,0 +1,7 @@
+{
+  "name": "postcss-macbook-scale",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MacBook-версия главной страницы: копия макета 1903px, уменьшенная пропорционально",
+  "main": "index.cjs"
+}

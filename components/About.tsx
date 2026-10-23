@@ -1,0 +1,325 @@
+'use client';
+
+import { AnimatePresence, motion, useInView } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowIcon } from './ArrowIcon';
+import { useCloseOnBack } from '@/lib/useCloseOnBack';
+import { lightboxFigureTransition } from '@/lib/lightboxMotion';
+
+const stories = [
+  {
+    number: '01',
+    title: 'Приезд',
+    text: 'Приезжайте и оставьте лишнее позади',
+    image: '/images/arrival-img-0615.jpg',
+    imagePosition: '39% center',
+    imageScale: 'scale-100',
+    hoverScale: 'group-hover:scale-[1.02]',
+  },
+  {
+    number: '02',
+    title: 'Пар',
+    text: 'Пар и дерево наполняют ароматом древесины пространство парной',
+    image: '/images/about-steam.jpg',
+  },
+  {
+    number: '03',
+    title: 'Кафе',
+    text: 'Блюда из меню можно заказать прямо в баню или летнее кафе',
+    image: '/images/about-cafe.jpg',
+  },
+  {
+    number: '04',
+    title: 'Море',
+    text: 'Свежий воздух, шум прибоя и завораживающий закат на горизонте',
+    image: '/images/20210509_200041.jpg',
+  },
+  {
+    number: '05',
+    title: 'Отдых',
+    text: 'Восхищайтесь закатом и наслаждайтесь тёплой атмосферой',
+    image: '/images/rest-img-0612.jpg',
+    imagePosition: 'center 58%',
+  },
+];
+
+// До 1024px карточки листаются лентой (как на телефоне), с 1024px
+// раскрываются аккордеоном: на планшете аккордеон сжимал их в нечитаемые полоски.
+const CAROUSEL_ACCORDION_MIN_WIDTH = 1024;
+
+export default function About() {
+  const ref = useRef(null);
+  const carouselRef = useRef<HTMLDivElement | null>(null);
+  const storyRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const scrollFrameRef = useRef<number | null>(null);
+  const isInView = useInView(ref, { once: true, margin: '-120px' });
+  const [active, setActive] = useState(0);
+  const [viewer, setViewer] = useState<number | null>(null);
+  const [autoplayResumeAt, setAutoplayResumeAt] = useState(0);
+
+  useCloseOnBack(viewer !== null, () => setViewer(null));
+
+  const pauseAutoplay = () => {
+    setAutoplayResumeAt(Date.now() + 10000);
+  };
+
+  const scrollToStory = (index: number) => {
+    const carousel = carouselRef.current;
+    const story = storyRefs.current[index];
+
+    if (window.innerWidth >= CAROUSEL_ACCORDION_MIN_WIDTH || !carousel || !story) {
+      return;
+    }
+
+    carousel.scrollTo({
+      left: story.offsetLeft - (carousel.clientWidth - story.clientWidth) / 2,
+      behavior: 'smooth',
+    });
+  };
+
+  const selectStory = (index: number) => {
+    pauseAutoplay();
+    setActive(index);
+    scrollToStory(index);
+  };
+
+  const beginManualCarouselScroll = () => {
+    if (window.innerWidth >= CAROUSEL_ACCORDION_MIN_WIDTH) {
+      return;
+    }
+
+    pauseAutoplay();
+  };
+
+  useEffect(() => {
+    if (viewer !== null) {
+      return;
+    }
+
+    const delay = autoplayResumeAt > Date.now() ? autoplayResumeAt - Date.now() : 4200;
+    const timer = window.setTimeout(() => {
+      const nextIndex = (active + 1) % stories.length;
+      setActive(nextIndex);
+      scrollToStory(nextIndex);
+    }, delay);
+
+    return () => window.clearTimeout(timer);
+  }, [active, autoplayResumeAt, viewer]);
+
+  useEffect(() => {
+    const carousel = carouselRef.current;
+
+    if (!carousel) {
+      return;
+    }
+
+    const handleScroll = () => {
+      if (window.innerWidth >= CAROUSEL_ACCORDION_MIN_WIDTH || scrollFrameRef.current !== null) {
+        return;
+      }
+
+      scrollFrameRef.current = window.requestAnimationFrame(() => {
+        scrollFrameRef.current = null;
+        const carouselCenter = carousel.scrollLeft + carousel.clientWidth / 2;
+        let closestIndex = 0;
+        let closestDistance = Number.POSITIVE_INFINITY;
+
+        storyRefs.current.forEach((story, index) => {
+          if (!story) {
+            return;
+          }
+
+          const storyCenter = story.offsetLeft + story.clientWidth / 2;
+          const distance = Math.abs(storyCenter - carouselCenter);
+
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestIndex = index;
+          }
+        });
+
+        setActive((current) => (current === closestIndex ? current : closestIndex));
+      });
+    };
+
+    carousel.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      carousel.removeEventListener('scroll', handleScroll);
+      if (scrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(scrollFrameRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <>
+      <section
+        id="about"
+        className="about-section layer-mid relative overflow-hidden bg-[#050403] pb-16 pt-14 sm:pb-20 sm:pt-16 lg:pb-24 lg:pt-20"
+        ref={ref}
+      >
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_22%,rgba(214,161,95,0.10),transparent_34rem)]" />
+
+        <motion.div
+          initial={{ y: 34, opacity: 0 }}
+          animate={isInView ? { y: 0, opacity: 1 } : {}}
+          transition={{ duration: 0.68, ease: 'easeOut' }}
+          className="about-shell relative mx-auto w-[calc(100%-24px)] overflow-hidden rounded-lg bg-transparent px-5 py-8 sm:w-[calc(100%-48px)] sm:px-8 sm:py-10 lg:w-[calc(100%-64px)] lg:px-12 lg:py-12 2xl:w-[calc(100%-88px)]"
+        >
+          <div className="grid min-w-0 gap-10 xl:grid-cols-[minmax(320px,0.3fr)_minmax(0,1fr)] xl:items-center">
+            <div className="about-intro min-w-0 max-w-full xl:-translate-y-8 xl:max-w-[360px] 2xl:-translate-y-12">
+              <div className="eyebrow text-[1.35rem] sm:text-[1.55rem] lg:text-[1.75rem]">О нас</div>
+              <h2 className="mt-6 font-serif text-[clamp(3.05rem,4.45vw,5.05rem)] font-semibold leading-[0.94] text-[#f4eee4]">
+                История
+                <br />
+                одного
+                <br />
+                места
+              </h2>
+              <p className="about-description mt-7 max-w-[380px] text-[1.28rem] font-semibold leading-10 text-[#b9aea0]">
+                Баня Море - место, где русская баня на дровах встречается с морем. Здесь приезжают прогреться, выдохнуть и провести время без спешки - с семьёй, друзьями или вдвоём
+              </p>
+              <a
+                href="#baths"
+                className="mt-10 inline-flex items-center gap-3 text-[20px] font-extrabold uppercase tracking-[0.22em] text-[#d6a15f] transition hover:text-[#f3d09b] sm:text-[22px]"
+              >
+                Наша философия <ArrowIcon className="-ml-2.5 inline-block h-[3.25rem] w-[3.25rem] -translate-y-[3px]" />
+              </a>
+            </div>
+
+            <div className="min-w-0">
+              <div
+                ref={carouselRef}
+                onPointerDown={beginManualCarouselScroll}
+                className="about-carousel scrollbar-none flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto pb-2 lg:overflow-visible lg:pb-0"
+              >
+                {stories.map((story, index) => {
+                  const isActive = active === index;
+
+                  return (
+                    <button
+                      key={story.number}
+                      ref={(node) => {
+                        storyRefs.current[index] = node;
+                      }}
+                      type="button"
+                      onClick={() => {
+                        if (isActive) {
+                          setViewer(index);
+                          return;
+                        }
+                        selectStory(index);
+                      }}
+                      className={`about-carousel-card group relative min-h-[400px] snap-center overflow-hidden rounded-lg border text-left sm:min-h-[470px] md:min-h-[545px] xl:min-h-[590px] ${
+                        isActive
+                          ? 'is-active border-[#d6a15f]/85 shadow-[0_0_0_1px_rgba(214,161,95,0.18),0_24px_80px_rgba(0,0,0,0.34)]'
+                          : 'border-[#6b4523]/55 shadow-[0_18px_60px_rgba(0,0,0,0.22)] hover:border-[#9b6532]/80'
+                      }`}
+                    >
+                      <img
+                        src={story.image}
+                        alt={story.title}
+                        loading={index === 0 ? 'eager' : 'lazy'}
+                        decoding="async"
+                        width={1400}
+                        height={1050}
+                        style={{ objectPosition: story.imagePosition ?? 'center' }}
+                        className={`absolute inset-0 h-full w-full object-cover transition duration-700 ${
+                          isActive
+                            ? `${story.imageScale ?? 'scale-105'} opacity-100 brightness-[0.96] saturate-[1.05]`
+                            : `opacity-100 brightness-[0.86] saturate-[0.98] grayscale-[0.02] ${story.hoverScale ?? 'group-hover:scale-105'} group-hover:brightness-[0.92]`
+                        }`}
+                      />
+                      <div
+                        className={`absolute inset-0 transition duration-500 ${
+                          isActive
+                            ? 'bg-[linear-gradient(180deg,rgba(5,4,3,0.18)_0%,rgba(5,4,3,0.34)_44%,rgba(5,4,3,0.74)_100%)]'
+                            : 'bg-[linear-gradient(180deg,rgba(5,4,3,0.32)_0%,rgba(5,4,3,0.46)_50%,rgba(5,4,3,0.80)_100%)]'
+                        }`}
+                      />
+                      <div className="relative flex h-full min-h-[400px] flex-col justify-between p-5 sm:min-h-[470px] md:min-h-[545px] xl:min-h-[590px]">
+                        <div className="h-8" aria-hidden="true" />
+                        <div
+                          className={`w-[172px] -translate-x-[6px] overflow-hidden transition-[opacity,transform] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] xl:w-[196px] ${
+                            isActive ? 'translate-y-0 opacity-100' : 'translate-y-1 opacity-90 group-hover:opacity-100'
+                          }`}
+                        >
+                          <h3 className="font-sans text-[1.7rem] font-extrabold leading-tight text-[#f4eee4]">{story.title}</h3>
+                          <p className="mt-4 text-lg font-semibold leading-8 text-[#c8bfb4]">{story.text}</p>
+                          <span
+                            className={`about-carousel-cta mt-5 inline-flex text-[13px] font-extrabold uppercase tracking-[0.17em] transition-[opacity,transform] duration-500 ease-out sm:text-[14px] ${
+                              isActive ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
+                            }`}
+                          >
+                            <span className="inline-block origin-left scale-[1.1]">Нажмите еще раз</span>
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="about-carousel-controls mt-8 flex w-full items-center justify-center sm:mt-10">
+                <div className="flex min-w-0 flex-1 items-center gap-5 sm:flex-none sm:gap-6">
+                  <span className="shrink-0 text-2xl font-extrabold leading-none text-[#d6a15f] sm:text-3xl">{stories[active].number}</span>
+                  <div className="about-carousel-progress flex min-w-0 flex-1 items-center justify-center gap-3 sm:w-[30rem] sm:flex-none sm:gap-4">
+                    {stories.map((story, index) => (
+                      <button
+                        key={story.number}
+                        type="button"
+                        onClick={() => selectStory(index)}
+                        aria-current={active === index ? 'step' : undefined}
+                        className={`about-carousel-progress__item h-[5px] shrink-0 rounded-full transition-[background,width] duration-[220ms] ${
+                          active === index
+                            ? 'w-20 bg-[#d6a15f] sm:w-28'
+                            : 'w-12 bg-[#3a3026] hover:bg-[#d6a15f]/45 sm:w-20'
+                        }`}
+                        aria-label={`Перейти к шагу ${story.number}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
+      <AnimatePresence>
+        {viewer !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="about-lightbox fixed inset-0 z-[80] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md"
+            onClick={() => setViewer(null)}
+          >
+            <motion.figure
+              initial={{ y: 28, scale: 0.96, opacity: 0 }}
+              animate={{ y: 0, scale: 1, opacity: 1 }}
+              exit={{ y: 28, scale: 0.96, opacity: 0 }}
+              transition={lightboxFigureTransition}
+              className="about-lightbox__figure relative flex max-h-[92vh] w-full max-w-6xl flex-col items-center"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="about-lightbox__media relative inline-flex max-h-[82vh] max-w-full items-center justify-center">
+                <img src={stories[viewer].image} alt={stories[viewer].title} className="about-lightbox__image max-h-[78vh] w-full rounded-lg object-contain" />
+                <button
+                  type="button"
+                  onClick={() => setViewer(null)}
+                  className="about-lightbox__close absolute right-3 top-3 grid h-12 w-12 place-items-center rounded-lg border border-[#d6a15f]/35 bg-[#21170f]/75 font-bold leading-none text-[#f4eee4] shadow-[0_16px_40px_rgba(0,0,0,0.34)] transition hover:border-[#d6a15f]/80 hover:bg-[#d6a15f] hover:text-[#15110d] sm:-right-16 sm:top-0 sm:h-14 sm:w-14"
+                  aria-label="Закрыть изображение"
+                >
+                  <span className="block translate-y-[-1px] text-[36px] leading-none">×</span>
+                </button>
+              </div>
+              <figcaption className="about-lightbox__caption mt-5 text-center font-sans text-[clamp(1.3rem,1.85vw,2.2rem)] font-extrabold leading-tight text-[#f4eee4]">{stories[viewer].title}</figcaption>
+            </motion.figure>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
